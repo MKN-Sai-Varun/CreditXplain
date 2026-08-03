@@ -134,7 +134,7 @@ If referencing the base paper this project extends:
 
 ## License
 
-MIT - see `LICENSE` for details. *(Add a `LICENSE` file before publishing publicly.)*
+MIT - see `LICENSE` for details. 
 
 ## Status Note
 
