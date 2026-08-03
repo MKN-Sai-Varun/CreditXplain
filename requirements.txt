@@ -1,0 +1,17 @@
+﻿pandas
+numpy
+scikit-learn
+xgboost
+lightgbm
+shap
+lime
+imbalanced-learn
+matplotlib
+seaborn
+streamlit
+streamlit-authenticator
+fairlearn
+reportlab
+dice-ml
+joblib
+pytest
