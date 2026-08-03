@@ -2,7 +2,7 @@
 
 **An Explainable, Counterfactual-Driven Decision Support System for Credit Risk Prediction**
 
-B.Tech Final Year Major Project — KMIT, Hyderabad | Academic Year 2026–2027
+B.Tech Final Year Major Project - KMIT, Hyderabad | Academic Year 2026–2027
 Target venue: IEEE Access (or comparable Q1/Q2 peer-reviewed venue)
 
 [![Status](https://img.shields.io/badge/status-in%20development-yellow)]()
@@ -13,8 +13,8 @@ Target venue: IEEE Access (or comparable Q1/Q2 peer-reviewed venue)
 
 ## Overview
 
-CreditXplain extends a peer-reviewed explainable credit-scoring baseline —
-Shreya & Pathak (2025), [arXiv:2506.19383](https://arxiv.org/abs/2506.19383) —
+CreditXplain extends a peer-reviewed explainable credit-scoring baseline -
+Shreya & Pathak (2025), [arXiv:2506.19383](https://arxiv.org/abs/2506.19383) -
 by adding three capabilities the base paper does not provide:
 
 | Capability | Base Paper | CreditXplain |
@@ -26,9 +26,9 @@ by adding three capabilities the base paper does not provide:
 
 The system is designed as a three-sided application:
 
-1. **Applicant self-service portal** — submit an application, check status live, and receive concrete, actionable recourse if rejected.
-2. **Bank loan officer dashboard** — risk scores, explanations, historical analytics, compliance alerts, PDF report generation.
-3. **Backend decision engine + fairness monitor** — prediction, explainability, counterfactual generation, and bias auditing.
+1. **Applicant self-service portal** - submit an application, check status live, and receive concrete, actionable recourse if rejected.
+2. **Bank loan officer dashboard** - risk scores, explanations, historical analytics, compliance alerts, PDF report generation.
+3. **Backend decision engine + fairness monitor** - prediction, explainability, counterfactual generation, and bias auditing.
 
 ## Repository Structure
 
@@ -75,7 +75,7 @@ Extract into `data/home_credit/`. The pipeline requires:
 - `bureau.csv`
 - `previous_application.csv`
 
-(Remaining files are used only for stretch-goal features — see [Dataset Scope](#dataset-scope).)
+(Remaining files are used only for stretch-goal features - see [Dataset Scope](#dataset-scope).)
 
 ### 4. Run the data pipeline
 
@@ -134,10 +134,10 @@ If referencing the base paper this project extends:
 
 ## License
 
-MIT — see `LICENSE` for details. *(Add a `LICENSE` file before publishing publicly.)*
+MIT - see `LICENSE` for details. *(Add a `LICENSE` file before publishing publicly.)*
 
 ## Status Note
 
 This is an active research project. Performance figures cited in project
 planning documents are hypothesized targets or numbers reported by the base
-paper — not this project's own results — until Phase 2 evaluation is complete.
+paper - not this project's own results - until Phase 2 evaluation is complete.
