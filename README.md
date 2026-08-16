@@ -140,7 +140,7 @@ Trained on the real Home Credit dataset, 80/20 stratified split, SMOTE applied t
 
 | Member | Responsibility |
 |---|---|
-| Member 1 | Data preprocessing, EDA, baseline model implementation |
+| Varun | Data preprocessing, EDA, baseline model implementation |
 | Member 2 | SHAP/LIME explainability integration |
 | Member 3 | Counterfactual Recommendation Engine |
 | Member 4 | Dashboard, fairness analysis, PDF reporting, manuscript coordination |
