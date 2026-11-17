@@ -11,6 +11,10 @@ from sklearn.ensemble import RandomForestClassifier
 from sklearn.preprocessing import StandardScaler
 from sklearn.metrics import roc_auc_score, precision_recall_fscore_support, accuracy_score, precision_recall_curve
 from imblearn.over_sampling import SMOTE
+import os
+
+for d in ("models", "data/processed", "reports"):
+    os.makedirs(d, exist_ok=True)
 from xgboost import XGBClassifier
 from lightgbm import LGBMClassifier
 
