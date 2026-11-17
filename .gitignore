@@ -5,3 +5,8 @@ __pycache__/
 .pytest_cache/
 *.zip
 .DS_Store
+
+# generated prediction dumps (regenerable)
+reports/*_oof*.csv
+reports/*_test.csv
+reports/*_predictions.csv
