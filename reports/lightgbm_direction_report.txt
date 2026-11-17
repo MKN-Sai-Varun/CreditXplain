@@ -1,0 +1,23 @@
+LIGHTGBM STRATEGY DIRECTION REPORT
+================================================================================
+
+                  model  validation_auc  validation_pr_auc  validation_log_loss  auc_gap  best_f1  best_f1_threshold  precision_at_best_f1  recall_at_best_f1
+           raw_lightgbm        0.765296           0.252120             0.244051 0.058907 0.315999              0.135              0.235439           0.480363
+         smote_lightgbm        0.759844           0.242673             0.245953 0.228305 0.306543              0.155              0.240217           0.423464
+      weighted_lightgbm        0.723172           0.196596             0.277856 0.009926 0.266919              0.115              0.214047           0.354481
+smote_weighted_lightgbm        0.597527           0.100445             0.704153 0.251895 0.177129              0.505              0.100588           0.740937
+
+================================================================================
+RECOMMENDATIONS
+================================================================================
+
+1. Best validation ROC-AUC model: raw_lightgbm (0.765296)
+
+2. SMOTE appears harmful: -0.005451 ROC-AUC versus raw data. Prioritize non-SMOTE approaches.
+
+3. Class weighting reduces ranking quality: -0.042124 ROC-AUC.
+
+4. Moderate overfitting detected. Next step: regularization and cross-validation.
+
+5. NEXT DIRECTION: use the raw-data pipeline. Prioritize feature engineering, CatBoost/XGBoost comparison, and OOF ensembling.
+

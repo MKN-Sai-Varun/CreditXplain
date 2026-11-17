@@ -1,0 +1,2 @@
+selected_model,validation_auc,test_auc,validation_pr_auc,test_pr_auc,best_iteration
+raw_lightgbm,0.7652956000426598,0.761591938076422,0.2521195455182927,0.25263536239875894,534
