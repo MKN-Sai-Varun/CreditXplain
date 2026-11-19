@@ -3,7 +3,7 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordRequestForm
 from sqlalchemy.orm import Session
 from backend.database import get_db
-from backend.models import User
+from backend.models import User, UserRole
 from backend.schemas import UserCreate, UserResponse, Token
 from backend.auth import (
     get_password_hash,
@@ -30,7 +30,7 @@ def register(user_data: UserCreate, db: Session = Depends(get_db)):
     new_user = User(
         email=user_data.email,
         password_hash=get_password_hash(user_data.password),
-        role=user_data.role,
+        role=UserRole.APPLICANT,   # never trust a client-supplied role
         full_name=user_data.full_name
     )
     

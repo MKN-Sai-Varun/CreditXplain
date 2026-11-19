@@ -22,6 +22,8 @@ app.add_middleware(
 # Initialize database on startup
 @app.on_event("startup")
 def startup_event():
+    if not settings.DEBUG and settings.SECRET_KEY.startswith("creditxplain-secret-key"):
+        raise RuntimeError("Set SECRET_KEY in .env before running with DEBUG=False")
     init_db()
 
 # Include routers

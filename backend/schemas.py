@@ -10,7 +10,6 @@ class UserBase(BaseModel):
 
 class UserCreate(UserBase):
     password: str
-    role: UserRole = UserRole.APPLICANT
 
 class UserLogin(BaseModel):
     email: EmailStr
