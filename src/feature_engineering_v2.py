@@ -608,78 +608,79 @@ def add_features(df):
     return df
 
 
-# =============================================================
-# LOAD
-# =============================================================
+if __name__ == "__main__":
+    # =============================================================
+    # LOAD
+    # =============================================================
 
-print("=" * 80)
-print("FEATURE ENGINEERING V2")
-print("=" * 80)
+    print("=" * 80)
+    print("FEATURE ENGINEERING V2")
+    print("=" * 80)
 
-X_train = pd.read_csv(TRAIN_X)
-X_test = pd.read_csv(TEST_X)
+    X_train = pd.read_csv(TRAIN_X)
+    X_test = pd.read_csv(TEST_X)
 
-print(f"\nOriginal train shape: {X_train.shape}")
-print(f"Original test shape : {X_test.shape}")
-
-
-# =============================================================
-# CREATE FEATURES
-# =============================================================
-
-X_train_fe = add_features(X_train)
-X_test_fe = add_features(X_test)
+    print(f"\nOriginal train shape: {X_train.shape}")
+    print(f"Original test shape : {X_test.shape}")
 
 
-# =============================================================
-# ALIGN COLUMNS
-# =============================================================
+    # =============================================================
+    # CREATE FEATURES
+    # =============================================================
 
-X_test_fe = X_test_fe.reindex(
-    columns=X_train_fe.columns
-)
-
-
-# =============================================================
-# SAVE
-# =============================================================
-
-X_train_fe.to_csv(
-    TRAIN_OUT,
-    index=False
-)
-
-X_test_fe.to_csv(
-    TEST_OUT,
-    index=False
-)
+    X_train_fe = add_features(X_train)
+    X_test_fe = add_features(X_test)
 
 
-# =============================================================
-# SUMMARY
-# =============================================================
+    # =============================================================
+    # ALIGN COLUMNS
+    # =============================================================
 
-new_features = [
-    c for c in X_train_fe.columns
-    if c not in X_train.columns
-]
+    X_test_fe = X_test_fe.reindex(
+        columns=X_train_fe.columns
+    )
 
-print("\n" + "=" * 80)
-print("FEATURE ENGINEERING COMPLETE")
-print("=" * 80)
 
-print(f"\nOriginal features : {X_train.shape[1]}")
-print(f"New features      : {len(new_features)}")
-print(f"Final features    : {X_train_fe.shape[1]}")
+    # =============================================================
+    # SAVE
+    # =============================================================
 
-print("\nNew features:")
+    X_train_fe.to_csv(
+        TRAIN_OUT,
+        index=False
+    )
 
-for feature in new_features:
-    print(feature)
+    X_test_fe.to_csv(
+        TEST_OUT,
+        index=False
+    )
 
-print("\nFinal train shape:", X_train_fe.shape)
-print("Final test shape :", X_test_fe.shape)
 
-print("\nSaved:")
-print(TRAIN_OUT)
-print(TEST_OUT)
+    # =============================================================
+    # SUMMARY
+    # =============================================================
+
+    new_features = [
+        c for c in X_train_fe.columns
+        if c not in X_train.columns
+    ]
+
+    print("\n" + "=" * 80)
+    print("FEATURE ENGINEERING COMPLETE")
+    print("=" * 80)
+
+    print(f"\nOriginal features : {X_train.shape[1]}")
+    print(f"New features      : {len(new_features)}")
+    print(f"Final features    : {X_train_fe.shape[1]}")
+
+    print("\nNew features:")
+
+    for feature in new_features:
+        print(feature)
+
+    print("\nFinal train shape:", X_train_fe.shape)
+    print("Final test shape :", X_test_fe.shape)
+
+    print("\nSaved:")
+    print(TRAIN_OUT)
+    print(TEST_OUT)

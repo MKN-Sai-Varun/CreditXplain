@@ -1,0 +1,4 @@
+model,test_roc_auc,test_pr_auc,test_logloss
+lgbm_fe_v2,0.7722,0.2631,0.2417
+catboost_fe_v2,0.77,0.2599,0.2424
+blend_w0.55,0.772,0.2627,0.2418

@@ -1,0 +1,3 @@
+model,test_roc_auc,features_count,auc_difference
+without_gender,0.7667974950907726,300,
+with_gender,0.7684768155111177,302,0.0016793204203451317
