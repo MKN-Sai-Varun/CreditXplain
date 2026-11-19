@@ -70,10 +70,16 @@ class LimeFeature(BaseModel):
     weight: float
 
 class Counterfactual(BaseModel):
-    features: Dict[str, Any]
-    changes: List[str]
+    levers: List[str] = []
+    changes: List[Dict[str, Any]]
     num_changes: int
-    success: bool
+    original_probability: Optional[float] = None
+    new_probability: float
+    new_decision: str
+    reaches_approve: bool = False
+    success: bool = True
+    cost: Optional[float] = None
+    feasibility_score: Optional[float] = None
 
 class ExplanationResponse(BaseModel):
     shap_values: List[ShapValue]
