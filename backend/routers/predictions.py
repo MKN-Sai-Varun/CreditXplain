@@ -71,8 +71,8 @@ def predict_application(
             application_id=application.id,
             decision=DecisionType[decision_str],
             probability=probability,
-            approve_threshold=settings.APPROVE_THRESHOLD,
-            reject_threshold=settings.REJECT_THRESHOLD
+            approve_threshold=prediction_service.approve_below,
+            reject_threshold=prediction_service.reject_from
         )
         db.add(decision)
         db.flush()  # Get decision ID

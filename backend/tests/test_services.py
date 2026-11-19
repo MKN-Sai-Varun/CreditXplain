@@ -21,26 +21,17 @@ def test_prediction_service_model_loaded():
         # Model files don't exist or failed to load, service should handle gracefully
         pytest.skip("Model not loaded successfully")
 
-def test_prediction_service_get_feature_names():
-    """Test getting feature names from model"""
+def test_prediction_service_model_loaded():
     service = PredictionService()
-    feature_names = service.get_feature_names()
-    assert isinstance(feature_names, list)
+    if service.model is None:
+        pytest.skip("Model not loaded successfully")
+    assert len(service.get_feature_names()) == 300
+
 
 def test_prediction_if_model_exists():
-    """Test prediction if model is loaded"""
     service = PredictionService()
-    
-    if service.model is not None:
-        # Create sample features (all zeros as fallback)
-        sample_features = {col: 0.0 for col in service.continuous_cols}
-        
-        # Make prediction
-        probability, decision = service.predict(sample_features)
-        
-        # Verify outputs
-        assert isinstance(probability, float)
-        assert 0.0 <= probability <= 1.0
-        assert decision in ["APPROVE", "REVIEW", "REJECT"]
-    else:
+    if service.model is None:
         pytest.skip("Model not loaded, skipping prediction test")
+    probability, decision = service.predict({"AMT_CREDIT": 500000, "AMT_INCOME_TOTAL": 180000})
+    assert 0.0 <= probability <= 1.0
+    assert decision in ["APPROVE", "REVIEW", "REJECT"]
