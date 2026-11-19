@@ -18,3 +18,10 @@ reports/*_predictions.csv
 backend/__pycache__/
 backend/*/__pycache__/
 backend/.pytest_cache/
+
+# Frontend
+frontend/.next/
+frontend/node_modules/
+frontend/.env.local
+frontend/out/
+frontend/build/
