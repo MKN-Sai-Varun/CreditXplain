@@ -596,3 +596,172 @@ predictions_df['default_probability'] = predictions_df['predicted_probability']
 ---
 
 **Next Update:** After Phase 4.2 (Prediction Engine Integration)
+
+
+---
+
+## Phase 4.2: Prediction Engine — New Issues
+
+### #36: Phase 1 Final Model Not Trained
+**Status:** ⚠️ Blocking for Production  
+**Phase:** 4.2  
+**Description:** `models/final_lgbm.pkl` referenced in config but never trained/saved from Phase 1.  
+**Current State:**
+- Config points to `final_lgbm.pkl` (correct)
+- Old baseline `lightgbm.pkl` exists (Aug 16, baseline model)
+- Phase 1 was not completed with final model training script
+- Services initialize with warning but continue
+
+**Impact:**
+- Prediction API endpoint works but returns 500 error ("Model not loaded")
+- SHAP/LIME services cannot initialize
+- Counterfactual generation unavailable
+- End-to-end testing blocked
+
+**Workaround:** Services handle missing model gracefully with clear error messages
+
+**Action:** Train Phase 1 final model or use existing baseline model  
+**Options:**
+1. Complete Phase 1 model training (`src/final_model.py`)
+2. Point config to existing `lightgbm.pkl` (less accurate)
+3. Deploy without ML (manual decisions only)
+
+**Priority:** High (required for functional prediction API)
+
+**Date:** Nov 19, 2026
+
+---
+
+### #37: Old Baseline Model File Corrupted
+**Status:** Open  
+**Phase:** 4.2  
+**Description:** `models/lightgbm.pkl` (368 KB, Aug 16) fails to load with pickle error.  
+**Error:** `_pickle.UnpicklingError: invalid load key, '\x04'`  
+**Root Cause:** File corruption or Python version mismatch (trained with different Python/pickle protocol)
+
+**Impact:** Cannot use old baseline model as fallback
+
+**Action:** Delete corrupted file or retrain baseline model  
+**Priority:** Low (Phase 1 final model should be used anyway)
+
+**Date:** Nov 19, 2026
+
+---
+
+### #38: LIME Training Data Hardcoded Path
+**Status:** Open  
+**Phase:** 4.2  
+**Description:** ExplainabilityService loads LIME training data from hardcoded `X_train_fe_v2.csv` path.  
+**Current Code:**
+```python
+train_path = self.prediction_service.settings.DATA_DIR / "X_train_fe_v2.csv"
+```
+
+**Impact:**
+- Fails silently if file doesn't exist (LIME not initialized)
+- Loads 1000 rows on every service initialization (slow)
+- Training data not needed for SHAP (unnecessary dependency)
+
+**Action:** Make LIME initialization optional or cache training data  
+**Priority:** Low (LIME is supplementary, SHAP is primary)
+
+**Date:** Nov 19, 2026
+
+---
+
+### #39: No Caching for Loaded Models
+**Status:** Open  
+**Phase:** 4.2  
+**Description:** Models are singletons but loaded synchronously on first request, causing ~2-3 second delay.  
+**Impact:** First prediction request is slow; subsequent requests fast
+
+**Action:** Consider async model loading or preload on startup  
+**Options:**
+1. Preload in FastAPI startup event
+2. Use background task for model loading
+3. Accept first-request latency (current approach)
+
+**Priority:** Low (acceptable for prototype)
+
+**Date:** Nov 19, 2026
+
+---
+
+### #40: DiCE Counterfactual Generation Slow
+**Status:** Open  
+**Phase:** 4.2  
+**Description:** DiCE counterfactual generation takes 2-5 seconds for 3 counterfactuals.  
+**Impact:** Prediction API endpoint has longer response time for REJECT decisions
+
+**Action:** Consider caching, async generation, or limiting to 1-2 counterfactuals  
+**Priority:** Low (only affects rejected applications)
+
+**Date:** Nov 19, 2026
+
+---
+
+### #41: No API Tests for Prediction Endpoint
+**Status:** Open  
+**Phase:** 4.2  
+**Description:** Prediction pipeline implemented but no integration tests with FastAPI TestClient.  
+**Impact:** Cannot verify full request → prediction → explanation → database flow
+
+**Action:** Add API integration tests in Phase 4.9  
+**Priority:** Medium (defer to integration testing phase)
+
+**Date:** Nov 19, 2026
+
+---
+
+### #42: Explanation Storage as JSON Blobs
+**Status:** By Design  
+**Phase:** 4.2  
+**Description:** SHAP values, LIME explanations, and counterfactuals stored as JSON in single `explanations.shap_values` column.  
+**Alternatives:** Separate tables for each explanation type
+
+**Rationale:**
+- Flexible schema (explanation format may evolve)
+- Simpler queries (one join instead of three)
+- Smaller database (no repeated metadata)
+
+**Trade-off:** Cannot query individual SHAP values or features directly
+
+**Priority:** Not an issue (acceptable design choice)
+
+**Date:** Nov 19, 2026
+
+---
+
+## Change Log (Updated)
+
+| Date | Issue | Action |
+|---|---|---|
+| Nov 19, 2026 | #10 | Resolved: Added main guard to feature_engineering_v2.py |
+| Nov 19, 2026 | Q1 | Resolved: Gender exclusion confirmed by user |
+| Nov 19, 2026 | Q2 | Clarified: Age and family status kept in model, audited for fairness |
+| Nov 19, 2026 | #4 | Resolved: Committed evaluate_on_test.py, deleted obsolete files |
+| Nov 19, 2026 | #8 | Resolved: Gender ablation study completed, 0.17% AUC cost |
+| Nov 19, 2026 | #9 | Resolved: Deleted stale cost-optimized reports |
+| Nov 19, 2026 | #11 | Resolved: Deleted broken lgbm_capacity_experiment.py |
+| Nov 19, 2026 | All | Initial KNOWN_ISSUES.md created |
+| Nov 19, 2026 | Phase 1 | All Phase 1 issues resolved and committed |
+| Nov 19, 2026 | #2 | Resolved: SHAP/LIME explainability implemented |
+| Nov 19, 2026 | Phase 2 | All Phase 2 deliverables complete |
+| Nov 19, 2026 | #15 | Identified: Low counterfactual success rate (3.3%) |
+| Nov 19, 2026 | #16 | **CRITICAL**: Age-based fairness disparity detected (0.3488 DPD) |
+| Nov 19, 2026 | #17-24 | Resolved: Phase 3 implementation issues |
+| Nov 19, 2026 | Phase 3 | All Phase 3 implementation and tests complete |
+| Nov 19, 2026 | #25-35 | Identified: Phase 4.1 backend foundation issues |
+| Nov 19, 2026 | Phase 4.1 | Backend foundation complete - 4/4 tests passing, server verified |
+| Nov 19, 2026 | #36 | **CRITICAL**: Phase 1 final model not trained (blocks prediction API) |
+| Nov 19, 2026 | #37 | Identified: Old baseline model corrupted |
+| Nov 19, 2026 | #38 | Identified: LIME training data hardcoded path |
+| Nov 19, 2026 | #39 | Identified: No model caching (first request slow) |
+| Nov 19, 2026 | #40 | Identified: DiCE counterfactual generation slow (2-5s) |
+| Nov 19, 2026 | #41 | Identified: No API tests for prediction endpoint |
+| Nov 19, 2026 | #42 | By Design: Explanation storage as JSON blobs |
+| Nov 19, 2026 | Phase 4.2 | Prediction engine integration complete - services working, awaiting trained model |
+
+---
+
+**Next Update:** After Phase 4.3 (Loan Terms Calculator)

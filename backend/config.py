@@ -25,7 +25,7 @@ class Settings(BaseSettings):
     REPORTS_DIR: Path = BASE_DIR / "reports"
     
     # Model
-    MODEL_PATH: Path = MODELS_DIR / "lightgbm.pkl"
+    MODEL_PATH: Path = MODELS_DIR / "final_lgbm.pkl"
     SCALER_PATH: Path = MODELS_DIR / "scaler.pkl"
     CONTINUOUS_COLS_PATH: Path = MODELS_DIR / "continuous_cols.pkl"
     

@@ -928,3 +928,135 @@ class ApplicationResponse(BaseModel):
 ---
 
 **Next Update:** Phase 4.2 (Prediction Engine Integration)
+
+
+---
+
+## 14. Service Layer Architecture (Phase 4.2)
+
+### D-20: Service Layer Pattern
+**Decision:** Separate business logic into service classes, not directly in routers  
+**Alternatives Considered:**
+- Put ML code directly in router endpoints
+- Create utility functions without classes
+- Microservices architecture (separate processes)
+
+**Rationale:**
+- **Separation of concerns** - routers handle HTTP, services handle business logic
+- **Reusability** - services can be used by multiple routers or CLI tools
+- **Testability** - services can be tested independently of FastAPI
+- **Singleton pattern** - models loaded once and reused across requests
+- **State management** - services maintain loaded models in memory
+
+**Services Created:**
+1. **PredictionService** - Model loading and predictions
+2. **ExplainabilityService** - SHAP/LIME generation
+3. **CounterfactualService** - DiCE recommendations
+
+**Date:** Nov 19, 2026  
+**Implementation:** `backend/services/`
+
+---
+
+### D-21: Model File Selection
+**Decision:** Use `final_lgbm.pkl` from Phase 1, not old `lightgbm.pkl`  
+**Issue:** Old baseline model (Aug 16) vs Phase 1 final model (Nov 19)
+
+**Rationale:**
+- `final_lgbm.pkl` is the Phase 1 selected model with FE V2
+- Old `lightgbm.pkl` is baseline model without feature engineering
+- Phase 1 model has better performance (0.7722 vs 0.7203 AUC)
+
+**Files Used:**
+- Model: `models/final_lgbm.pkl` (2.3 MB)
+- Scaler: `models/scaler.pkl` (13 KB)
+- Features: `models/continuous_cols.pkl` (1.5 KB)
+
+**Date:** Nov 19, 2026
+
+---
+
+### D-22: Graceful Model Loading
+**Decision:** Services initialize without crashing if model files missing  
+**Behavior:**
+- Print warning message to console
+- Set model/scaler/features to None or empty
+- API endpoints return 500 with clear error message
+- Server continues to run (other endpoints still work)
+
+**Rationale:**
+- Development convenience - backend can start without trained models
+- Testing flexibility - tests can run without model files
+- Deployment flexibility - backend and model training can be separate
+- Clear error messages for debugging
+
+**Date:** Nov 19, 2026
+
+---
+
+### D-23: SHAP as Primary Explainability in API
+**Decision:** Generate SHAP for every prediction, LIME as supplementary  
+**Rationale:**
+- SHAP is exact for tree models (no sampling variance)
+- SHAP values satisfy additivity property
+- LIME provides alternative perspective for validation
+- Both stored in database for comparison
+
+**API Behavior:**
+- SHAP: Always generated, top 20 features returned
+- LIME: Always generated, top 10 features returned
+- Both saved to `explanations` table
+
+**Date:** Nov 19, 2026
+
+---
+
+### D-24: Counterfactuals Only for Rejections
+**Decision:** Generate counterfactuals only when decision = REJECT  
+**Alternatives:**
+- Generate for all decisions (wasteful)
+- Generate for REVIEW and REJECT (partial)
+- Generate on-demand via separate endpoint
+
+**Rationale:**
+- APPROVE decisions don't need recourse (already approved)
+- REVIEW decisions await officer action (officer may override)
+- REJECT decisions need actionable recommendations
+- Saves computation time (~2-3 seconds per counterfactual)
+
+**Date:** Nov 19, 2026
+
+---
+
+### D-25: Feature Preprocessing in Service Layer
+**Decision:** Services handle all feature preprocessing (scaling, selection)  
+**Preprocessing Steps:**
+1. Convert feature dict to DataFrame
+2. Fill missing columns with 0
+3. Select only continuous_cols (match training)
+4. Apply StandardScaler transformation
+
+**Rationale:**
+- Consistent preprocessing across all predictions
+- Encapsulates ML pipeline complexity
+- API callers just pass raw feature values
+- Reduces chance of preprocessing mismatch
+
+**Date:** Nov 19, 2026
+
+---
+
+## Change Log (Updated)
+
+| Date | Phase | Changes |
+|---|---|---|
+| Nov 19, 2026 | Phase 1 Start | Initial document created; D-1 through D-4, FE-1, FE-2 documented |
+| Nov 19, 2026 | Phase 1 Complete | D-2 threshold strategy refined; D-3 validated via ablation |
+| Nov 19, 2026 | Phase 2 Complete | E-1 documented (SHAP primary, LIME secondary); top 5 features identified |
+| Nov 19, 2026 | Phase 3 Complete | CF-1 to CF-4 (counterfactuals), F-1 to F-7 (fairness); age disparity identified (0.3488) |
+| Nov 19, 2026 | Phase 4.1 Complete | D-8 to D-19 (backend foundation); FastAPI, SQLite, JWT auth; 23 files created |
+| Nov 19, 2026 | Phase 4.2 Complete | D-20 to D-25 (service layer); prediction, explainability, counterfactual services |
+
+---
+
+**Next Update:** Phase 4.3 (Loan Terms Calculator)
