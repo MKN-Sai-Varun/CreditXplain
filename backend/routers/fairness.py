@@ -5,6 +5,7 @@ from backend.database import get_db
 from backend.models import User, FairnessMetric
 from backend.schemas import FairnessMetricsResponse, DemographicStats
 from backend.auth import get_current_officer
+from backend.services.fairness_service import get_fairness_service
 
 router = APIRouter()
 
@@ -43,9 +44,19 @@ def get_age_band_statistics(
     db: Session = Depends(get_db)
 ):
     """Get approval statistics by age band"""
-    # TODO: Implement demographic breakdown (Phase 4.5)
-    # This will require joining applications with decisions and calculating stats per age group
-    return []
+    fairness_service = get_fairness_service()
+    stats = fairness_service.get_demographic_statistics(db, 'age')
+    
+    return [
+        DemographicStats(
+            group=s['group'],
+            count=s['count'],
+            approved=s['approved'],
+            rejected=s['count'] - s['approved'],
+            approval_rate=s['approval_rate']
+        )
+        for s in stats
+    ]
 
 @router.get("/demographics/family", response_model=List[DemographicStats])
 def get_family_status_statistics(
@@ -53,8 +64,19 @@ def get_family_status_statistics(
     db: Session = Depends(get_db)
 ):
     """Get approval statistics by family status"""
-    # TODO: Implement demographic breakdown (Phase 4.5)
-    return []
+    fairness_service = get_fairness_service()
+    stats = fairness_service.get_demographic_statistics(db, 'family')
+    
+    return [
+        DemographicStats(
+            group=s['group'],
+            count=s['count'],
+            approved=s['approved'],
+            rejected=s['count'] - s['approved'],
+            approval_rate=s['approval_rate']
+        )
+        for s in stats
+    ]
 
 @router.post("/calculate")
 def recalculate_fairness_metrics(
@@ -62,6 +84,27 @@ def recalculate_fairness_metrics(
     db: Session = Depends(get_db)
 ):
     """Trigger recalculation of fairness metrics"""
-    # TODO: Implement fairness calculation (Phase 4.5)
-    # This will use the fairness_audit.py logic from Phase 3
-    return {"message": "Fairness metrics calculation triggered"}
+    fairness_service = get_fairness_service()
+    
+    # Calculate metrics
+    metrics = fairness_service.calculate_fairness_metrics(db, min_applications=50)
+    
+    if metrics is None:
+        return {
+            "message": "Insufficient data for fairness calculation (minimum 50 applications required)",
+            "success": False
+        }
+    
+    # Save to database
+    fairness_record = fairness_service.save_fairness_metrics(db, metrics)
+    
+    return {
+        "message": "Fairness metrics calculated successfully",
+        "success": True,
+        "metrics": {
+            "age_dpd": metrics.get('age_dpd'),
+            "family_dpd": metrics.get('family_dpd'),
+            "has_alert": metrics.get('has_alert'),
+            "total_applications": metrics.get('total_applications')
+        }
+    }

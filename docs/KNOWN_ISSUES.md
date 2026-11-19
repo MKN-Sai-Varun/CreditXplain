@@ -887,3 +887,85 @@ loan_amount = application.features_json.get('AMT_CREDIT', 100000)
 ---
 
 **Next Update:** After Phase 4.4 or 4.5
+
+---
+
+## Phase 4.5: Fairness Monitoring — New Issues
+
+### #48: Fairness Metrics Require Manual Trigger
+**Status:** By Design  
+**Phase:** 4.5  
+**Description:** Fairness metrics are not automatically calculated - officer must trigger via POST /api/fairness/calculate.  
+**Current Behavior:** Metrics only update when officer manually requests recalculation
+
+**Alternatives:**
+1. Auto-calculate after every N applications
+2. Background job (scheduled every hour/day)
+3. Calculate on every prediction (performance impact)
+
+**Rationale:** Manual trigger gives officers control and avoids unnecessary computation
+
+**Priority:** Not an issue (acceptable design)
+
+**Date:** Nov 19, 2026
+
+---
+
+### #49: Fairness Calculation Requires 50+ Applications
+**Status:** By Design  
+**Phase:** 4.5  
+**Description:** Fairness metrics require minimum 50 applications for statistical significance.  
+**Impact:** New deployments cannot calculate fairness until 50 applications processed
+
+**Rationale:** Small samples can show misleading disparities (not statistically reliable)
+
+**Workaround:** Return clear error message if insufficient data
+
+**Priority:** Not an issue (acceptable requirement)
+
+**Date:** Nov 19, 2026
+
+---
+
+### #50: No Historical Fairness Trend Visualization
+**Status:** Open  
+**Phase:** 4.5  
+**Description:** API stores historical metrics but no endpoint to retrieve time-series data.  
+**Current:** Only latest metric accessible via GET /metrics
+
+**Impact:** Cannot track fairness improvement/degradation over time
+
+**Action:** Add GET /api/fairness/history endpoint (deferred to Phase 5 or later)  
+**Priority:** Low (nice-to-have feature)
+
+**Date:** Nov 19, 2026
+
+---
+
+### #51: Demographic Statistics May Be Stale
+**Status:** Open  
+**Phase:** 4.5  
+**Description:** GET /demographics/* endpoints return stats from latest saved metric, not real-time calculation.  
+**Impact:** Stats may be outdated if many new applications processed since last calculation
+
+**Action:** Add "last_calculated" timestamp to response so users know freshness  
+**Priority:** Low (acceptable - officer can trigger recalculation)
+
+**Date:** Nov 19, 2026
+
+---
+
+## Change Log (Updated)
+
+| Date | Issue | Action |
+|---|---|---|
+| Nov 19, 2026 | Phase 4.3 | Loan calculator complete |
+| Nov 19, 2026 | #48 | By Design: Fairness metrics require manual trigger |
+| Nov 19, 2026 | #49 | By Design: Minimum 50 applications required |
+| Nov 19, 2026 | #50 | Identified: No historical trend visualization |
+| Nov 19, 2026 | #51 | Identified: Demographic stats may be stale |
+| Nov 19, 2026 | Phase 4.5 | Fairness monitoring complete - 6/6 tests passing |
+
+---
+
+**Next Update:** Phase 4 wrap-up or Phase 5

@@ -1196,3 +1196,109 @@ class ApplicationResponse(BaseModel):
 ---
 
 **Next Update:** Phase 4.4 or 4.5
+
+---
+
+## 16. Fairness Monitoring Design (Phase 4.5)
+
+### D-32: Real-time Fairness Calculation from Database
+**Decision:** Calculate fairness metrics from applications in database, not from static files  
+**Alternatives:**
+- Pre-calculated metrics from Phase 3 reports
+- Batch processing with scheduled jobs
+- Static fairness report displayed in dashboard
+
+**Rationale:**
+- Real-time metrics reflect current system behavior
+- Updates as new applications are processed
+- Officer can trigger recalculation on-demand
+- Historical tracking via fairness_metrics table
+- More accurate than static Phase 3 reports
+
+**Date:** Nov 19, 2026
+
+---
+
+### D-33: Minimum 50 Applications for Fairness Calculation
+**Decision:** Require at least 50 applications before calculating fairness metrics  
+**Rationale:**
+- Statistical significance requires sufficient sample size
+- Small samples can show misleading disparities
+- 50 is reasonable minimum for demographic breakdown (5 age bands × ~10 per band)
+- API returns clear message if insufficient data
+
+**Date:** Nov 19, 2026
+
+---
+
+### D-34: Officer-Only Access to Fairness Endpoints
+**Decision:** All fairness endpoints require officer role  
+**Rationale:**
+- Sensitive information (demographic disparities)
+- Compliance/audit function (not for applicants)
+- Prevents gaming of system based on fairness metrics
+- Aligns with regulatory best practices (internal monitoring)
+
+**Date:** Nov 19, 2026
+
+---
+
+### D-35: Alert Threshold at 10% (0.1 DPD)
+**Decision:** Alert triggers when demographic parity difference exceeds 0.1  
+**Alternatives:**
+- 20% threshold (80% rule: 0.2 DPD)
+- 5% threshold (stricter)
+- No threshold (always show metrics)
+
+**Rationale:**
+- Stricter than 80% rule (0.1 vs 0.2)
+- Balances sensitivity and actionability
+- Phase 3 found 0.3488 age disparity (clearly exceeds threshold)
+- Aligns with D-3 decision (fairness is priority)
+
+**Date:** Nov 19, 2026
+
+---
+
+### D-36: Store Fairness Metrics History
+**Decision:** Save each calculation to fairness_metrics table  
+**Fields:** age_dpd, children_dpd, metrics_json, has_alert, alert_message, calculated_at
+
+**Rationale:**
+- Audit trail for compliance
+- Track fairness trends over time
+- Compare before/after mitigation efforts
+- Evidence for regulatory review
+- Historical analysis for manuscript
+
+**Date:** Nov 19, 2026
+
+---
+
+### D-37: Demographic Groups Match Phase 3
+**Decision:** Use same age bands and family status as Phase 3  
+**Age Bands:** <25, 25-35, 35-45, 45-55, 55+  
+**Family Status:** Has Children / No Children
+
+**Rationale:**
+- Consistency between offline audit (Phase 3) and real-time monitoring (Phase 4)
+- Age bands reflect life stages
+- Family status simpler than marital status + children (easier to interpret)
+- Matches Phase 3 findings (age disparity 0.3488)
+
+**Date:** Nov 19, 2026
+
+---
+
+## Change Log (Updated)
+
+| Date | Phase | Changes |
+|---|---|---|
+| Nov 19, 2026 | Phase 4.1 | D-8 to D-19 (backend foundation) |
+| Nov 19, 2026 | Phase 4.2 | D-20 to D-25 (service layer) |
+| Nov 19, 2026 | Phase 4.3 | D-26 to D-31 (loan calculator) |
+| Nov 19, 2026 | Phase 4.5 | D-32 to D-37 (fairness monitoring) |
+
+---
+
+**Next Update:** Phase 4 wrap-up or Phase 5
