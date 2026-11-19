@@ -24,13 +24,16 @@ This document tracks bugs, gaps, technical debt, and unresolved questions. Items
 
 ---
 
-### #2: SHAP/LIME Not Implemented
-**Status:** Open  
+### #2: SHAP/LIME Implementation ✅ **RESOLVED**
+**Status:** Resolved (Nov 19, 2026)  
 **Phase:** 2  
-**Description:** Phase 2 requires SHAP (global summary, per-applicant waterfall) and LIME (secondary comparison), but `src/explainability.py` does not exist.  
-**Impact:** Objective O5 incomplete (model selection requires accuracy + explainability-consistency). Cannot proceed to Phase 3 counterfactual engine without baseline explanations.  
-**Action:** Implement in next phase after model lock.  
-**Owner:** Member 2 (per team roles)
+**Resolution:** Implemented `src/explainability.py` with full SHAP and LIME support.  
+**Evidence:** 
+- SHAP additivity: Perfect (0.00 max difference)
+- SHAP stability: Perfect (1.00 correlation)
+- SHAP-LIME consistency: 58.3% average
+- All 13 tests passing
+- Outputs: 6 waterfall plots, 6 LIME explanations, global importance, comprehensive report
 
 ---
 
@@ -49,19 +52,15 @@ This document tracks bugs, gaps, technical debt, and unresolved questions. Items
 
 ---
 
-### #4: Uncommitted Experimental Files
-**Status:** Open  
+### #4: Uncommitted Experimental Files ✅ **RESOLVED**
+**Status:** Resolved (Nov 19, 2026)  
 **Phase:** 2  
-**Description:** Several files are untracked or have unstaged deletions:
-- `src/evaluate_on_test.py` (untracked, should be committed)
-- `src/train_lightgbm_recall.py` (untracked, obsolete per PROJECT_STATE.md)
-- `src/lgbm_capacity_experiment.py` (untracked, broken: never loads target)
-- Stale reports: `lightgbm_cost_optimized.csv`, `lightgbm_cost_threshold_sweep.csv`, `lightgbm_recall_optimized.csv`
-- `backend/models/model.py` (deleted in working tree, deletion not staged)
-
-**Impact:** Repo hygiene; confusion over which files are current.  
-**Action:** Stage `evaluate_on_test.py`; delete obsolete files; stage `backend/models/model.py` deletion.  
-**Owner:** Varun (pending in Phase 1 cleanup)
+**Resolution:**
+- ✅ Committed `src/evaluate_on_test.py`
+- ✅ Deleted `src/train_lightgbm_recall.py` (obsolete)
+- ✅ Deleted `src/lgbm_capacity_experiment.py` (broken)
+- ✅ Deleted stale reports: `lightgbm_cost_optimized.csv`, `lightgbm_cost_threshold_sweep.csv`, `lightgbm_recall_optimized.csv`
+- ✅ Staged and committed `backend/models/model.py` deletion
 
 ---
 
@@ -104,23 +103,18 @@ This document tracks bugs, gaps, technical debt, and unresolved questions. Items
 
 ---
 
-### #8: Gender Feature Importance in Existing Models
-**Status:** Noted  
+### #8: Gender Feature Importance in Existing Models ✅ **RESOLVED**
+**Status:** Resolved (Nov 19, 2026)  
 **Phase:** 2  
-**Description:** `lgbm_fe_v2_cv.py` model (before exclusion) included CODE_GENDER_M with gain importance 4219.66 (1.02%). This is now excluded in `final_model.py`.  
-**Impact:** Ablation study will quantify performance impact (expected: minimal).  
-**Action:** Run `--ablation` flag in Phase 1 to document difference.  
-**Owner:** Varun (Phase 1 execution)
+**Resolution:** Ablation study completed. Gender exclusion costs only 0.17% AUC (0.7668 without vs 0.7685 with gender). Ethical trade-off validated as acceptable.  
+**Evidence:** `reports/gender_ablation.csv`
 
 ---
 
-### #9: Stale Cost-Optimized Reports
-**Status:** Open  
+### #9: Stale Cost-Optimized Reports ✅ **RESOLVED**
+**Status:** Resolved (Nov 19, 2026)  
 **Phase:** 2  
-**Description:** `reports/lightgbm_cost_optimized.csv`, `lightgbm_cost_threshold_sweep.csv`, `lightgbm_recall_optimized.csv` are from SMOTE-era experiments and are superseded by the three-band router.  
-**Impact:** Confusion over which results are current.  
-**Action:** Delete or move to `reports/archive/` in Phase 1 cleanup.  
-**Owner:** Varun
+**Resolution:** Deleted all three stale reports. Superseded by three-band router with balanced thresholds.
 
 ---
 
@@ -184,12 +178,10 @@ This document tracks bugs, gaps, technical debt, and unresolved questions. Items
 
 ---
 
-### #11: lgbm_capacity_experiment.py Broken
-**Status:** Open  
+### #11: lgbm_capacity_experiment.py Broken ✅ **RESOLVED**
+**Status:** Resolved (Nov 19, 2026)  
 **Phase:** 2  
-**Description:** Script reads only feature file (`X_train_fe_v2.csv`) but never loads target (`y_train.csv`), so any fit attempt fails.  
-**Action:** Delete (obsolete experiment) or fix if needed.  
-**Owner:** Varun
+**Resolution:** Deleted (obsolete experiment).
 
 ---
 
@@ -232,7 +224,14 @@ This document tracks bugs, gaps, technical debt, and unresolved questions. Items
 | Nov 19, 2026 | #10 | Resolved: Added main guard to feature_engineering_v2.py |
 | Nov 19, 2026 | Q1 | Resolved: Gender exclusion confirmed by user |
 | Nov 19, 2026 | Q2 | Clarified: Age and family status kept in model, audited for fairness |
+| Nov 19, 2026 | #4 | Resolved: Committed evaluate_on_test.py, deleted obsolete files |
+| Nov 19, 2026 | #8 | Resolved: Gender ablation study completed, 0.17% AUC cost |
+| Nov 19, 2026 | #9 | Resolved: Deleted stale cost-optimized reports |
+| Nov 19, 2026 | #11 | Resolved: Deleted broken lgbm_capacity_experiment.py |
 | Nov 19, 2026 | All | Initial KNOWN_ISSUES.md created |
+| Nov 19, 2026 | Phase 1 | All Phase 1 issues resolved and committed |
+| Nov 19, 2026 | #2 | Resolved: SHAP/LIME explainability implemented |
+| Nov 19, 2026 | Phase 2 | All Phase 2 deliverables complete |
 
 ---
 

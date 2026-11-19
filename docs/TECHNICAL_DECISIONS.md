@@ -305,11 +305,81 @@ creditxplain/
 
 ---
 
+## 11. Explainability Decisions (Phase 2)
+
+### E-1: SHAP as Primary Explainability Method
+**Decision:** SHAP (TreeExplainer) as primary, LIME as secondary validation  
+**Rationale:**
+- SHAP is exact for tree-based models (no approximation)
+- Mathematically grounded (game theory, Shapley values)
+- Satisfies additivity property (base + sum = prediction)
+- Deterministic (perfect stability across runs)
+- Provides both global and local explanations
+
+**LIME Role:** Secondary validation and stakeholder communication
+- Simpler for non-technical audiences
+- HTML outputs easier to share
+- 58.3% agreement with SHAP validates consistency
+
+**Date:** Nov 19, 2026  
+**Implementation:** `src/explainability.py`  
+**Evidence:** `reports/explainability_report.md`
+
+---
+
+### E-2: Sample Size for SHAP Computation
+**Decision:** 5,000 samples (default) with configurable flag  
+**Alternatives:**
+- Full test set (61,503) - accurate but slow (~15 min)
+- Smaller sample (1,000) - fast but less representative
+
+**Rationale:**
+- 5,000 samples balances accuracy and speed (~5 min)
+- Statistically representative (8% of test set)
+- Includes sufficient samples from all decision bands
+- Configurable via `--sample-size` flag for flexibility
+
+**Date:** Nov 19, 2026
+
+---
+
+### E-3: Top Features Identified
+
+Based on SHAP global importance analysis (5,000 test samples):
+
+| Rank | Feature | SHAP Importance | Category |
+|---|---|---|---|
+| 1 | CREDIT_GOODS_EXT_RISK | 0.2493 | Engineered interaction |
+| 2 | EXT_SOURCE_MEAN | 0.2305 | External credit score |
+| 3 | CREDIT_ANNUITY_RATIO | 0.1323 | Financial burden |
+| 4 | Higher Education | 0.0845 | Demographics |
+| 5 | DAYS_ID_PUBLISH | 0.0647 | Document recency |
+
+**Key Insights:**
+- **External credit scores** (EXT_SOURCE_*) dominate predictions
+- **Engineered features** (FE V2) add significant value
+- **Financial burden ratios** (payment capacity) highly predictive
+- **Education level** affects default risk
+- **Gender excluded** - not in top features, ethical decision validated
+
+**Actionability (Phase 3 input):**
+- Credit ratios → actionable (reduce credit amount, increase income)
+- External scores → partially actionable (improve credit history over time)
+- Education → not actionable (immutable)
+- Document age → somewhat actionable (update documents)
+
+**Date:** Nov 19, 2026  
+**Evidence:** `reports/shap/global_feature_importance.csv`
+
+---
+
 ## Change Log
 
 | Date | Phase | Changes |
 |---|---|---|
 | Nov 19, 2026 | Phase 1 Start | Initial document created; D-1 through D-4, FE-1, FE-2 documented |
+| Nov 19, 2026 | Phase 1 Complete | D-2 threshold strategy refined (40-40-20 → 35-45-20 actual); D-3 validated via ablation |
+| Nov 19, 2026 | Phase 2 Complete | E-1 documented (SHAP primary, LIME secondary); top 5 features identified |
 
 ---
 

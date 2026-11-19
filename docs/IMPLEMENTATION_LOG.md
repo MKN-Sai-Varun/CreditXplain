@@ -205,11 +205,46 @@ reg_alpha: 0.5, reg_lambda: 1.0
 
 ---
 
-### Status: SHAP/LIME Explainability
+### 2024-11-19: SHAP/LIME Explainability ✅ COMPLETE
 
-**Expected:** `src/explainability.py`, global + local SHAP plots, LIME comparison  
-**Status:** ⬜ Not started  
-**Gap:** Phase 2 deliverable missing (blocks O5 completion)
+**Implemented:** `src/explainability.py`  
+**Author:** Kiro (autonomous)  
+**Purpose:** Global and local explainability for final production model
+
+**What It Does:**
+- Computes SHAP values using TreeExplainer (exact for LightGBM)
+- Generates global feature importance (summary beeswarm, bar chart)
+- Creates per-applicant SHAP waterfall plots (2 per band = 6 total)
+- Generates LIME explanations for comparison (same 6 applicants)
+- Validates SHAP additivity and stability
+- Compares SHAP vs LIME consistency
+- Produces comprehensive explainability report
+
+**Validation Results:**
+- **SHAP Additivity:** ✅ Perfect (0.00000000 max difference)
+- **SHAP Stability:** ✅ Perfect (1.000000 correlation - deterministic)
+- **SHAP-LIME Consistency:** 58.3% average top-10 overlap (moderate agreement)
+
+**Top 5 Features (SHAP Importance):**
+1. CREDIT_GOODS_EXT_RISK (0.2493)
+2. EXT_SOURCE_MEAN (0.2305)
+3. CREDIT_ANNUITY_RATIO (0.1323)
+4. NAME_EDUCATION_TYPE_Higher_education (0.0845)
+5. DAYS_ID_PUBLISH (0.0647)
+
+**Outputs:**
+- `reports/shap/global_feature_importance.csv` - All 300 features ranked
+- `reports/shap/summary_beeswarm.png` - Global SHAP summary plot
+- `reports/shap/feature_importance_bar.png` - Feature importance bar chart
+- `reports/shap/waterfall_applicant_*.png` - 6 individual waterfall plots
+- `reports/lime/explanation_applicant_*.html` - 6 interactive HTML explanations
+- `reports/lime/explanation_applicant_*.png` - 6 static LIME plots
+- `reports/shap_lime_consistency.csv` - Consistency metrics
+- `reports/explainability_report.md` - Comprehensive summary report
+
+**Tests:** `tests/test_explainability.py` (13 tests, all passing)
+
+**Status:** ✅ Complete and validated
 
 ---
 
@@ -316,7 +351,43 @@ reg_alpha: 0.5, reg_lambda: 1.0
 - Threshold ordering
 - AUC floor (0.70 minimum)
 
-**Status:** ✅ Created, pending execution
+**Status:** ✅ Created and executed
+
+**Results:** All 22 tests passing (7 decision + 5 FE + 10 final model)
+
+---
+
+### 2024-11-19: Phase 1 Execution Complete
+
+**Executed:** `python3 src/final_model.py --ablation`
+
+**Final Model Results (Test Set):**
+- **ROC-AUC:** 0.7668 (validation: 0.7711)
+- **Features:** 300 (excluded: DAYS_BIRTH, CODE_GENDER_M, CODE_GENDER_XNA)
+- **Best iteration:** 624 (early stopping at 150 rounds)
+
+**Decision Bands (Test Set):**
+- **Approve:** 21,430 (34.8%) - 2.09% default rate
+- **Review:** 27,703 (45.0%) - 6.67% default rate
+- **Reject:** 12,370 (20.1%) - 21.59% default rate
+
+**Thresholds (from validation set):**
+- **Approve below:** 0.0349
+- **Reject from:** 0.1189
+
+**Gender Ablation Study:**
+- **Without gender:** 0.7668 AUC
+- **With gender:** 0.7685 AUC
+- **Cost:** 0.17% AUC for ethical compliance
+
+**Outputs Created:**
+- `models/final_lgbm.pkl` (gitignored)
+- `models/final_model_card.json` (gitignored)
+- `reports/final_model_bands.csv` ✅ Committed
+- `reports/gender_ablation.csv` ✅ Committed
+- `data/processed/audit_test.csv` (gitignored, for Phase 3)
+
+**Status:** ✅ Complete and committed
 
 ---
 
@@ -337,28 +408,29 @@ reg_alpha: 0.5, reg_lambda: 1.0
 | 2024-11-19 | 1 (Kiro) | Final model training | `src/final_model.py` |
 | 2024-11-19 | 1 (Kiro) | FE v2 importability fix | `src/feature_engineering_v2.py` |
 | 2024-11-19 | 1 (Kiro) | Test infrastructure | `tests/conftest.py`, `tests/test_*.py` |
+| 2024-11-19 | 1 (Kiro) | Phase 1 execution & commit | All Phase 1 files pushed to `dev-varun` |
+| 2024-11-19 | 2 (Kiro) | SHAP/LIME explainability | `src/explainability.py`, `tests/test_explainability.py` |
 
 ---
 
 ## Pending Work
 
-### Phase 2 Incomplete Items
-- ⬜ SHAP global summary plot
-- ⬜ SHAP per-applicant waterfall plots
-- ⬜ LIME explanations (comparison with SHAP)
-- ⬜ Explainability-consistency evaluation (O5 second half)
+### Phase 2 Complete Items ✅
+- ✅ SHAP global summary plot
+- ✅ SHAP per-applicant waterfall plots (6 applicants)
+- ✅ LIME explanations (comparison with SHAP on same 6 applicants)
+- ✅ Explainability-consistency evaluation (O5 second half - 58.3% SHAP-LIME agreement)
 
-### Phase 1 (Kiro) Pending
-- 🔄 Execute `python3 src/final_model.py --ablation`
-- 🔄 Run test suite and verify all pass
-- 🔄 Commit Phase 1 files to `dev-varun`
+### Phase 1 (Kiro) Complete ✅
+- ✅ Executed `python3 src/final_model.py --ablation`
+- ✅ All 22 tests passing
+- ✅ Committed to `dev-varun` and pushed
 
-### Uncommitted Files (as of Nov 19, 2026)
-- `src/evaluate_on_test.py` (untracked)
-- `src/train_lightgbm_recall.py` (untracked, obsolete)
-- `src/lgbm_capacity_experiment.py` (untracked, broken)
-- Stale reports: `lightgbm_cost_optimized.csv`, `lightgbm_cost_threshold_sweep.csv`, `lightgbm_recall_optimized.csv`
-- `backend/models/model.py` (deleted, deletion not staged)
+### Cleanup Completed (Nov 19, 2026)
+- ✅ Removed `src/train_lightgbm_recall.py` (obsolete)
+- ✅ Removed `src/lgbm_capacity_experiment.py` (broken)
+- ✅ Removed stale reports: `lightgbm_cost_optimized.csv`, `lightgbm_cost_threshold_sweep.csv`, `lightgbm_recall_optimized.csv`
+- ✅ Staged `backend/models/model.py` deletion (superseded)
 
 ---
 

@@ -1,0 +1,7 @@
+applicant,band,top10_overlap,overlap_percentage
+1,approve,4,40.0
+2,approve,6,60.0
+3,review,6,60.0
+4,review,7,70.0
+5,reject,5,50.0
+6,reject,7,70.0
