@@ -1,12 +1,13 @@
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 from backend.database import get_db
-from backend.models import User, Application, Decision, Explanation, ApplicationStatus, DecisionType
+from backend.models import User, Application, Decision, Explanation, LoanTerms, ApplicationStatus, DecisionType
 from backend.auth import get_current_user
 from backend.schemas import DecisionResponse
 from backend.services.prediction_service import get_prediction_service
 from backend.services.explainability_service import get_explainability_service
 from backend.services.counterfactual_service import get_counterfactual_service
+from backend.services.loan_calculator import get_loan_calculator
 from backend.config import settings
 
 router = APIRouter()
@@ -60,6 +61,7 @@ def predict_application(
         prediction_service = get_prediction_service()
         explainability_service = get_explainability_service()
         counterfactual_service = get_counterfactual_service()
+        loan_calculator = get_loan_calculator()
         
         # Step 1: Make prediction
         probability, decision_str = prediction_service.predict(application.features_json)
@@ -95,7 +97,31 @@ def predict_application(
         )
         db.add(explanation)
         
-        # Step 7: Update application status
+        # Step 7: Calculate loan terms if approved
+        if decision_str == "APPROVE":
+            # Get loan amount from application features (default to AMT_CREDIT if available)
+            loan_amount = application.features_json.get('AMT_CREDIT', 100000)
+            
+            # Calculate loan terms
+            loan_terms_dict = loan_calculator.calculate_loan_terms(
+                loan_amount=loan_amount,
+                decision=decision_str,
+                probability=probability,
+                tenure_months=12  # Default 12-month tenure
+            )
+            
+            # Create loan terms record
+            loan_terms = LoanTerms(
+                decision_id=decision.id,
+                loan_amount=loan_terms_dict['loan_amount'],
+                interest_rate=loan_terms_dict['interest_rate'],
+                tenure_months=loan_terms_dict['tenure_months'],
+                monthly_emi=loan_terms_dict['monthly_emi'],
+                total_payable=loan_terms_dict['total_payable']
+            )
+            db.add(loan_terms)
+        
+        # Step 8: Update application status
         if decision_str == "APPROVE":
             application.status = ApplicationStatus.APPROVED
         elif decision_str == "REVIEW":

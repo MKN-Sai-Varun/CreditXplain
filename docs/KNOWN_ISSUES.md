@@ -765,3 +765,125 @@ train_path = self.prediction_service.settings.DATA_DIR / "X_train_fe_v2.csv"
 ---
 
 **Next Update:** After Phase 4.3 (Loan Terms Calculator)
+
+---
+
+## Phase 4.3: Loan Calculator — New Issues
+
+### #43: Illustrative Interest Rates (Not Real Bank Rates)
+**Status:** ⚠️ Documentation Required  
+**Phase:** 4.3  
+**Description:** Interest rates are calculated algorithmically for demonstration purposes, not based on real bank lending policies.  
+**Current Rates:** 12-25% based on risk bands
+
+**Impact:**
+- Rates are reasonable but not validated by actual lending institution
+- May not reflect real-world underwriting criteria
+- Regulatory compliance not verified
+
+**Action:** Add disclaimer in user-facing reports that rates are illustrative for academic project  
+**Priority:** High (required for manuscript/demo honesty)
+
+**Date:** Nov 19, 2026
+
+---
+
+### #44: Loan Tenure Fixed at 12 Months
+**Status:** Open  
+**Phase:** 4.3  
+**Description:** Default tenure hardcoded to 12 months in predictions router.  
+**Current Code:**
+```python
+tenure_months=12  # Default 12-month tenure
+```
+
+**Impact:**
+- No flexibility for applicants to choose tenure
+- Higher loan amounts may need longer tenure for affordability
+- Frontend would need custom implementation to allow tenure selection
+
+**Action:** Add tenure as optional parameter in application submission (Phase 4.4)  
+**Options:**
+1. Keep 12-month default (current)
+2. Add tenure field to application form
+3. Calculate recommended tenure based on loan amount
+
+**Priority:** Low (acceptable for prototype)
+
+**Date:** Nov 19, 2026
+
+---
+
+### #45: No Processing Fees or Additional Charges
+**Status:** By Design  
+**Phase:** 4.3  
+**Description:** EMI calculation only includes principal + interest, no processing fees, insurance, or other charges.  
+**Typical Real Loans:** 1-3% processing fee, optional insurance
+
+**Impact:**
+- Total cost underestimated compared to real loans
+- EMI calculation simpler but less realistic
+
+**Rationale:** Academic project scope - focusing on risk assessment, not full loan product
+
+**Priority:** Not an issue (acceptable simplification)
+
+**Date:** Nov 19, 2026
+
+---
+
+### #46: Loan Amount Fallback to 100k
+**Status:** Open  
+**Phase:** 4.3  
+**Description:** If AMT_CREDIT field missing from application, defaults to ₹100,000.  
+**Current Code:**
+```python
+loan_amount = application.features_json.get('AMT_CREDIT', 100000)
+```
+
+**Impact:**
+- Incorrect loan terms if field actually missing
+- Frontend should validate AMT_CREDIT is provided
+- Test data may trigger fallback unintentionally
+
+**Action:** Make AMT_CREDIT required field in application submission (Phase 4.4)  
+**Priority:** Medium (should be mandatory)
+
+**Date:** Nov 19, 2026
+
+---
+
+### #47: No Amortization Schedule Generated
+**Status:** Open  
+**Phase:** 4.3  
+**Description:** Only total EMI and total payable calculated, not month-by-month breakdown of principal/interest.  
+**Typical Bank Statement:** Shows principal vs interest split for each month
+
+**Impact:**
+- Applicants cannot see how much principal they pay each month
+- Cannot calculate early payoff amounts
+- Less transparent than full amortization schedule
+
+**Action:** Add amortization schedule generation method (deferred to Phase 5 or later)  
+**Priority:** Low (nice-to-have feature)
+
+**Date:** Nov 19, 2026
+
+---
+
+## Change Log (Updated)
+
+| Date | Issue | Action |
+|---|---|---|
+| Nov 19, 2026 | Phase 4.1 | Backend foundation complete |
+| Nov 19, 2026 | Phase 4.2 | Prediction engine integration complete |
+| Nov 19, 2026 | #43 | Identified: Interest rates are illustrative, not real bank rates |
+| Nov 19, 2026 | #44 | Identified: Loan tenure fixed at 12 months |
+| Nov 19, 2026 | #45 | By Design: No processing fees (acceptable simplification) |
+| Nov 19, 2026 | #46 | Identified: Loan amount fallback to 100k if missing |
+| Nov 19, 2026 | #47 | Identified: No amortization schedule generated |
+| Nov 19, 2026 | Phase 4.3 | Loan calculator complete - 12/12 tests passing |
+
+---
+
+**Next Update:** After Phase 4.4 or 4.5

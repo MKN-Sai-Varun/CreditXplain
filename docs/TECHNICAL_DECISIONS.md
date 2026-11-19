@@ -1060,3 +1060,139 @@ class ApplicationResponse(BaseModel):
 ---
 
 **Next Update:** Phase 4.3 (Loan Terms Calculator)
+
+---
+
+## 15. Loan Calculator Design (Phase 4.3)
+
+### D-26: Risk-Based Interest Rate Pricing
+**Decision:** Interest rate based on decision band + default probability  
+**Formula:** `Base Rate (10%) + Risk Spread + Probability Adjustment`
+
+**Risk Spreads:**
+- APPROVE: +2% (12% minimum)
+- REVIEW: +5% (15% minimum)
+- REJECT: +8% (18% minimum)
+
+**Probability Adjustment:**
+- Within each band, rate increases linearly with probability
+- APPROVE: 0-2% additional (proportional to position in 0-0.0349 band)
+- REVIEW: 0-3% additional (proportional to position in 0.0349-0.1189 band)
+- REJECT: Fixed +3%
+
+**Rationale:**
+- Risk-based pricing is standard banking practice
+- Lower risk applicants get better rates (fairness + incentive)
+- Covers expected default losses (higher risk = higher rate)
+- Progressive within bands reflects granular risk assessment
+- Cap at 25% prevents predatory lending
+
+**Date:** Nov 19, 2026
+
+---
+
+### D-27: Interest Rate Cap at 25%
+**Decision:** Maximum interest rate capped at 25% annual  
+**Alternatives:**
+- No cap (market rate)
+- Higher cap (30-36%)
+- Lower cap (20%)
+
+**Rationale:**
+- 25% is reasonable for unsecured personal loans
+- Prevents excessive rates for high-risk applicants
+- Regulatory considerations (usury laws vary by jurisdiction)
+- Ethical lending practices (avoid debt trap)
+
+**Date:** Nov 19, 2026
+
+---
+
+### D-28: EMI Calculation Formula
+**Decision:** Standard EMI formula used by banks  
+**Formula:** `EMI = P × r × (1 + r)^n / ((1 + r)^n - 1)`
+
+**Where:**
+- P = Principal loan amount
+- r = Monthly interest rate (annual / 12)
+- n = Loan tenure in months
+
+**Rationale:**
+- Industry-standard formula (not custom)
+- Ensures equal monthly installments
+- Mathematically derived from compound interest
+- Easy to verify and audit
+- Compatible with existing loan management systems
+
+**Verification:** ₹100,000 at 12% for 12 months = ₹8,884.88/month (matches standard calculators)
+
+**Date:** Nov 19, 2026
+
+---
+
+### D-29: Default Loan Tenure
+**Decision:** 12 months as default tenure  
+**Alternatives:**
+- 6 months (shorter, higher EMI)
+- 24 months (longer, lower EMI)
+- Dynamic based on loan amount
+
+**Rationale:**
+- 12 months balances affordability and interest cost
+- Standard for small personal loans
+- Can be customized per application if needed
+- Frontend can offer tenure selection (6/12/24 months)
+
+**Date:** Nov 19, 2026
+
+---
+
+### D-30: Loan Amount Source
+**Decision:** Extract from application features (AMT_CREDIT field)  
+**Fallback:** Default to ₹100,000 if field missing
+
+**Rationale:**
+- AMT_CREDIT is the requested credit amount in Home Credit dataset
+- Applications naturally include requested amount
+- Fallback prevents errors for incomplete data
+- Production system would require this field (mandatory)
+
+**Date:** Nov 19, 2026
+
+---
+
+### D-31: Loan Terms Storage
+**Decision:** Save to `loan_terms` table, one-to-one with `decisions`  
+**Fields Stored:**
+- loan_amount (principal)
+- interest_rate (annual)
+- tenure_months
+- monthly_emi
+- total_payable
+
+**Not Stored:**
+- Amortization schedule (can be calculated on-demand)
+- Processing fees (not in scope)
+- Prepayment terms (not in scope)
+
+**Rationale:**
+- Essential terms stored for audit trail
+- Lightweight storage (5 fields)
+- Amortization schedule regenerable from stored terms
+- Can be extended later if needed
+
+**Date:** Nov 19, 2026
+
+---
+
+## Change Log (Updated)
+
+| Date | Phase | Changes |
+|---|---|---|
+| Nov 19, 2026 | Phase 4.1 | D-8 to D-19 (backend foundation) |
+| Nov 19, 2026 | Phase 4.2 | D-20 to D-25 (service layer) |
+| Nov 19, 2026 | Phase 4.3 | D-26 to D-31 (loan calculator) |
+
+---
+
+**Next Update:** Phase 4.4 or 4.5
