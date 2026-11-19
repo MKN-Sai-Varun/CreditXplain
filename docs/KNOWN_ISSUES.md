@@ -423,3 +423,176 @@ predictions_df['default_probability'] = predictions_df['predicted_probability']
 ---
 
 **Next Update:** After Phase 4 dashboard implementation
+
+
+---
+
+## Phase 4.1: Backend Foundation — New Issues
+
+### #25: Bcrypt Version Compatibility Warning
+**Status:** ⚠️ Non-Critical  
+**Phase:** 4.1  
+**Description:** Bcrypt password hashing tests fail with version detection error during initialization.  
+**Error Message:** `AttributeError: module 'bcrypt' has no attribute '__about__'`  
+**Root Cause:** Passlib 1.7.4 tries to read bcrypt version from `__about__.__version__`, but newer bcrypt versions (4.1+) changed this structure.  
+**Workaround:** Downgraded to bcrypt 4.0.1, which works with passlib 1.7.4.  
+**Impact:** Production usage unaffected - password hashing and verification work correctly. Only affects test suite initialization warnings.  
+**Test Results:**
+- Password hashing works in production (seeding script successful)
+- Login endpoint verified with real JWT generation
+- Only unit test execution shows warnings
+
+**Long-term Fix:** Wait for passlib update or switch to bcrypt directly (skip passlib layer).  
+**Priority:** Low (production functionality not impacted)
+
+**Date:** Nov 19, 2026
+
+---
+
+### #26: Email Validator Dependency Missing
+**Status:** ✅ Resolved (Nov 19, 2026)  
+**Phase:** 4.1  
+**Description:** Pydantic EmailStr type requires email-validator package, not included in initial requirements.txt.  
+**Error:** `ImportError: email-validator is not installed`  
+**Fix:** Added `pip3 install email-validator` to installation steps.  
+**Resolution:** Included email-validator in dependencies.
+
+---
+
+### #27: Pydantic V2 Deprecation Warnings
+**Status:** ✅ Resolved (Nov 19, 2026)  
+**Phase:** 4.1  
+**Description:** Class-based `Config` deprecated in Pydantic V2, causing multiple warnings.  
+**Fix:** Migrated all schemas to use `model_config = ConfigDict(...)` instead of inner `Config` class.  
+**Files Updated:**
+- `backend/config.py` - Settings class
+- `backend/schemas.py` - All response schemas (7 classes)
+
+---
+
+### #28: SQLAlchemy Declarative Base Deprecation
+**Status:** ✅ Resolved (Nov 19, 2026)  
+**Phase:** 4.1  
+**Description:** `sqlalchemy.ext.declarative.declarative_base()` deprecated in SQLAlchemy 2.0.  
+**Fix:** Changed import to `sqlalchemy.orm.declarative_base()`.  
+**File:** `backend/database.py`
+
+---
+
+### #29: Pandas Version Conflicts in Requirements
+**Status:** ✅ Resolved (Nov 19, 2026)  
+**Phase:** 4.1  
+**Description:** Strict version pinning (`pandas==2.1.3`) caused dependency resolution failures.  
+**Error:** `ResolutionImpossible: for help visit https://pip.pypa.io/en/latest/user_guide/#fixing-conflicting-dependencies`  
+**Fix:** Changed to flexible version constraints (`pandas>=2.0.0`) for all packages except bcrypt.  
+**Impact:** Installation succeeds with compatible versions across all dependencies.
+
+---
+
+### #30: CORS Pre-flight Requests Not Tested
+**Status:** Open  
+**Phase:** 4.1  
+**Description:** CORS middleware configured but not tested with actual Next.js frontend requests.  
+**Impact:** May discover CORS issues when frontend is integrated in Phase 4.6.  
+**Action:** Test with Next.js frontend in Phase 4.6; adjust allowed headers/methods if needed.  
+**Priority:** Medium (defer to frontend integration)
+
+---
+
+### #31: Predictions and Fairness Endpoints Are Stubs
+**Status:** ⏳ By Design  
+**Phase:** 4.1  
+**Description:** `/api/predictions/` and `/api/fairness/` endpoints return 501 Not Implemented.  
+**Rationale:** These require ML model loading and Phase 3 integration (planned for Phases 4.2 and 4.5).  
+**Action:** Implement in Phase 4.2 (predictions) and Phase 4.5 (fairness).  
+**Priority:** High (next phase deliverable)
+
+---
+
+### #32: No Integration Tests for API Endpoints
+**Status:** Open  
+**Phase:** 4.1  
+**Description:** Only unit tests exist (auth, database). No end-to-end API tests with FastAPI TestClient.  
+**Impact:** Cannot verify full request/response flow without manual curl testing.  
+**Action:** Add API integration tests in Phase 4.2 covering:
+- Authentication flow (register → login → get current user)
+- Application submission → prediction → decision
+- Officer review queue and actions
+
+**Priority:** Medium (defer to Phase 4.9 integration testing)
+
+---
+
+### #33: Database File Not Gitignored by Default
+**Status:** Open  
+**Phase:** 4.1  
+**Description:** `creditxplain.db` file created in backend directory, not explicitly gitignored.  
+**Impact:** Risk of accidentally committing database with test data.  
+**Action:** Add `*.db` to `.gitignore` in backend directory.  
+**Priority:** Low (no sensitive data yet, but good practice)
+
+---
+
+### #34: No Password Reset Mechanism
+**Status:** Open  
+**Phase:** 4.1  
+**Description:** Authentication system has login/register but no password reset flow.  
+**Impact:** Demo users cannot reset passwords; must be manually updated in database.  
+**Rationale:** Single-user prototype (Amendment B3) - low priority for demo.  
+**Action:** Defer to production deployment (Phase 5) if needed.  
+**Priority:** Low (not required for academic project)
+
+---
+
+### #35: Environment Variables Not Validated
+**Status:** Open  
+**Phase:** 4.1  
+**Description:** No validation that required environment variables (SECRET_KEY) are set before server starts.  
+**Impact:** Server may start with default insecure secret key if .env not configured.  
+**Action:** Add startup validation that checks critical settings (SECRET_KEY != default).  
+**Priority:** Low (development OK, but flag for production)
+
+---
+
+## Change Log (Updated)
+
+| Date | Issue | Action |
+|---|---|---|
+| Nov 19, 2026 | #10 | Resolved: Added main guard to feature_engineering_v2.py |
+| Nov 19, 2026 | Q1 | Resolved: Gender exclusion confirmed by user |
+| Nov 19, 2026 | Q2 | Clarified: Age and family status kept in model, audited for fairness |
+| Nov 19, 2026 | #4 | Resolved: Committed evaluate_on_test.py, deleted obsolete files |
+| Nov 19, 2026 | #8 | Resolved: Gender ablation study completed, 0.17% AUC cost |
+| Nov 19, 2026 | #9 | Resolved: Deleted stale cost-optimized reports |
+| Nov 19, 2026 | #11 | Resolved: Deleted broken lgbm_capacity_experiment.py |
+| Nov 19, 2026 | All | Initial KNOWN_ISSUES.md created |
+| Nov 19, 2026 | Phase 1 | All Phase 1 issues resolved and committed |
+| Nov 19, 2026 | #2 | Resolved: SHAP/LIME explainability implemented |
+| Nov 19, 2026 | Phase 2 | All Phase 2 deliverables complete |
+| Nov 19, 2026 | #15 | Identified: Low counterfactual success rate (3.3%) |
+| Nov 19, 2026 | #16 | **CRITICAL**: Age-based fairness disparity detected (0.3488 DPD) |
+| Nov 19, 2026 | #17 | Workaround: DiCE categorical feature handling |
+| Nov 19, 2026 | #18 | Resolved: Removed unsupported diversity_weight parameter |
+| Nov 19, 2026 | #19 | Resolved: Fixed test age band label mismatch |
+| Nov 19, 2026 | #20 | Resolved: Fixed missing DAYS_BIRTH in test data |
+| Nov 19, 2026 | #21 | Resolved: Fixed LightGBM feature_name_ attribute error |
+| Nov 19, 2026 | #22 | Resolved: Added default_probability column alias |
+| Nov 19, 2026 | #23 | Resolved: Deleted 436 duplicate lines in counterfactuals.py |
+| Nov 19, 2026 | #24 | Resolved: Added main guard to fairness_audit.py |
+| Nov 19, 2026 | Phase 3 | All Phase 3 implementation and tests complete |
+| Nov 19, 2026 | #25 | Identified: Bcrypt version compatibility (non-critical) |
+| Nov 19, 2026 | #26 | Resolved: Added email-validator dependency |
+| Nov 19, 2026 | #27 | Resolved: Migrated to Pydantic V2 ConfigDict |
+| Nov 19, 2026 | #28 | Resolved: Updated SQLAlchemy declarative_base import |
+| Nov 19, 2026 | #29 | Resolved: Fixed pandas version conflicts with flexible constraints |
+| Nov 19, 2026 | #30 | Identified: CORS pre-flight not tested (defer to Phase 4.6) |
+| Nov 19, 2026 | #31 | By Design: Predictions and fairness endpoints stubbed (Phase 4.2/4.5) |
+| Nov 19, 2026 | #32 | Identified: No API integration tests (defer to Phase 4.9) |
+| Nov 19, 2026 | #33 | Identified: Database file not gitignored |
+| Nov 19, 2026 | #34 | Identified: No password reset mechanism (low priority) |
+| Nov 19, 2026 | #35 | Identified: Environment variables not validated |
+| Nov 19, 2026 | Phase 4.1 | Backend foundation complete - 4/4 tests passing, server verified |
+
+---
+
+**Next Update:** After Phase 4.2 (Prediction Engine Integration)

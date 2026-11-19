@@ -10,3 +10,11 @@ __pycache__/
 reports/*_oof*.csv
 reports/*_test.csv
 reports/*_predictions.csv
+
+# Backend
+*.db
+*.db-journal
+.env
+backend/__pycache__/
+backend/*/__pycache__/
+backend/.pytest_cache/
