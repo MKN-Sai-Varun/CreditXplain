@@ -1,6 +1,6 @@
 # TECHNICAL_DECISIONS — CreditXplain
 
-**Last Updated:** Phase 1 implementation start (Nov 19, 2026)
+**Last Updated:** Phase 4.6 cleanup and doc sync (Nov 25, 2026)
 
 This document records all technical and architectural decisions made during the project, with rationale.
 
@@ -12,12 +12,12 @@ This document records all technical and architectural decisions made during the 
 |---|---|---|
 | ML Framework | scikit-learn, LightGBM, CatBoost, XGBoost | Industry standard, LightGBM selected for performance |
 | Explainability | SHAP, LIME | Base paper requirement |
-| Counterfactual | DiCE | Established library for actionable recourse |
+| Counterfactual | Bounded lever search (`src/recourse.py`); DiCE kept offline in `src/counterfactuals.py` | DiCE on engineered columns gave inconsistent ratios and low success; see D-38 |
 | Fairness | Fairlearn | Microsoft-backed, well-documented |
 | Backend | FastAPI | Modern async framework, auto-docs, type hints |
 | Frontend | React + Next.js | Changed from Streamlit (Amendment B1) |
 | Database | SQLite | Sufficient for single-user design, easy deployment |
-| PDF Generation | ReportLab | Python-native, template support |
+| PDF Generation | ReportLab (planned, not implemented yet) | Python-native, template support |
 | Testing | pytest | Standard Python testing framework |
 
 ---
@@ -1290,6 +1290,66 @@ class ApplicationResponse(BaseModel):
 
 ---
 
+## 17. Changes Recorded After Phase 4.5 (Phase 4.6 doc sync)
+
+The first three decisions were made in commits ae6ad19, fef60f8 and b68c3f7 (Nov 19, 2026) but were not written down at the time. They are recorded here from the commits and the code.
+
+### D-38: Bounded Lever Search Replaces DiCE in the API
+**Decision:** The API's recourse uses `src/recourse.py`, a grid search over three levers the applicant controls, instead of DiCE on engineered columns.  
+**Levers and bounds:** loan amount ×{1.0 … 0.5} (8 steps), verified income ×{1.0 … 1.5} (5 steps), monthly installment ×{1.0 … 0.7} (4 steps, i.e. longer tenure). 160 candidates per applicant.  
+**How it works:** Every candidate is rebuilt through FE v2 (`add_features`), so derived ratios stay consistent. Candidates that move the applicant to a better band are kept, ranked by cost `(1−credit) + (income−1) + (1−installment)`, and at most one is kept per lever combination (up to 3 options).  
+**Rationale:**
+- DiCE perturbed engineered columns independently, so ratios no longer matched their inputs (KNOWN_ISSUES #17).
+- Only applicant-controllable inputs change; immutable features are never touched.
+- Latency about 14 ms against 2–5 s for DiCE (#40).
+
+**Caveat:** The suggestions are model-based, not causal. The validity measure needs replacing (#55).  
+**Commit:** b68c3f7
+
+---
+
+### D-39: One Shared Inference Pipeline
+**Decision:** The backend scores through `src/inference.py` (`Scorer`): raw applicant fields → defaults for missing fields (`models/feature_defaults.json`, built by `src/build_feature_defaults.py`) → FE v2 → final LightGBM Booster → three-band decision.  
+**Rationale:** Training, offline evaluation and the API use the same feature path, so the API cannot drift from the model card.  
+**Commit:** ae6ad19
+
+---
+
+### D-40: Registration Always Creates Applicants; Default Secret Key Refused
+**Decision:** `POST /api/auth/register` ignores any client-supplied role and always creates an `APPLICANT`. Officers are created only by seeding. With `DEBUG=False`, the app refuses to start if `SECRET_KEY` is still the default.  
+**Rationale:** Prevents self-registration as an officer (privilege escalation) and accidental deployment with a known signing key.  
+**Tests:** `backend/tests/test_access_control.py`  
+**Commit:** fef60f8
+
+---
+
+### D-41: Working Agreement and Phase Order From Phase 4.6
+**Decision:** Each phase is proposed and approved before any change. After a phase the assistant updates these docs and explains every change; the user commits and pushes to `dev-varun`.  
+**Order:**
+
+| Phase | Scope |
+|---|---|
+| 4.6 | Cleanup, doc sync, full test baseline |
+| 4.7 | Publication-grade evaluation of LIME and recourse (D-42) |
+| 4.8 | Backend gaps: document upload, officer queue TODO, tenure input |
+| 4.4 | PDF report generator (number kept from the skipped slot) |
+| 4.9 | Frontend: foundation and applicant portal |
+| 4.10 | Frontend: officer dashboard |
+| 5.x | CI, README, latency, usability check, evaluation, manuscript |
+
+**Date:** Nov 25, 2026
+
+---
+
+### D-42: Evaluation Standard for Explanations and Recourse (Proposed for 4.7)
+**Decision (proposed, to be confirmed at the start of 4.7):** The paper reports only explanation and recourse numbers that a reviewer cannot dismiss as artefacts of the setup.  
+**LIME:** sample around the instance, quartile discretisation, explicit kernel width, fixed seed. Evaluate 100–200 stratified applicants with top-k overlap, rank correlation with SHAP, and stability across seeds (#52–#54).  
+**Recourse:** report coverage, proximity, sparsity, plausibility (distance to real applicants) and latency. Compare against a baseline under the same bounds: DiCE (`src/counterfactuals.py`) or random search. Drop the circular validity rate (#55). Present recourse as Reject→Review and state why Approve is out of reach (#56).  
+**Rationale:** The user's goal is a result worth presenting and publishing (Nov 25, 2026).  
+**Date:** Nov 25, 2026
+
+---
+
 ## Change Log (Updated)
 
 | Date | Phase | Changes |
@@ -1298,7 +1358,8 @@ class ApplicationResponse(BaseModel):
 | Nov 19, 2026 | Phase 4.2 | D-20 to D-25 (service layer) |
 | Nov 19, 2026 | Phase 4.3 | D-26 to D-31 (loan calculator) |
 | Nov 19, 2026 | Phase 4.5 | D-32 to D-37 (fairness monitoring) |
+| Nov 25, 2026 | Phase 4.6 | D-38 to D-40 (recorded from commits b68c3f7, ae6ad19, fef60f8); D-41 working agreement and phase order; D-42 proposed evaluation standard |
 
 ---
 
-**Next Update:** Phase 4 wrap-up or Phase 5
+**Next Update:** Phase 4.7

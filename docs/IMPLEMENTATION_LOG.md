@@ -1665,6 +1665,58 @@ backend/tests/test_fairness_service.py (90 lines)
 
 ---
 
+## Commits After Phase 4.5 (recorded in Phase 4.6)
+
+These three commits landed on Nov 19, 2026 without a log entry. Details are in TECHNICAL_DECISIONS D-38 to D-40.
+
+| Commit | Change | Tests added |
+|---|---|---|
+| ae6ad19 | Backend serves the final Booster through the shared `src/inference.py` pipeline; missing fields filled from `models/feature_defaults.json`; SHAP/LIME service schema fixed | `tests/test_inference.py`, `backend/tests/test_predict_api.py`, shared `backend/tests/conftest.py` |
+| fef60f8 | Register endpoint always creates applicants; app refuses the default `SECRET_KEY` when `DEBUG=False` | `backend/tests/test_access_control.py` |
+| b68c3f7 | DiCE replaced in the API by the bounded lever search `src/recourse.py`; `src/recourse_validity.py` measures recourse on 300 held-out rejected applicants | `tests/test_recourse.py`, `backend/tests/test_recourse_api.py` |
+
+---
+
+## Phase 4.6: Cleanup, Doc Sync and Test Baseline (Nov 25, 2026)
+
+### Overview
+Brings the docs in line with the repository, removes a risky duplicate script, and records a full test baseline before new work starts.
+
+### 4.6.1: Full Test Run
+Run on the Mac (Python 3.9.6, Node 26.7.0). No repo files were changed by the run: tests write only to `tmp_path` and an in-memory SQLite database.
+
+| Suite | Command | Result |
+|---|---|---|
+| ML / `src` | `python3 -m pytest tests -q` | ✅ 88 passed (39 s), 11 pandas FutureWarnings |
+| Backend | `python3 -m pytest backend/tests -q` | ✅ 36 passed (5 s), Pydantic deprecation and LIME RuntimeWarnings |
+| Frontend types | `npx tsc --noEmit` | ✅ clean |
+| Frontend build | `npm run build` | ✅ builds (starter page only) |
+| Frontend lint | `npm run lint` | ❌ 1 error, `lib/api.ts:46` (`no-explicit-any`) |
+
+### 4.6.2: Explanation and Recourse Review
+Read-only review of `reports/` and the LIME/recourse code, done to judge whether the results are publishable. Findings are logged as KNOWN_ISSUES #52–#59:
+- LIME samples around the training mean, not the applicant, so explanations are not local (#52); its ridge fit overflows (#53); SHAP–LIME agreement was measured on only 6 applicants (#54).
+- The recourse validity rate of 1.0 is circular (#55); 0/300 rejected applicants reach Approve (#56).
+- SHAP is sound: additivity difference 0.0, repeat-run correlation 1.0.
+
+### 4.6.3: Removed Duplicate Script
+**Deleted:** `backend/tests/recourse_validity.py` (untracked, never committed).  
+It was a near-copy of `src/recourse_validity.py` (differed only by an unused `ok` counter) that ran on import and overwrote `reports/recourse_validity.json` and `reports/recourse_validity_per_applicant.csv`. Resolved as KNOWN_ISSUES #60.
+
+### 4.6.4: Documentation Updates
+- `PROJECT_STATE.md` rewritten from the repository as it stands.
+- `KNOWN_ISSUES.md`: stale items #15, #31, #36, #37, #40, #41 closed or marked superseded; #32 partly resolved; #27 reopened; #52–#60 added.
+- `TECHNICAL_DECISIONS.md`: D-38 to D-40 recorded from the three commits above; D-41 (working agreement and phase order); D-42 (proposed evaluation standard for 4.7); stack table corrected (counterfactual method, PDF not yet built).
+
+### Phase 4.6 Summary
+✅ Test baseline recorded: 124 Python tests pass; frontend builds.  
+✅ Docs match the repo.  
+⚠️ Two publication risks identified for Phase 4.7: LIME configuration and recourse evaluation.
+
+**Next Phase:** 4.7, publication-grade evaluation of LIME and recourse.
+
+---
+
 ## Change Log (updated)
 
 | Date | Phase | Event | Files Changed |
@@ -1673,7 +1725,9 @@ backend/tests/test_fairness_service.py (90 lines)
 | 2024-11-19 | 4.2 (Kiro) | Prediction engine | 3 services created, ML pipeline integrated |
 | 2024-11-19 | 4.3 (Kiro) | Loan calculator | Loan calculator service, EMI calculation |
 | 2024-11-19 | 4.5 (Kiro) | Fairness monitoring | Fairness service, API integration, 6 tests passing |
+| 2026-11-19 | post-4.5 | Commits ae6ad19, fef60f8, b68c3f7 | Inference pipeline, access control, bounded recourse |
+| 2026-11-25 | 4.6 | Cleanup, doc sync, test baseline | Deleted `backend/tests/recourse_validity.py`; 4 docs updated |
 
 ---
 
-**Last Updated:** Nov 19, 2026 (Phase 4.5 complete)
+**Last Updated:** Nov 25, 2026 (Phase 4.6 complete)

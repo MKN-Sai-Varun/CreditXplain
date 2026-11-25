@@ -1,6 +1,6 @@
 # KNOWN_ISSUES — CreditXplain
 
-**Last Updated:** Nov 19, 2026 (Phase 1 implementation)
+**Last Updated:** Nov 25, 2026 (Phase 4.6: cleanup and doc sync)
 
 This document tracks bugs, gaps, technical debt, and unresolved questions. Items are numbered for reference.
 
@@ -243,7 +243,7 @@ This document tracks bugs, gaps, technical debt, and unresolved questions. Items
 ## Phase 3: Counterfactuals & Fairness Audit — New Issues
 
 ### #15: Low Counterfactual Success Rate
-**Status:** Open  
+**Status:** Superseded (Nov 19, 2026) by the bounded lever search in `src/recourse.py` (commit b68c3f7). The Approve-band question is now tracked in #56  
 **Phase:** 3  
 **Description:** Counterfactual generation achieved only 3.3% success rate (1 out of 30 counterfactuals successfully flipped from REJECT to REVIEW/APPROVE).  
 **Root Cause:** Two-tier success criteria with extremely strict approval threshold (< 0.0349) makes flips challenging. Most applicants generated valid counterfactuals but remained in REVIEW zone rather than reaching APPROVE.  
@@ -460,7 +460,7 @@ predictions_df['default_probability'] = predictions_df['predicted_probability']
 ---
 
 ### #27: Pydantic V2 Deprecation Warnings
-**Status:** ✅ Resolved (Nov 19, 2026)  
+**Status:** 🔁 Reopened (Nov 25, 2026). The full test run still shows `PydanticDeprecatedSince20` warnings from class-based `Config` at `backend/schemas.py` lines 18, 39, 50, 84, 93, 115 and 129  
 **Phase:** 4.1  
 **Description:** Class-based `Config` deprecated in Pydantic V2, causing multiple warnings.  
 **Fix:** Migrated all schemas to use `model_config = ConfigDict(...)` instead of inner `Config` class.  
@@ -500,7 +500,7 @@ predictions_df['default_probability'] = predictions_df['predicted_probability']
 ---
 
 ### #31: Predictions and Fairness Endpoints Are Stubs
-**Status:** ⏳ By Design  
+**Status:** ✅ Resolved. Predictions (Phase 4.2) and fairness (Phase 4.5) endpoints are implemented  
 **Phase:** 4.1  
 **Description:** `/api/predictions/` and `/api/fairness/` endpoints return 501 Not Implemented.  
 **Rationale:** These require ML model loading and Phase 3 integration (planned for Phases 4.2 and 4.5).  
@@ -510,7 +510,7 @@ predictions_df['default_probability'] = predictions_df['predicted_probability']
 ---
 
 ### #32: No Integration Tests for API Endpoints
-**Status:** Open  
+**Status:** 🟡 Partly resolved. TestClient API tests now exist (`test_predict_api.py`, `test_recourse_api.py`, `test_access_control.py`); officer and fairness routes still have no API tests  
 **Phase:** 4.1  
 **Description:** Only unit tests exist (auth, database). No end-to-end API tests with FastAPI TestClient.  
 **Impact:** Cannot verify full request/response flow without manual curl testing.  
@@ -603,7 +603,7 @@ predictions_df['default_probability'] = predictions_df['predicted_probability']
 ## Phase 4.2: Prediction Engine — New Issues
 
 ### #36: Phase 1 Final Model Not Trained
-**Status:** ⚠️ Blocking for Production  
+**Status:** ✅ Resolved. `models/final_lgbm.pkl` and `models/final_model_card.json` exist and are served through `src/inference.py` (commit ae6ad19)  
 **Phase:** 4.2  
 **Description:** `models/final_lgbm.pkl` referenced in config but never trained/saved from Phase 1.  
 **Current State:**
@@ -633,7 +633,7 @@ predictions_df['default_probability'] = predictions_df['predicted_probability']
 ---
 
 ### #37: Old Baseline Model File Corrupted
-**Status:** Open  
+**Status:** ✅ Resolved. `models/lightgbm.pkl` is no longer in `models/`; nothing loads it  
 **Phase:** 4.2  
 **Description:** `models/lightgbm.pkl` (368 KB, Aug 16) fails to load with pickle error.  
 **Error:** `_pickle.UnpicklingError: invalid load key, '\x04'`  
@@ -688,7 +688,7 @@ train_path = self.prediction_service.settings.DATA_DIR / "X_train_fe_v2.csv"
 ---
 
 ### #40: DiCE Counterfactual Generation Slow
-**Status:** Open  
+**Status:** Superseded. The API no longer uses DiCE; the bounded lever search runs in about 14 ms per applicant (`reports/recourse_validity.json`)  
 **Phase:** 4.2  
 **Description:** DiCE counterfactual generation takes 2-5 seconds for 3 counterfactuals.  
 **Impact:** Prediction API endpoint has longer response time for REJECT decisions
@@ -701,7 +701,7 @@ train_path = self.prediction_service.settings.DATA_DIR / "X_train_fe_v2.csv"
 ---
 
 ### #41: No API Tests for Prediction Endpoint
-**Status:** Open  
+**Status:** ✅ Resolved. `backend/tests/test_predict_api.py` covers predict, read-back and double-predict  
 **Phase:** 4.2  
 **Description:** Prediction pipeline implemented but no integration tests with FastAPI TestClient.  
 **Impact:** Cannot verify full request → prediction → explanation → database flow
@@ -955,6 +955,88 @@ loan_amount = application.features_json.get('AMT_CREDIT', 100000)
 
 ---
 
+## Phase 4.6: Full Test Run and Explanation/Recourse Review — New Issues
+
+Found on Nov 25, 2026 by running every existing test (`tests/`: 88 passed; `backend/tests/`: 36 passed; frontend `tsc` and `build` clean) and by reading the explainability and recourse outputs.
+
+### #52: LIME Explanations Are Not Local
+**Status:** 🔴 Open (blocks publishable SHAP-vs-LIME results)  
+**Phase:** 4.6 (fix planned for 4.7)  
+**Description:** Both `src/explainability.py:247` and `backend/services/explainability_service.py` build `LimeTabularExplainer` with `discretize_continuous=False` and the default `sample_around_instance=False`. LIME then draws its perturbations around the training-data mean, not around the applicant. With 300 features the default kernel width (0.75·√300 ≈ 13) also gives almost every sample the same weight.  
+**Evidence:** Three different test applicants got nearly identical LIME weights for the top feature (`EXT_SOURCE_MEAN`: −0.01741, −0.01758, −0.01740).  
+**Impact:** The current output is closer to a global linear fit of the model than a per-applicant explanation, so the 58.3% SHAP–LIME overlap cannot be reported as a local-explanation agreement.  
+**Action:** Sample around the instance, keep LIME's default quartile discretisation, set an explicit kernel width, fix the random seed, and re-measure.
+
+---
+
+### #53: LIME Fit Overflows Numerically
+**Status:** Open  
+**Phase:** 4.6  
+**Description:** Each LIME call raises about 5,000 `RuntimeWarning`s (overflow, divide by zero, invalid value) from scikit-learn's ridge regression. The returned weights are still finite.  
+**Likely cause:** The same setup as #52: 300 unscaled features, some with values in the millions.  
+**Action:** Re-check after the #52 fix. If the warnings remain, explain over a reduced feature set (LIME `feature_selection`).
+
+---
+
+### #54: SHAP–LIME Consistency Measured on 6 Applicants
+**Status:** Open  
+**Phase:** 4.6 (fix planned for 4.7)  
+**Description:** `reports/shap_lime_consistency.csv` holds top-10 overlap for 6 applicants (2 per band). That sample is too small for a paper, and overlap alone ignores ranking.  
+**Action:** Measure on 100–200 stratified applicants. Report top-k overlap, rank correlation (Spearman/Kendall), and LIME stability across seeds.
+
+---
+
+### #55: Recourse "Validity Rate" Is Circular
+**Status:** 🔴 Open (reviewer risk)  
+**Phase:** 4.6 (fix planned for 4.7)  
+**Description:** `reports/recourse_validity.json` reports `validity_rate: 1.0`. The search keeps only candidates that the model scores into a better band, and "verification" rescores them with the same model, so 100% follows by construction.  
+**Missing metrics:** proximity (size of change), sparsity (number of levers), plausibility (distance to real applicants, e.g. kNN or LOF), diversity, and a baseline (DiCE or random search under the same bounds).  
+**Action:** Report coverage (`recourse_found_rate`, currently 0.8767) and the missing metrics instead of the circular rate.
+
+---
+
+### #56: Recourse Never Reaches Approve
+**Status:** Open (needs a framing decision)  
+**Phase:** 4.6  
+**Description:** 0 of 300 rejected test applicants reach Approve (`reaches_approve_rate: 0.0`). Recourse moves them only from Reject to Review.  
+**Why:** Approve needs a predicted default probability below 0.0349. Rejected applicants average 0.213 (`reports/final_model_bands.csv`). The strongest features are external bureau scores (`EXT_SOURCE_*`, `CREDIT_GOODS_EXT_RISK`), which the three levers (loan amount, income, tenure) cannot change.  
+**Lever mix of the best option (263 applicants with recourse):** credit 108, credit+tenure 88, tenure 58, credit+income+tenure 8, income 1.  
+**Action:** The plan (§6) counts recourse that "flips or improves" the decision, so Reject→Review qualifies. The paper should present recourse as a path to officer review and state the structural limit. Optionally add Review→Approve recourse as a second tier.
+
+---
+
+### #57: Frontend Is a Starter Page and Fails Lint
+**Status:** Open  
+**Phase:** 4.6  
+**Description:** `frontend/` is untracked. `app/page.tsx` is the default Next.js page. `npm run lint` fails with 1 error: `@typescript-eslint/no-explicit-any` at `frontend/lib/api.ts:46`. `tsc --noEmit` and `npm run build` pass.  
+**Action:** Fix during the first frontend phase.
+
+---
+
+### #58: pandas FutureWarning in Fairness Audit
+**Status:** Open (low)  
+**Phase:** 4.6  
+**Description:** `src/fairness_audit.py:98` calls `df.groupby(sensitive_feature)` on a categorical column without `observed=`, which raises a FutureWarning 11 times in `tests/test_fairness.py`.  
+**Action:** Pass `observed=False` explicitly.
+
+---
+
+### #59: Two Counterfactual Implementations Exist
+**Status:** Open (documentation)  
+**Phase:** 4.6  
+**Description:** `src/counterfactuals.py` (Phase 3, DiCE, with `tests/test_counterfactuals.py`) is still in the repo, while the API uses `src/recourse.py` (bounded lever search). The paper and README must say which one produced which numbers.  
+**Action:** Use the DiCE version as the comparison baseline in the #55 evaluation, or retire it.
+
+---
+
+### #60: Duplicate Recourse Script Could Overwrite Reports
+**Status:** ✅ Resolved (Nov 25, 2026)  
+**Phase:** 4.6  
+**Description:** The untracked `backend/tests/recourse_validity.py` was a near-copy of `src/recourse_validity.py` that ran on import and wrote `reports/recourse_validity.json` and `reports/recourse_validity_per_applicant.csv`. Pytest skipped it only because of its name.  
+**Fix:** Deleted. `src/recourse_validity.py` remains the single source.
+
+---
+
 ## Change Log (Updated)
 
 | Date | Issue | Action |
@@ -965,7 +1047,13 @@ loan_amount = application.features_json.get('AMT_CREDIT', 100000)
 | Nov 19, 2026 | #50 | Identified: No historical trend visualization |
 | Nov 19, 2026 | #51 | Identified: Demographic stats may be stale |
 | Nov 19, 2026 | Phase 4.5 | Fairness monitoring complete - 6/6 tests passing |
+| Nov 25, 2026 | Phase 4.6 | Full test run: 88 + 36 passed; frontend build clean, lint 1 error |
+| Nov 25, 2026 | #15, #31, #36, #37, #40, #41 | Marked resolved or superseded (stale) |
+| Nov 25, 2026 | #32 | Partly resolved |
+| Nov 25, 2026 | #27 | Reopened: Pydantic warnings still present |
+| Nov 25, 2026 | #52–#59 | Identified: LIME not local, LIME overflow, small consistency sample, circular recourse validity, no Approve recourse, frontend lint, pandas warning, two CF implementations |
+| Nov 25, 2026 | #60 | Resolved: duplicate recourse script deleted |
 
 ---
 
-**Next Update:** Phase 4 wrap-up or Phase 5
+**Next Update:** Phase 4.7 (explanation and recourse evaluation)
