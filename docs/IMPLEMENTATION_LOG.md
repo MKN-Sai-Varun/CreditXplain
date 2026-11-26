@@ -2001,6 +2001,48 @@ New tests (3): dominance rule (`tests/test_recourse_time.py`), no returned optio
 
 ---
 
+## Phase 4.9: Frontend Foundation and Applicant Portal (Nov 26, 2026)
+
+### Overview
+The first working frontend: sign-in, registration, and the applicant portal on top of the finished backend. Decisions: TECHNICAL_DECISIONS D-61 to D-64.
+
+### Setup
+- Next.js 16 conventions checked against its bundled docs before writing pages.
+- The lint error in `frontend/lib/api.ts` (#57) is gone: the API client was rewritten with types.
+- Starter page, starter README and unused starter images removed.
+
+### Frontend files (`frontend/`)
+| File | Purpose |
+|---|---|
+| `lib/types.ts` | Response types matching `backend/schemas.py` |
+| `lib/api.ts` | Typed axios client: auth, applications, recourse, documents, report download; token storage; readable FastAPI error messages |
+| `lib/format.ts` | INR, percentages, dates, decision, status and lever wording |
+| `lib/applicationForm.ts` | Form options matching the model's categories, three sample profiles, repayment estimate, form → features, validation |
+| `components/AuthProvider.tsx`, `RequireAuth.tsx` | Session restore, sign-in, register, sign-out; role-based page guard |
+| `components/AppHeader.tsx`, `AuthForm.tsx`, `ui.tsx` | Header and navigation, sign-in/register form, shared UI (buttons, cards, fields, alerts, badges) |
+| `app/layout.tsx`, `app/page.tsx`, `app/globals.css` | Layout with provider and header, landing page, styles |
+| `app/login`, `app/register` | Sign-in and registration pages |
+| `app/applications/page.tsx` | Applicant's applications with status |
+| `app/applications/new/page.tsx` | Application form; submits, scores and opens the decision |
+| `app/applications/[id]/page.tsx` + `components/application/*` | Decision and risk, main reasons, recourse with "What if…?" (new limits via the recourse endpoint), loan terms, document requests and upload, PDF report download |
+| `app/officer/page.tsx` | Placeholder until Phase 4.10 |
+| `README.md` | How to run and check the frontend; pages and structure |
+
+### Backend change
+- `backend/serializers.py`, `backend/schemas.py`, `backend/routers/predictions.py`: plain-language `label` on SHAP, LIME and driver rows (D-63).
+- Test: `backend/tests/test_predict_api.py::test_explanation_rows_carry_plain_language_labels`.
+
+### Checks
+- Backend tests: **212 passed** (211 + 1).
+- `npm run lint`: clean, after one fix (the decision page now fetches in its effect with `.then()`, as the `react-hooks/set-state-in-effect` rule requires).
+- `npx tsc --noEmit`: clean.
+- `npm run build`: 9 routes built; `/applications/[id]` is partially prerendered behind its `<Suspense>` boundary, all others static.
+- Manual checklist (register, apply with sample profiles, What if…?, document upload and download, PDF report, approved case with loan terms, sign out and in): **passed** (project lead, Nov 26, 2026).
+
+**Next Phase:** 4.10, officer dashboard.
+
+---
+
 ## Change Log (updated)
 
 | Date | Phase | Event | Files Changed |
@@ -2016,7 +2058,8 @@ New tests (3): dominance rule (`tests/test_recourse_time.py`), no returned optio
 | 2026-11-26 | 4.7b | Faster DiCE baseline | `src/recourse_eval.py`: binary sparsity search, cached wrapper, thread limit, incremental saving, `--methods`; wrapper ratio fix |
 | 2026-11-26 | 4.7c | Richer recourse | Waiting lever (age held fixed), applicant preferences and recourse endpoint, proposed_with_wait evaluation, age doc correction, 19 new tests |
 | 2026-11-26 | 4.4 | PDF reports | Report service, applicant and compliance PDF endpoints, 7 new tests |
+| 2026-11-26 | 4.9 | Frontend and applicant portal | Typed API client, auth, applicant pages, decision page with recourse and documents; labels from backend |
 
 ---
 
-**Last Updated:** Nov 26, 2026 (Phase 4.4 complete)
+**Last Updated:** Nov 26, 2026 (Phase 4.9 complete)

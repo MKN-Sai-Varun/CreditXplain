@@ -112,11 +112,13 @@ class ShapValue(BaseModel):
     feature: str
     value: float
     feature_value: Any
+    label: Optional[str] = None
 
 class LimeFeature(BaseModel):
     feature: str
     weight: float
     rule: Optional[str] = None
+    label: Optional[str] = None
 
 class Counterfactual(BaseModel):
     levers: List[str] = []

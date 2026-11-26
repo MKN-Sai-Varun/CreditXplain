@@ -1,6 +1,6 @@
 # KNOWN_ISSUES — CreditXplain
 
-**Last Updated:** Nov 26, 2026 (Phase 4.4: PDF reports)
+**Last Updated:** Nov 26, 2026 (Phase 4.9: frontend and applicant portal)
 
 This document tracks bugs, gaps, technical debt, and unresolved questions. Items are numbered for reference.
 
@@ -1006,7 +1006,7 @@ Found on Nov 25, 2026 by running every existing test (`tests/`: 88 passed; `back
 ---
 
 ### #57: Frontend Is a Starter Page and Fails Lint
-**Status:** Open  
+**Status:** ✅ Resolved (Phase 4.9). `lib/api.ts` rewritten with types; starter page replaced  
 **Phase:** 4.6  
 **Description:** `frontend/` is untracked. `app/page.tsx` is the default Next.js page. `npm run lint` fails with 1 error: `@typescript-eslint/no-explicit-any` at `frontend/lib/api.ts:46`. `tsc --noEmit` and `npm run build` pass.  
 **Action:** Fix during the first frontend phase.
@@ -1169,6 +1169,31 @@ Found on Nov 25, 2026 by running every existing test (`tests/`: 88 passed; `back
 
 ---
 
+## Phase 4.9: Frontend — New Issues
+
+### #76: Login Token Readable by Page Scripts
+**Status:** Open (accepted for the academic demo)  
+**Phase:** 4.9  
+**Description:** The JWT is kept in `localStorage` (D-62), so an XSS flaw could expose it. React escapes rendered text, and the app renders no raw HTML.  
+**Action:** For production, move to an httpOnly, SameSite cookie set by the backend.
+
+---
+
+### #77: Waiting Options Show Only the Main Change on the Page
+**Status:** By design  
+**Phase:** 4.9  
+**Description:** The decision page shows "re-apply after N months" and the loan changes. The detailed time effects (job tenure, record ages, enquiries) are listed only in the PDF compliance data, to keep the page readable.
+
+---
+
+### #78: No Automated Browser Tests
+**Status:** Open  
+**Phase:** 4.9  
+**Description:** The frontend is checked with lint, type-checking, the build and a manual checklist. There are no end-to-end browser tests.  
+**Action:** Add Playwright tests for sign-in, apply and the decision page if time allows (Phase 5).
+
+---
+
 ## Change Log (Updated)
 
 | Date | Issue | Action |
@@ -1196,6 +1221,8 @@ Found on Nov 25, 2026 by running every existing test (`tests/`: 88 passed; `back
 | Nov 26, 2026 | #72, #73 | Identified: waiting-lever assumptions, time-cost judgement |
 | Nov 26, 2026 | #62, #63 | Updated with Phase 4.7c results |
 | Nov 26, 2026 | #74, #75 | Identified: plain-language name coverage, reports rebuilt not archived |
+| Nov 26, 2026 | #57 | Resolved: frontend lint error (Phase 4.9) |
+| Nov 26, 2026 | #76–#78 | Identified: token in localStorage, waiting details only in PDF, no browser tests |
 
 ---
 

@@ -56,3 +56,13 @@ def test_approved_prediction_uses_requested_tenure(client, applicant_headers):
     terms = client.get(f"/api/applications/{app_id}", headers=applicant_headers).json()["loan_terms"]
     assert terms["tenure_months"] == 48
     assert terms["loan_amount"] == pytest.approx(raw["AMT_CREDIT"])
+
+
+def test_explanation_rows_carry_plain_language_labels(client, applicant_headers):
+    app_id = client.post("/api/applications/", json={"features": FEATURES}, headers=applicant_headers).json()["id"]
+    assert client.post(f"/api/predictions/{app_id}", headers=applicant_headers).status_code == 200
+    expl = client.get(f"/api/applications/{app_id}", headers=applicant_headers).json()["explanation"]
+    assert all(r["label"] for r in expl["shap_values"])
+    assert all(r["label"] for r in expl["lime_explanation"])
+    for cf in expl["counterfactuals"] or []:
+        assert all(d["label"] for d in cf.get("drivers") or [])

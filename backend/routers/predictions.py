@@ -10,6 +10,7 @@ from backend.services.prediction_service import get_prediction_service
 from backend.services.explainability_service import get_explainability_service
 from backend.services.counterfactual_service import get_counterfactual_service
 from backend.services.loan_calculator import loan_terms_for
+from backend.serializers import labelled_options
 
 router = APIRouter()
 
@@ -156,5 +157,5 @@ def recourse_with_preferences(
     if application.decision.decision == DecisionType.APPROVE:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Approved applications need no recourse")
 
-    return get_counterfactual_service().generate_counterfactuals(
-        application.features_json, preferences=preferences.as_kwargs())
+    return labelled_options(get_counterfactual_service().generate_counterfactuals(
+        application.features_json, preferences=preferences.as_kwargs()))

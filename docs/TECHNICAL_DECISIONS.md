@@ -1,6 +1,6 @@
 # TECHNICAL_DECISIONS — CreditXplain
 
-**Last Updated:** Phase 4.4 PDF reports (Nov 26, 2026)
+**Last Updated:** Phase 4.9 frontend and applicant portal (Nov 26, 2026)
 
 This document records all technical and architectural decisions made during the project, with rationale.
 
@@ -15,7 +15,7 @@ This document records all technical and architectural decisions made during the 
 | Counterfactual | Bounded lever search (`src/recourse.py`); DiCE kept offline in `src/counterfactuals.py` | DiCE on engineered columns gave inconsistent ratios and low success; see D-38 |
 | Fairness | Fairlearn | Microsoft-backed, well-documented |
 | Backend | FastAPI | Modern async framework, auto-docs, type hints |
-| Frontend | React + Next.js | Changed from Streamlit (Amendment B1) |
+| Frontend | React + Next.js 16 (App Router, TypeScript, Tailwind 4) | Changed from Streamlit (Amendment B1); see D-61 |
 | Database | SQLite | Sufficient for single-user design, easy deployment |
 | PDF Generation | ReportLab (planned, not implemented yet) | Python-native, template support |
 | Testing | pytest | Standard Python testing framework |
@@ -1563,6 +1563,48 @@ The old set-up had a higher R² because it fitted one global linear model, which
 
 ---
 
+## 22. Frontend: Foundation and Applicant Portal (Phase 4.9)
+
+### D-61: Client-Rendered Pages Against the FastAPI Backend
+**Decision:**
+- Pages are client components that call the FastAPI backend through one typed client (`frontend/lib/api.ts`, axios, types in `lib/types.ts`).
+- Sign-in state lives in `AuthProvider`; pages are guarded by role with `RequireAuth`.
+- No new dependencies are added (axios, Tailwind and lucide-react were already installed).
+
+**Next.js 16 specifics** (checked against the bundled docs in `node_modules/next/dist/docs`):
+- `cacheComponents` is on, so the dynamic `/applications/[id]` page wraps its `useParams` client view in `<Suspense>`; otherwise the build fails.
+- Browser-only reads (the login token) happen in effects, never during render.
+
+**Why:** All data is per user and behind a login, so server rendering gains little. Keeping one API client means the frontend uses exactly the backend's contract.
+
+---
+
+### D-62: Login Token in localStorage
+**Decision:** The JWT from `/api/auth/login` is stored in `localStorage` (`creditxplain_token`) and sent as a Bearer token. An invalid token is cleared when the session is restored.  
+**Trade-off:** Simple and matches the existing backend. A script injected into the page could read it, which an httpOnly cookie would prevent (KNOWN_ISSUES #76).
+
+---
+
+### D-63: Plain-Language Labels Come From the Backend
+**Decision:** The application detail and `POST /api/predictions/{id}/recourse` add a `label` to SHAP rows, LIME rows and recourse drivers (`backend/serializers.py`, using `report_service.feature_name`).  
+**Why:** One source of wording for the web pages and the PDF reports, instead of copying about 70 names into the frontend. Old stored explanations get labels too, because labels are added when the data is served.
+
+---
+
+### D-64: Application Form Design
+**Decision:**
+- Applicants enter the loan amount, goods price, yearly income and yearly repayment, plus a short profile (age, years in job, children, family size, education, income type, family status, housing, car and property). A repayment estimate (12% a year over the chosen tenure) can be filled in.
+- Credit-bureau scores are optional, labelled as bank-supplied in a real system; empty fields use the backend's defaults.
+- Recourse limits are optional.
+- Gender is not collected.
+- Three sample profiles (strong, borderline, higher-risk) land in Approve, Review and Reject with the current model, for demos and the usability check.
+
+**Why:** Only fields an applicant can know are asked for. Everything else uses typical values, as the API already does.
+
+**Date:** Nov 26, 2026
+
+---
+
 ## Change Log (Updated)
 
 | Date | Phase | Changes |
@@ -1576,6 +1618,7 @@ The old set-up had a higher R² because it fitted one global linear model, which
 | Nov 26, 2026 | Phase 4.8 | D-50 document storage; D-51 override justification; D-52 applicant-chosen tenure and schema upgrade; D-53 loan amount required; D-54 loan terms on officer approval; D-55 fairness stats format. D-29 and D-30 marked superseded |
 | Nov 26, 2026 | Phase 4.7c | D-56 waiting lever with age held fixed (debt-paydown lever rejected); D-57 applicant preferences and recourse endpoint; D-58 like-for-like evaluation |
 | Nov 26, 2026 | Phase 4.4 | D-59 applicant and compliance PDF reports; D-60 no dominated options; D-48 drivers limited to changed features |
+| Nov 26, 2026 | Phase 4.9 | D-61 client-rendered frontend; D-62 token storage; D-63 labels from backend; D-64 application form |
 
 ---
 

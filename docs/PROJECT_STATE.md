@@ -14,7 +14,7 @@
 
 ## 1. How to resume
 
-1. Read this file, then `KNOWN_ISSUES.md` #61–#75 (the newest findings).
+1. Read this file, then `KNOWN_ISSUES.md` #61–#78 (the newest findings).
 2. Check the repo: `git log --oneline -5`, `git status --short`.
 3. Follow the working agreement in section 6: propose the next phase and wait for approval.
 
@@ -27,7 +27,7 @@
 | Remote | `https://github.com/MKN-Sai-Varun/CreditXplain` |
 | Working branch | `dev-varun`: Phase 4.6 `dedac96`, Phase 4.7 `473917f`, docs wording `f1b8bc2`. Merged into `main` at the end |
 | Machine | MacBook Air, zsh, Python 3.9.6 (`/usr/bin/python3`), pytest 8.4.2, Node 26.7.0 |
-| Untracked | `frontend/`: a Next.js 16 / React 19 / Tailwind 4 scaffold plus `lib/api.ts`. Never committed |
+| Frontend | `frontend/`: Next.js 16 / React 19 / Tailwind 4 app, first committed in Phase 4.9 (`node_modules/`, `.next/`, `.env*` ignored) |
 | Local-only (gitignored) | `data/`, `creditxplain.db`, `home-credit-default-risk.zip`, `models/*.pkl`, `models/recourse_reference.npz` (rebuild with `python3 -m src.build_recourse_reference`) |
 
 ---
@@ -68,7 +68,8 @@
 | Document upload | ✅ | Upload, list and download with ownership, type, size and signature checks (D-50); `test_documents_api.py`. No scanning or deletion (#67) |
 | PDF reports | ✅ | Applicant decision report and officer compliance report (D-59); `test_reports_api.py` |
 | Loan tenure input | ✅ | 12 to 60 months chosen by the applicant; loan amount required (D-52, D-53); `test_applications_api.py` |
-| Frontend: applicant portal, officer dashboard | ⬜ | Starter page only; lint fails with 1 error (#57) |
+| Frontend: applicant portal | ✅ | Next.js 16: sign-in/register, applications list, application form, decision page with reasons, recourse and "What if…?", documents, PDF report (D-61 to D-64) |
+| Frontend: officer dashboard | ⬜ | Phase 4.10 (placeholder page) |
 
 ### Testing and documentation (original Phase 5)
 
@@ -81,14 +82,14 @@
 
 ---
 
-## 4. Test baseline (Nov 26, 2026, after Phase 4.4)
+## 4. Test baseline (Nov 26, 2026, after Phase 4.9)
 
 | Suite | Result |
 |---|---|
-| `python3 -m pytest tests backend/tests -q` | ✅ 211 passed (201 before 4.4 + 10 new) |
+| `python3 -m pytest tests backend/tests -q` | ✅ 212 passed |
 | `npx tsc --noEmit` (frontend) | ✅ |
-| `npm run build` (frontend) | ✅ |
-| `npm run lint` (frontend) | ❌ 1 error (#57) |
+| `npm run build` (frontend) | ✅ 9 routes |
+| `npm run lint` (frontend) | ✅ clean |
 
 The Pydantic (#27), pandas (#58) and FastAPI (#64) warnings are gone. Remaining warnings come from libraries: matplotlib/pyparsing deprecations, the SHAP output notice (#65), and the numpy/macOS matmul artefact (#53).
 
@@ -102,7 +103,7 @@ The model and the system are in place. Reviewers will look hardest at the claims
 2. ~~Recourse needs standard evaluation~~ ✅ done in 4.7 and 4.7b, including DiCE.
 3. **Recourse framing:** a graduated path (Reject → Review → Approve). State the coverage trade-off of the stricter rules (#62) and confirm the age-band gaps on a larger sample (#63).
 4. **Fairness:** report the age disparity with per-group default rates and AUC, and decide on mitigation or a documented justification (#16).
-5. **A working demo:** backend and PDF reports complete; the frontend remains.
+5. **A working demo:** backend, PDF reports and applicant portal complete; the officer dashboard remains.
 
 Phases 4.7 onward (TECHNICAL_DECISIONS D-41) follow this order.
 
@@ -120,7 +121,7 @@ Phases 4.7 onward (TECHNICAL_DECISIONS D-41) follow this order.
 
 ## 7. Next phase and open questions
 
-**Next phase (awaiting approval): 4.9, frontend foundation and applicant portal**, then 4.10 (officer dashboard).
+**Next phase (awaiting approval): 4.10, officer dashboard** (review queue, application review, actions, analytics, fairness panel).
 
 | # | Open question | Status |
 |---|---|---|
