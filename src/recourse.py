@@ -4,7 +4,7 @@ Counterfactual recourse for applicants who are not approved.
 Searches a bounded space over four levers the applicant controls:
   credit  - requested loan amount (larger down payment); installment falls with it
   income  - verified income, e.g. adding a co-applicant (up to +50%)
-  tenure  - longer repayment, expressed as a lower monthly installment (down to 70%)
+  tenure  - longer repayment, expressed as a lower yearly repayment (annuity, down to 70%)
   wait    - re-apply after 3, 6 or 12 months, staying in the same job and making
             no new credit applications meanwhile: job tenure and the age of the
             ID, registration, phone and car records grow, and credit-bureau
@@ -218,10 +218,10 @@ def _describe(base, scales, row, p_before, p_after, band, cost, margin_left, dis
         changes.append(_change("AMT_CREDIT", "Requested loan amount (larger down payment)",
                                base["AMT_CREDIT"], row["AMT_CREDIT"], "credit"))
     if i > 1:
-        changes.append(_change("AMT_INCOME_TOTAL", "Verified income (e.g. add a co-applicant)",
+        changes.append(_change("AMT_INCOME_TOTAL", "Verified yearly income (e.g. add a co-applicant)",
                                base["AMT_INCOME_TOTAL"], row["AMT_INCOME_TOTAL"], "income"))
     if c < 1 or a < 1:
-        changes.append(_change("AMT_ANNUITY", "Monthly installment",
+        changes.append(_change("AMT_ANNUITY", "Yearly loan repayment (annuity)",
                                base["AMT_ANNUITY"], row["AMT_ANNUITY"], "tenure" if a < 1 else "credit"))
     levers = list(_levers(c, i, a, w))
     name = {v: k for k, v in BAND.items()}[band]
@@ -255,6 +255,12 @@ def _change(feature, label, original, recommended, lever, display_sign=1):
         out["display_original"] = float(original) * display_sign
         out["display_recommended"] = float(recommended) * display_sign
     return out
+
+
+def _dominates(a, b):
+    """True if option a asks for no more than option b on every lever (and is a different option)."""
+    (ca, ia, aa, wa), (cb, ib, ab, wb) = a, b
+    return a != b and ca >= cb and ia <= ib and aa >= ab and wa <= wb
 
 
 def _search_space(locked, max_loan_reduction, max_wait_months):
@@ -316,7 +322,8 @@ def find_recourse(scorer, raw, n=3, margin=DEFAULT_MARGIN, plausibility="default
                 found[lv] = (s, r_rows[k], r_probs[k], r_bands[k], r_dist[k])
 
     cut = {BAND["review"]: scorer.reject_from, BAND["approve"]: scorer.approve_below}
-    ranked = sorted(found.values(), key=lambda v: _cost(*v[0]))[:n]
+    ranked = [v for v in sorted(found.values(), key=lambda v: _cost(*v[0]))
+              if not any(_dominates(u[0], v[0]) for u in found.values() if u is not v)][:n]
     return [
         _describe(base, s, row, probs[0], p, b, _cost(*s),
                   float(_logit(cut[b]) - _logit(p)), d, plaus)
@@ -324,11 +331,18 @@ def find_recourse(scorer, raw, n=3, margin=DEFAULT_MARGIN, plausibility="default
     ]
 
 
-def explain_change(scorer, shap_explainer, raw, option, top=3):
-    """Which model features moved the score most when the option is applied (SHAP, log-odds)."""
+def explain_change(scorer, shap_explainer, raw, option, top=3, only_changed=True):
+    """
+    Which model features moved the score most when the option is applied (SHAP, log-odds).
+    only_changed keeps features whose value the option changes: SHAP can shift credit onto
+    unchanged features through interactions, and naming those (e.g. age) would mislead.
+    """
     X = pd.concat([scorer.frame(raw), scorer.frame(apply_changes(raw, option["changes"]))])
     sv = shap_explainer.shap_values(X)
     sv = np.asarray(sv[-1] if isinstance(sv, list) else sv)
     delta = sv[1] - sv[0]
-    order = np.argsort(-np.abs(delta))[:top]
+    if only_changed:
+        moved = ~np.isclose(X.iloc[0].to_numpy(float), X.iloc[1].to_numpy(float), equal_nan=True)
+        delta = np.where(moved, delta, 0.0)
+    order = [j for j in np.argsort(-np.abs(delta)) if delta[j] != 0][:top]
     return [{"feature": X.columns[j], "delta": float(delta[j])} for j in order]

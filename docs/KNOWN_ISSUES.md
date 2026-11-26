@@ -1,6 +1,6 @@
 # KNOWN_ISSUES — CreditXplain
 
-**Last Updated:** Nov 26, 2026 (Phase 4.7c: richer recourse)
+**Last Updated:** Nov 26, 2026 (Phase 4.4: PDF reports)
 
 This document tracks bugs, gaps, technical debt, and unresolved questions. Items are numbered for reference.
 
@@ -1151,6 +1151,24 @@ Found on Nov 25, 2026 by running every existing test (`tests/`: 88 passed; `back
 
 ---
 
+## Phase 4.4: PDF Reports — New Issues
+
+### #74: Plain-Language Names Cover the Common Features Only
+**Status:** Open (low)  
+**Phase:** 4.4  
+**Description:** About 70 features have hand-written plain-language names in `report_service.FEATURE_NAMES`, and one-hot category columns read e.g. "Education level (lower secondary)" (`CATEGORY_NAMES`). The rest fall back to a cleaned column name (e.g. "Flag document 6"), which may be unclear to applicants.  
+**Action:** Extend the mapping when the usability check (Phase 5) shows which names confuse readers.
+
+---
+
+### #75: Reports Are Rebuilt, Not Archived
+**Status:** By design  
+**Phase:** 4.4  
+**Description:** A compliance report reflects the database at the time it is generated. Its generation is logged, but the PDF itself is not stored, so a later report can differ if the application changed in between (e.g. new documents).  
+**Action:** If a fixed archive is required, store the PDF with a hash at generation time.
+
+---
+
 ## Change Log (Updated)
 
 | Date | Issue | Action |
@@ -1177,6 +1195,7 @@ Found on Nov 25, 2026 by running every existing test (`tests/`: 88 passed; `back
 | Nov 26, 2026 | #71 | Resolved: wrong 'age excluded' statements corrected |
 | Nov 26, 2026 | #72, #73 | Identified: waiting-lever assumptions, time-cost judgement |
 | Nov 26, 2026 | #62, #63 | Updated with Phase 4.7c results |
+| Nov 26, 2026 | #74, #75 | Identified: plain-language name coverage, reports rebuilt not archived |
 
 ---
 

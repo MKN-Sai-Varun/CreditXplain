@@ -1,6 +1,6 @@
 # TECHNICAL_DECISIONS — CreditXplain
 
-**Last Updated:** Phase 4.7c richer recourse (Nov 26, 2026)
+**Last Updated:** Phase 4.4 PDF reports (Nov 26, 2026)
 
 This document records all technical and architectural decisions made during the project, with rationale.
 
@@ -1296,7 +1296,7 @@ The first three decisions were made in commits ae6ad19, fef60f8 and b68c3f7 (Nov
 
 ### D-38: Bounded Lever Search Replaces DiCE in the API
 **Decision:** The API's recourse uses `src/recourse.py`, a grid search over three levers the applicant controls, instead of DiCE on engineered columns.  
-**Levers and bounds:** loan amount ×{1.0 … 0.5} (8 steps), verified income ×{1.0 … 1.5} (5 steps), monthly installment ×{1.0 … 0.7} (4 steps, i.e. longer tenure). 160 candidates per applicant.  
+**Levers and bounds:** loan amount ×{1.0 … 0.5} (8 steps), verified income ×{1.0 … 1.5} (5 steps), yearly repayment (the dataset's `AMT_ANNUITY`, which is yearly) ×{1.0 … 0.7} (4 steps, i.e. longer tenure). 160 candidates per applicant.  
 **How it works:** Every candidate is rebuilt through FE v2 (`add_features`), so derived ratios stay consistent. Candidates that move the applicant to a better band are kept, ranked by cost `(1−credit) + (income−1) + (1−installment)`, and at most one is kept per lever combination (up to 3 options).  
 **Rationale:**
 - DiCE perturbed engineered columns independently, so ratios no longer matched their inputs (KNOWN_ISSUES #17).
@@ -1401,7 +1401,8 @@ The old set-up had a higher R² because it fitted one global linear model, which
 
 ### D-48: Each Recourse Option Says Why It Works
 **Decision:** Each API recourse option carries `drivers`: the 3 model features whose SHAP contribution changes most when the option is applied (`src/recourse.explain_change`, log-odds). The deltas sum exactly to the change in the model's score (SHAP additivity; tested).  
-**Why:** It links explanation and recourse. The applicant and the officer see, for example, that a lower loan amount helps through the credit-to-goods and annuity ratios.
+**Why:** It links explanation and recourse. The applicant and the officer see, for example, that a lower loan amount helps through the credit-to-goods and annuity ratios.  
+**Refined in Phase 4.4:** only features whose value the option actually changes are listed. SHAP can shift credit onto unchanged features (such as age) through interactions, and naming those would mislead.
 
 ---
 
@@ -1522,6 +1523,46 @@ The old set-up had a higher R² because it fitted one global linear model, which
 
 ---
 
+## 21. PDF Reports (Phase 4.4)
+
+### D-59: Two Reports From One Service
+**Decision:** `backend/services/report_service.py` (ReportLab, A4) builds two PDFs from what is stored for an application.
+
+**Applicant report** (`GET /api/applications/{id}/report.pdf`; owner or officer):
+- the decision and estimated risk, in plain words;
+- the five strongest SHAP factors, as plain-language names with "raises risk" or "lowers risk";
+- recourse options, including waiting options and their "why it helps" drivers;
+- loan terms, labelled as illustrative;
+- officers' document requests;
+- a note that a person can review any decision.
+
+**Compliance report** (`GET /api/officer/{id}/compliance-report.pdf`; officers only). Everything above, plus:
+- the model card summary and the cutoffs stored with the decision;
+- the top 10 SHAP contributions and the top 10 LIME rules (log-odds);
+- recourse details (risk, margin, plausibility, cost);
+- recourse preferences;
+- documents;
+- the full audit trail;
+- the latest fairness status.
+
+**Design points:**
+- **Plain language:** about 40 frequent features have hand-written names (`FEATURE_NAMES`); others fall back to a cleaned-up column name.
+- **Archive:** generating a compliance report is recorded in the audit log (`compliance_report`). The PDF is not stored, because it can be rebuilt from the database and storing it would duplicate personal data.
+- **Uncompressed PDFs** (a few tens of KB), so tests can check the text without a PDF reader.
+- **Currency** shown as "INR", because the standard PDF fonts have no rupee glyph.
+- **Wording:** the reports follow the spirit of rules that ask lenders to give written reasons for decisions (e.g. the RBI Fair Practices Code; adverse-action notices). They are not claimed to make the system legally compliant.
+
+**Date:** Nov 26, 2026
+
+---
+
+### D-60: No Dominated Recourse Options
+**Decision:** An option is dropped if another option asks for no more on every lever: loan amount, income, repayment and waiting time.  
+**Why:** Without this, an option could repeat a cheaper option's changes and add a wait, which is never worth showing. The cheapest option is never dropped, so coverage and cost figures are unaffected.  
+**Date:** Nov 26, 2026
+
+---
+
 ## Change Log (Updated)
 
 | Date | Phase | Changes |
@@ -1534,6 +1575,7 @@ The old set-up had a higher R² because it fitted one global linear model, which
 | Nov 25, 2026 | Phase 4.7 | D-42 confirmed; D-43 local LIME; D-44 to D-48 recourse upgrade (margin, plausibility, refinement, two tiers, drivers); D-49 recourse evaluation protocol |
 | Nov 26, 2026 | Phase 4.8 | D-50 document storage; D-51 override justification; D-52 applicant-chosen tenure and schema upgrade; D-53 loan amount required; D-54 loan terms on officer approval; D-55 fairness stats format. D-29 and D-30 marked superseded |
 | Nov 26, 2026 | Phase 4.7c | D-56 waiting lever with age held fixed (debt-paydown lever rejected); D-57 applicant preferences and recourse endpoint; D-58 like-for-like evaluation |
+| Nov 26, 2026 | Phase 4.4 | D-59 applicant and compliance PDF reports; D-60 no dominated options; D-48 drivers limited to changed features |
 
 ---
 

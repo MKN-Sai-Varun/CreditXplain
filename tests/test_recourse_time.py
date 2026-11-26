@@ -93,3 +93,13 @@ def test_search_space_rejects_bad_preferences(bad):
     args = {"locked": (), "max_loan_reduction": 0.5, "max_wait_months": 12, **bad}
     with pytest.raises(ValueError):
         _search_space(args["locked"], args["max_loan_reduction"], args["max_wait_months"])
+
+
+def test_dominance_rule():
+    from src.recourse import _dominates
+    loan_only = (0.87, 1.0, 0.8, 0)
+    same_plus_wait = (0.87, 1.0, 0.8, 3)
+    assert _dominates(loan_only, same_plus_wait)          # asks for strictly less
+    assert not _dominates(same_plus_wait, loan_only)
+    assert not _dominates(loan_only, loan_only)            # an option never removes itself
+    assert not _dominates((0.8, 1.0, 1.0, 0), (0.9, 1.0, 0.8, 0))   # trade-off: neither dominates

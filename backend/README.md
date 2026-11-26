@@ -80,6 +80,7 @@ uvicorn backend.main:app --host 0.0.0.0 --port 8000 --workers 4
 - `POST /api/applications/` - Submit new application. Body: `{"features": {...}, "tenure_months": 12, "recourse_preferences": {...}}` (preferences optional); `features.AMT_CREDIT` (requested loan amount) is required and must be positive; `tenure_months` is one of 12, 24, 36, 48, 60 (default 12)
 - `GET /api/applications/` - Get user's applications
 - `GET /api/applications/{id}` - Get application details (decision, explanation, loan terms, documents, document requests)
+- `GET /api/applications/{id}/report.pdf` - Decision report (PDF) for a scored application (owner or officer)
 
 ### Documents
 - `POST /api/applications/{id}/documents` - Upload a document (multipart: `file`, `doc_type`). Applicant who owns the application only. PDF, PNG or JPEG, up to 5 MB; the file content must match its type
@@ -97,6 +98,7 @@ Files are stored under `uploads/<application id>/` (gitignored).
 - `POST /api/officer/{id}/action` - Approve/reject/request documents. A justification is required to go against the model or to request documents; approving creates loan terms priced at the model's risk band
 - `GET /api/officer/analytics/approval-rates` - Get approval statistics
 - `GET /api/officer/{id}/audit-log` - Get application audit trail
+- `GET /api/officer/{id}/compliance-report.pdf` - Compliance report (PDF); each generation is logged in the audit trail
 
 ### Fairness Monitoring
 - `GET /api/fairness/metrics` - Get latest fairness metrics

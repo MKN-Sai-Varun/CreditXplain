@@ -153,7 +153,8 @@ def test_review_applicants_get_paths_to_approve(scorer, review_solved):
 def test_explain_change_adds_up_to_the_score_change(scorer, solved):
     import shap
     raw, res = next((r, x) for r, x in solved if x)
-    deltas = explain_change(scorer, shap.TreeExplainer(scorer.model), raw, res[0], top=len(scorer.features))
+    deltas = explain_change(scorer, shap.TreeExplainer(scorer.model), raw, res[0], top=len(scorer.features),
+                            only_changed=False)
     before = scorer.model.predict(scorer.frame(raw), raw_score=True)[0]
     after = scorer.model.predict(scorer.frame(apply_changes(raw, res[0]["changes"])), raw_score=True)[0]
     assert sum(d["delta"] for d in deltas) == pytest.approx(after - before, abs=1e-6)
@@ -211,3 +212,31 @@ def test_loan_reduction_and_wait_caps(scorer, solved):
 def test_unknown_lever_rejected(scorer, solved):
     with pytest.raises(ValueError):
         find_recourse(scorer, solved[0][0], locked=("savings",))
+
+
+def test_no_returned_option_is_dominated(solved, review_solved):
+    from src.recourse import _dominates
+
+    def scales(cf):
+        ch = {c["feature"]: c for c in cf["changes"]}
+        c = ch["AMT_CREDIT"]["recommended"] / ch["AMT_CREDIT"]["original"] if "AMT_CREDIT" in ch else 1.0
+        i = ch["AMT_INCOME_TOTAL"]["recommended"] / ch["AMT_INCOME_TOTAL"]["original"] if "AMT_INCOME_TOTAL" in ch else 1.0
+        a = (ch["AMT_ANNUITY"]["recommended"] / ch["AMT_ANNUITY"]["original"]) / c if "AMT_ANNUITY" in ch else 1.0
+        return (round(c, 9), round(i, 9), round(a, 9), cf["wait_months"])
+
+    for _, res in list(solved) + list(review_solved):
+        s = [scales(cf) for cf in res]
+        for x in s:
+            assert not any(_dominates(y, x) for y in s if y is not x)
+
+
+def test_drivers_only_name_features_that_change(scorer, solved):
+    import shap
+    explainer = shap.TreeExplainer(scorer.model)
+    for raw, res in solved[:5]:
+        for cf in res:
+            before = scorer.frame(raw).iloc[0]
+            after = scorer.frame(apply_changes(raw, cf["changes"])).iloc[0]
+            for d in explain_change(scorer, explainer, raw, cf):
+                assert not np.isclose(before[d["feature"]], after[d["feature"]], equal_nan=True)
+                assert not d["feature"].startswith("AGE")

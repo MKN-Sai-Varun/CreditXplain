@@ -1965,6 +1965,42 @@ Full run (Nov 26, 2026): **201 passed** (182 + 19).
 
 ---
 
+## Phase 4.4: PDF Reports (Nov 26, 2026)
+
+### Overview
+Adds the PDF report generator from the workflow diagram: a decision report for the applicant and a compliance report for officers (objective O3, PDF export). Decision: TECHNICAL_DECISIONS D-59.
+
+### Changes
+- `backend/services/report_service.py` (new): `applicant_report` and `compliance_report`, with plain-language feature names, recourse with waiting options and drivers, loan terms, document requests, model card, SHAP and LIME tables, audit trail and fairness status.
+- `backend/routers/applications.py`: `GET /api/applications/{id}/report.pdf` (owner or officer; 400 if unscored).
+- `backend/routers/officer.py`: `GET /api/officer/{id}/compliance-report.pdf` (officers; 400 if unscored); each generation adds a `compliance_report` audit entry.
+- `backend/README.md`: endpoints listed.
+
+### Tests (`backend/tests/test_reports_api.py`, new; 7)
+1. Applicant report for a scored application (valid PDF, key text, under 2 s).
+2. Access and errors (another applicant 403, officer allowed, missing 404, unscored 400).
+3. Loan terms over the chosen tenure and document requests appear after officer actions.
+4. Compliance report is officer-only (403, 404).
+5. Compliance content (audit trail with justification, preferences, documents, fairness, model) and the audit entry it creates.
+6. Unscored compliance request refused.
+7. After a real prediction: reasons, recourse options, SHAP and LIME tables present.
+
+Full run (Nov 26, 2026): **208 passed** (201 + 7).
+
+### Fixes found by reviewing a generated sample report
+A sample applicant and compliance report was generated for a real rejected test applicant and read in full. That review found five problems, all fixed:
+1. **Dominated options:** an option could repeat another option's loan changes and add a wait, asking for strictly more. `src/recourse.py` now drops any option that asks for at least as much on every lever as another option (`_dominates`). The cheapest option is never dropped, so the recourse evaluation numbers are unchanged.
+2. **Yearly, not monthly:** the dataset's `AMT_ANNUITY` is the yearly repayment, and `AMT_INCOME_TOTAL` is yearly income. Labels said "Monthly installment" and "Verified income". Corrected in `src/recourse.py`, `report_service.FEATURE_NAMES` and D-38; the loan-terms EMI, which is monthly, is unchanged.
+3. **Misleading drivers:** SHAP moved some credit onto unchanged features through interactions, so "why it helps" could name age. `explain_change` now lists only features whose value the option changes (`only_changed=True`).
+4. **Raw column names:** category columns now read e.g. "Education level (lower secondary)" (`CATEGORY_NAMES`). Another 28 lever-related features got plain names, and `_LOG` variants use their base name.
+5. **Wording and layout:** "leads to REVIEW" became "would move the application to officer review". Audit-table actions are shown with spaces, so they wrap at words, and small files are shown in bytes.
+
+New tests (3): dominance rule (`tests/test_recourse_time.py`), no returned option is dominated, drivers only name changed features and never age (`tests/test_recourse.py`). Full run after the fixes: **211 passed**.
+
+**Next Phase:** 4.9, frontend foundation and applicant portal.
+
+---
+
 ## Change Log (updated)
 
 | Date | Phase | Event | Files Changed |
@@ -1979,7 +2015,8 @@ Full run (Nov 26, 2026): **201 passed** (182 + 19).
 | 2026-11-26 | 4.8 | Backend completion | Documents router and model, officer queue/actions, tenure and loan amount, fairness fixes, warning cleanups, 40 new tests |
 | 2026-11-26 | 4.7b | Faster DiCE baseline | `src/recourse_eval.py`: binary sparsity search, cached wrapper, thread limit, incremental saving, `--methods`; wrapper ratio fix |
 | 2026-11-26 | 4.7c | Richer recourse | Waiting lever (age held fixed), applicant preferences and recourse endpoint, proposed_with_wait evaluation, age doc correction, 19 new tests |
+| 2026-11-26 | 4.4 | PDF reports | Report service, applicant and compliance PDF endpoints, 7 new tests |
 
 ---
 
-**Last Updated:** Nov 26, 2026 (Phase 4.7c complete)
+**Last Updated:** Nov 26, 2026 (Phase 4.4 complete)

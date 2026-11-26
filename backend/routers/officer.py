@@ -1,12 +1,14 @@
 from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi.responses import Response
 from sqlalchemy.orm import Session
 from typing import List
 from backend.database import get_db
-from backend.models import User, Application, ApplicationStatus, AuditLog, DecisionType
+from backend.models import User, Application, ApplicationStatus, AuditLog, DecisionType, FairnessMetric
 from backend.schemas import ApplicationDetail, OfficerAction, OfficerActionResponse, AuditLogResponse, ApprovalRateStats
 from backend.auth import get_current_officer
 from backend.serializers import application_detail
 from backend.services.loan_calculator import loan_terms_for
+from backend.services.report_service import compliance_report
 
 router = APIRouter()
 
@@ -143,3 +145,37 @@ def get_application_audit_log(
     ).order_by(AuditLog.timestamp.desc()).all()
     
     return audit_logs
+
+
+@router.get("/{application_id}/compliance-report.pdf")
+def download_compliance_report(
+    application_id: int,
+    current_officer: User = Depends(get_current_officer),
+    db: Session = Depends(get_db)
+):
+    """Compliance report (PDF) for one application. Generating it is recorded in the audit log."""
+    application = db.query(Application).filter(Application.id == application_id).first()
+    if not application:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Application not found")
+    if application.decision is None:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Application has not been scored yet")
+
+    logs = db.query(AuditLog).filter(AuditLog.application_id == application_id).order_by(AuditLog.timestamp.asc()).all()
+    fairness = db.query(FairnessMetric).order_by(FairnessMetric.calculated_at.desc()).first()
+    pdf = compliance_report(application, logs, fairness)
+
+    db.add(AuditLog(
+        application_id=application.id,
+        officer_id=current_officer.id,
+        action="compliance_report",
+        justification="Compliance report generated",
+        previous_status=application.status.value,
+        new_status=application.status.value,
+    ))
+    db.commit()
+
+    return Response(
+        content=pdf,
+        media_type="application/pdf",
+        headers={"Content-Disposition": f'attachment; filename="creditxplain-compliance-{application.id}.pdf"'},
+    )
