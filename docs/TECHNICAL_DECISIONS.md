@@ -1645,7 +1645,7 @@ The old set-up had a higher R² because it fitted one global linear model, which
 
 ### D-69: CI Without Private Data
 **Decision:** GitHub Actions (`.github/workflows/ci.yml`) runs two jobs on every push and pull request.
-- **Model and API tests:** Python 3.9, pinned requirements, `pytest tests backend/tests -rs`.
+- **Model and API tests:** Python 3.9 on `ubuntu-24.04` (no 3.9 build exists for 26.04, the current `ubuntu-latest`), pinned requirements, `pytest tests backend/tests -rs`.
 - **Frontend:** Node 22, `npm ci`, lint, build, then `tsc --noEmit`. The build generates the route types the type check needs.
 
 **Data handling:** the trained model and processed data are not in git, so tests that need them skip (module-level guards, and a new `@pytest.mark.needs(...)` marker in `tests/conftest.py`). Locally, with the files present, every test runs.

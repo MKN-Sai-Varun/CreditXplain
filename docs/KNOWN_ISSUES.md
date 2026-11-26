@@ -1217,7 +1217,8 @@ Found on Nov 25, 2026 by running every existing test (`tests/`: 88 passed; `back
 **Status:** Open (watch)  
 **Phase:** 5.1  
 **Description:** CI uses Python 3.9 to match the development machine. Python 3.9 reached end of life in October 2025, so GitHub runners may stop offering it.  
-**Action:** If the setup step fails, move the development machine and CI to Python 3.11 together and re-pin `requirements.txt`.
+**Happened on the first CI run:** `ubuntu-latest` is now Ubuntu 26.04, which has no Python 3.9 build. Fixed by pinning the Python job to `ubuntu-24.04` (Python 3.9.25 available).  
+**Action:** When Ubuntu 24.04 runners are retired, move the development machine and CI to Python 3.11 together and re-pin `requirements.txt`.
 
 ---
 

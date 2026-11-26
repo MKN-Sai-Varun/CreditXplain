@@ -2097,7 +2097,7 @@ Makes the project reproducible from a fresh clone and checked on every push. Dec
 ### Checks
 - Workflow YAML parses; `scripts/run_pipeline.sh --list` works.
 - Local test run: **212 passed, none skipped** (all model and data files present).
-- First CI run: result to be recorded.
+- First CI run: the Python job failed at setup, because `ubuntu-latest` (Ubuntu 26.04) has no Python 3.9 build. Fixed by pinning that job to `ubuntu-24.04`. Second run: result to be recorded.
 
 **Next Phase:** 5.2, recourse robustness across retrained models.
 
