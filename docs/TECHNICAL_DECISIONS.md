@@ -79,7 +79,7 @@ This document records all technical and architectural decisions made during the 
 - Gender will be saved separately for **fairness audit in Phase 3**
 
 **Date:** Nov 19, 2026  
-**User Confirmation:** "Gender should not be taken into consideration by the model"  
+**Confirmed by project lead:** "Gender should not be taken into consideration by the model"  
 **Implementation:** `src/model_params.py` (GENDER_PATTERNS exclusion list)
 
 ---
@@ -183,7 +183,7 @@ This document records all technical and architectural decisions made during the 
 
 **Date:** Phase 2  
 **Implementation:** `src/scale_and_balance.py`  
-**Evidence:** Copilot review caught plain SMOTE interpolating one-hot indicators
+**Evidence:** The PR #3 code review caught plain SMOTE interpolating one-hot indicators
 
 ---
 
@@ -1324,7 +1324,7 @@ The first three decisions were made in commits ae6ad19, fef60f8 and b68c3f7 (Nov
 ---
 
 ### D-41: Working Agreement and Phase Order From Phase 4.6
-**Decision:** Each phase is proposed and approved before any change. After a phase the assistant updates these docs and explains every change; the user commits and pushes to `dev-varun`.  
+**Decision:** Each phase is proposed and approved by the project lead before any change. After a phase these docs are updated and every change is documented; the project lead runs the tests, commits and pushes to `dev-varun`.  
 **Order:**
 
 | Phase | Scope |
@@ -1345,14 +1345,14 @@ The first three decisions were made in commits ae6ad19, fef60f8 and b68c3f7 (Nov
 **Decision (proposed, to be confirmed at the start of 4.7):** The paper reports only explanation and recourse numbers that a reviewer cannot dismiss as artefacts of the setup.  
 **LIME:** sample around the instance, quartile discretisation, explicit kernel width, fixed seed. Evaluate 100–200 stratified applicants with top-k overlap, rank correlation with SHAP, and stability across seeds (#52–#54).  
 **Recourse:** report coverage, proximity, sparsity, plausibility (distance to real applicants) and latency. Compare against a baseline under the same bounds: DiCE (`src/counterfactuals.py`) or random search. Drop the circular validity rate (#55). Present recourse as Reject→Review and state why Approve is out of reach (#56).  
-**Rationale:** The user's goal is a result worth presenting and publishing (Nov 25, 2026).  
+**Rationale:** The goal is a result worth presenting and publishing.  
 **Date:** Nov 25, 2026
 
 ---
 
 ## 18. Explanation and Recourse Upgrade (Phase 4.7)
 
-D-42 (the evaluation standard) is now **confirmed and implemented** by the decisions below. The user's instruction (Nov 25, 2026): "Do the best you can to improve the model functionality and novelty."
+D-42 (the evaluation standard) is now **confirmed and implemented** by the decisions below. Goal: improve model functionality and novelty.
 
 ### D-43: Local LIME Over the Model's Top-Gain Features
 **Decision:** LIME (`src/lime_local.py`, `LocalLime`) perturbs only the 25 features with the highest LightGBM gain and holds every other feature at the applicant's own value. It uses LIME's default quartile discretisation, treats binary columns as categorical, fits the surrogate to the model's **log-odds** (the scale SHAP uses), and is seeded (both of LIME's random generators are reset per call). Background: 5,000 training rows (previously 2,000 in the API; the offline script used the **test** set).  

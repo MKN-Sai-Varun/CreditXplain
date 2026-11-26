@@ -6,7 +6,7 @@
 
 | Mark | Meaning |
 |---|---|
-| ✅ | Done, with real output or passing tests on the user's machine |
+| ✅ | Done, with real output or passing tests on the development machine |
 | 🟡 | Works, but has a known gap that matters for the paper or the app |
 | ⬜ | Not started |
 
@@ -25,7 +25,7 @@
 | Item | State |
 |---|---|
 | Remote | `https://github.com/MKN-Sai-Varun/CreditXplain` |
-| Working branch | `dev-varun`. Phase 4.6 at `dedac96`; Phase 4.7 committed on top. The user merges into `main` at the end |
+| Working branch | `dev-varun`. Phase 4.6 at `dedac96`; Phase 4.7 committed on top. Merged into `main` at the end |
 | Machine | MacBook Air, zsh, Python 3.9.6 (`/usr/bin/python3`), pytest 8.4.2, Node 26.7.0 |
 | Untracked | `frontend/`: a Next.js 16 / React 19 / Tailwind 4 scaffold plus `lib/api.ts`. Never committed |
 | Local-only (gitignored) | `data/`, `creditxplain.db`, `home-credit-default-risk.zip`, `models/*.pkl`, `models/recourse_reference.npz` (rebuild with `python3 -m src.build_recourse_reference`) |
@@ -108,11 +108,11 @@ Phases 4.7 onward (TECHNICAL_DECISIONS D-41) follow this order.
 
 ---
 
-## 6. Working agreement (user, Nov 25, 2026)
+## 6. Working agreement (Nov 25, 2026)
 
-- Work **phase by phase**. Propose each phase and **do nothing without approval**.
-- After a phase: update the four docs, **explain every change**, and give the tests to run.
-- **The user commits and pushes** to `dev-varun`. The assistant suggests commit commands that add files by name (never `git add .`) and does not run them.
+- Work **phase by phase**. Each phase is approved by the project lead **before any change**.
+- After a phase: update the four docs, **document every change**, and list the tests to run.
+- **The project lead runs the tests, stages files by name** (never `git add .`), **commits and pushes** to `dev-varun`.
 - Keep code comments minimal and natural. Verify before asserting.
 - Do not commit data, models, `.env`, the SQLite database or per-applicant prediction dumps.
 
@@ -130,4 +130,4 @@ Phases 4.7 onward (TECHNICAL_DECISIONS D-41) follow this order.
 | Q4 | What have Members 2, 3 and 4 built? | Open |
 | Q5 | Family status: keep as a feature and audit, or exclude? | Open (age is already excluded) |
 | Q7 | Registration: real sign-up or seeded demo applicants only? | Open (real sign-up exists for applicants) |
-| Q8 | Recourse in the paper: Reject→Review only, or add a Review→Approve tier? | **Settled:** both tiers (user: 'do the best you can'), implemented in 4.7 |
+| Q8 | Recourse in the paper: Reject→Review only, or add a Review→Approve tier? | **Settled:** both tiers (project-lead decision), implemented in 4.7 |

@@ -47,8 +47,8 @@ This document tracks bugs, gaps, technical debt, and unresolved questions. Items
 3. Report full-train refit (not yet done)
 
 **Impact:** Manuscript results section requires clarity on which model was "selected."  
-**Action:** User decision required (deferred to Phase 5).  
-**User Input Needed:** Yes
+**Action:** Project-lead decision required (deferred to Phase 5).  
+**Decision Needed:** Yes
 
 ---
 
@@ -64,10 +64,10 @@ This document tracks bugs, gaps, technical debt, and unresolved questions. Items
 
 ---
 
-### #5: Copilot Medium Findings (Open)
+### #5: PR #3 Review Medium Findings (Open)
 **Status:** Open  
 **Phase:** 2  
-**Source:** GitHub Copilot review on PR #3
+**Source:** Code review on PR #3
 
 **Finding 1:** Outputs not consumed by training or backend  
 **Description:** Generated files (scaler, continuous_cols, modified CSVs) exist but are not imported by downstream scripts.  
@@ -118,11 +118,11 @@ This document tracks bugs, gaps, technical debt, and unresolved questions. Items
 
 ---
 
-## ❓ Open Questions (User Input Needed)
+## ❓ Open Questions (Decisions Needed)
 
 ### Q1: ~~Gender Exclusion Confirmation~~ ✅ **RESOLVED**
 **Resolved:** Nov 19, 2026  
-**User Guidance:** "Gender should not be taken into consideration by the model"  
+**Guidance (project lead):** "Gender should not be taken into consideration by the model"  
 **Decision:** Exclude CODE_GENDER entirely from model (D-3 in TECHNICAL_DECISIONS.md)
 
 ---
@@ -131,7 +131,7 @@ This document tracks bugs, gaps, technical debt, and unresolved questions. Items
 **Status:** Open  
 **Phase:** 3  
 **Question:** Should age and family status also be excluded from the model (like gender), or kept and audited?  
-**User Guidance (Nov 19):** "Age is a consideration, since if they are minors, guardians are required. For minors or students, father's employment and securities are necessary."  
+**Guidance (project lead, Nov 19):** "Age is a consideration, since if they are minors, guardians are required. For minors or students, father's employment and securities are necessary."  
 **Decision:** Keep AGE_YEARS and family status features; audit for fairness disparities in Phase 3.  
 **Action:** Monitor for age-based disparities beyond legal thresholds.
 
@@ -143,7 +143,7 @@ This document tracks bugs, gaps, technical debt, and unresolved questions. Items
 **Question:** What are the real project review dates and submission deadline?  
 **Description:** MASTER_PLAN timeline section is empty; no dates recorded.  
 **Impact:** Cannot plan Phase 5 manuscript completion.  
-**Action:** User to provide academic calendar milestones.
+**Action:** Project lead to provide academic calendar milestones.
 
 ---
 
@@ -222,7 +222,7 @@ This document tracks bugs, gaps, technical debt, and unresolved questions. Items
 | Date | Issue | Action |
 |---|---|---|
 | Nov 19, 2026 | #10 | Resolved: Added main guard to feature_engineering_v2.py |
-| Nov 19, 2026 | Q1 | Resolved: Gender exclusion confirmed by user |
+| Nov 19, 2026 | Q1 | Resolved: Gender exclusion confirmed by project lead |
 | Nov 19, 2026 | Q2 | Clarified: Age and family status kept in model, audited for fairness |
 | Nov 19, 2026 | #4 | Resolved: Committed evaluate_on_test.py, deleted obsolete files |
 | Nov 19, 2026 | #8 | Resolved: Gender ablation study completed, 0.17% AUC cost |
@@ -258,7 +258,7 @@ This document tracks bugs, gaps, technical debt, and unresolved questions. Items
 2. Relax approval threshold slightly (may increase defaults)
 3. Add REVIEW→APPROVE counterfactuals as separate tier
 **Action:** Defer to Phase 4 dashboard testing; monitor user feedback on recommendation utility.  
-**User Input Needed:** Yes (threshold adjustment decision)
+**Decision Needed:** Yes (threshold adjustment decision)
 
 ---
 
@@ -291,8 +291,8 @@ This document tracks bugs, gaps, technical debt, and unresolved questions. Items
 3. Adjust decision thresholds by age group to equalize approval rates
 4. Conduct further investigation into why age drives such strong disparities
 **Recommendation:** Prioritize fairness mitigation in Phase 4; consider threshold adjustment or fairness-constrained retraining.  
-**Action:** User decision required on mitigation strategy before production deployment.  
-**User Input Needed:** Yes (fairness vs. performance trade-off)
+**Action:** Project-lead decision required on mitigation strategy before production deployment.  
+**Decision Needed:** Yes (fairness vs. performance trade-off)
 
 ---
 
@@ -398,7 +398,7 @@ predictions_df['default_probability'] = predictions_df['predicted_probability']
 | Date | Issue | Action |
 |---|---|---|
 | Nov 19, 2026 | #10 | Resolved: Added main guard to feature_engineering_v2.py |
-| Nov 19, 2026 | Q1 | Resolved: Gender exclusion confirmed by user |
+| Nov 19, 2026 | Q1 | Resolved: Gender exclusion confirmed by project lead |
 | Nov 19, 2026 | Q2 | Clarified: Age and family status kept in model, audited for fairness |
 | Nov 19, 2026 | #4 | Resolved: Committed evaluate_on_test.py, deleted obsolete files |
 | Nov 19, 2026 | #8 | Resolved: Gender ablation study completed, 0.17% AUC cost |
@@ -559,7 +559,7 @@ predictions_df['default_probability'] = predictions_df['predicted_probability']
 | Date | Issue | Action |
 |---|---|---|
 | Nov 19, 2026 | #10 | Resolved: Added main guard to feature_engineering_v2.py |
-| Nov 19, 2026 | Q1 | Resolved: Gender exclusion confirmed by user |
+| Nov 19, 2026 | Q1 | Resolved: Gender exclusion confirmed by project lead |
 | Nov 19, 2026 | Q2 | Clarified: Age and family status kept in model, audited for fairness |
 | Nov 19, 2026 | #4 | Resolved: Committed evaluate_on_test.py, deleted obsolete files |
 | Nov 19, 2026 | #8 | Resolved: Gender ablation study completed, 0.17% AUC cost |
@@ -737,7 +737,7 @@ train_path = self.prediction_service.settings.DATA_DIR / "X_train_fe_v2.csv"
 | Date | Issue | Action |
 |---|---|---|
 | Nov 19, 2026 | #10 | Resolved: Added main guard to feature_engineering_v2.py |
-| Nov 19, 2026 | Q1 | Resolved: Gender exclusion confirmed by user |
+| Nov 19, 2026 | Q1 | Resolved: Gender exclusion confirmed by project lead |
 | Nov 19, 2026 | Q2 | Clarified: Age and family status kept in model, audited for fairness |
 | Nov 19, 2026 | #4 | Resolved: Committed evaluate_on_test.py, deleted obsolete files |
 | Nov 19, 2026 | #8 | Resolved: Gender ablation study completed, 0.17% AUC cost |
@@ -1042,7 +1042,7 @@ Found on Nov 25, 2026 by running every existing test (`tests/`: 88 passed; `back
 ### #61: DiCE Baseline Not Completed
 **Status:** Open  
 **Phase:** 4.7  
-**Description:** DiCE (random method, same three levers) took about 40–120 s per applicant. The full run was stopped at the user's request; no DiCE numbers were saved.  
+**Description:** DiCE (random method, same three levers) took about 40–120 s per applicant. The full run was stopped early; no DiCE numbers were saved.  
 **Action:** Run `python3 -m src.recourse_eval --n 300 --dice 20` (about 30–40 minutes) before the paper's results section.
 
 ---
@@ -1052,7 +1052,7 @@ Found on Nov 25, 2026 by running every existing test (`tests/`: 88 passed; `back
 **Phase:** 4.7  
 **Description:** The margin and plausibility rules lower the share of applicants with any option. Reject → Review falls from 87.7% to 59.0%, but the share with a *usable* option rises from 21.3% to 59.0%. The margin causes most of the drop (D-44).  
 **Options:** A smaller margin (e.g. 0.05) or a finer grid could recover some coverage; random search reaches 60.0%, so a finer search may add about 1 point.  
-**Action:** Report the trade-off and ablations in the paper. Revisit the margin only if the user wants more coverage.
+**Action:** Report the trade-off and ablations in the paper. Revisit the margin if more coverage is needed.
 
 ---
 

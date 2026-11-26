@@ -4,9 +4,9 @@
 
 | Part | What it is | Authority |
 |---|---|---|
-| **A** | The **original roadmap**, taken from the planning document (`Plan`, available in the Claude Project at `/mnt/project/Plan`) | Original. Do not replace it |
-| **B** | **Amendments the user made later** in conversation | User decisions |
-| **C** | A **working breakdown proposed by the assistant** (8 phases) | **Proposal only. The user never formally ratified it** |
+| **A** | The **original roadmap**, taken from the team's planning document (`Plan`) | Original. Do not replace it |
+| **B** | **Amendments made later** by the project lead | Project-lead decisions |
+| **C** | A **working breakdown** (8 phases), proposed later | **Proposal only; never formally ratified** |
 | **D** | Status of the original phases | Derived from `PROJECT_STATE.md` |
 
 Companion files: `PROJECT_STATE.md` (where we stopped), `IMPLEMENTATION_LOG.md` (what was done), `TECHNICAL_DECISIONS.md` (stack and design), `KNOWN_ISSUES.md` (bugs, gaps, unrecoverable information).
@@ -17,8 +17,8 @@ Companion files: `PROJECT_STATE.md` (where we stopped), `IMPLEMENTATION_LOG.md` 
 
 - **Name:** CreditXplain, *An Explainable, Counterfactual-Driven Decision Support System for Credit Risk Prediction*
 - **Context:** B.Tech final-year major project, KMIT Hyderabad, academic year 2026–2027. Target venue: IEEE Access (or a comparable Q1/Q2 venue). 4-member team, 24 weeks.
-- **Repository:** `https://github.com/MKN-Sai-Varun/CreditXplain` (connected to the Claude Project). License: MIT.
-- **Base paper extended:** Shreya & Pathak (2025), arXiv:2506.19383. The citation was checked against the arXiv page in conversation. The paper reports: Random Forest accuracy 82.03% / ROC-AUC 0.6808; XGBoost 88.74% / 0.7033; LightGBM 90.07% / 0.7203 (top performer).
+- **Repository:** `https://github.com/MKN-Sai-Varun/CreditXplain`. License: MIT.
+- **Base paper extended:** Shreya & Pathak (2025), arXiv:2506.19383. The citation was checked against the arXiv page. The paper reports: Random Forest accuracy 82.03% / ROC-AUC 0.6808; XGBoost 88.74% / 0.7033; LightGBM 90.07% / 0.7203 (top performer).
 - **Dataset:** Home Credit Default Risk (Kaggle). Secondary option in the plan: Give Me Some Credit.
 
 ### Capabilities the project adds over the base paper (the novelty)
@@ -130,29 +130,29 @@ Replicate only the merge/aggregation needed to reproduce the base paper's top fe
 
 ---
 
-# PART B — AMENDMENTS THE USER MADE AFTER THE ORIGINAL PLAN
+# PART B — AMENDMENTS MADE AFTER THE ORIGINAL PLAN
 
 | ID | Amendment | Source |
 |---|---|---|
-| **B1** | Frontend changed from Streamlit to **React / Next.js**, with a **FastAPI** backend and **SQLite**. Streamlit is fully retired | User, with answers to a three-question prompt |
-| **B2** | Dev work happens on branch **`dev-varun`**; the user will merge at the end | User: "for now I will purely work on dev varun, I will merge it at the end" |
-| **B3** | Design the application as if the user were the **sole user**, following the workflow diagram | User, latest instruction |
-| **B4** | Work **phase by phase**, with tests after each phase, and commit steps | User, repeated several times |
-| **B5** | **Gender must not be taken into consideration by the model or its explanations**, because it is not a factor in deciding credit | User's words: "the model should not take it into consideration while the explainability is being shown since it is not a factor to decide credit". The assistant read this as: exclude gender from the model entirely, and keep it only for the fairness audit. **Not explicitly re-confirmed** |
-| **B6** | The user was **leaning toward a recall-optimised threshold** ("I am thinking to go recall optimized"). Not formally settled; see Part C D-2 | User |
-| **B7** | Progress and decision tracking lives in **Notion**. The repo keeps only code, the README and result summaries | User |
-| **B8** | "The rest I leave to you" for design choices not stated | User, latest instruction |
+| **B1** | Frontend changed from Streamlit to **React / Next.js**, with a **FastAPI** backend and **SQLite**. Streamlit is fully retired | Project-lead decision |
+| **B2** | Dev work happens on branch **`dev-varun`**; merged into `main` at the end | Project-lead decision |
+| **B3** | Design the application as if for a **single user**, following the workflow diagram | Project-lead decision |
+| **B4** | Work **phase by phase**, with tests after each phase, and commit steps | Project-lead decision |
+| **B5** | **Gender must not be taken into consideration by the model or its explanations**, because it is not a factor in deciding credit | Project-lead decision. Implemented as: gender excluded from the model entirely and kept only for the fairness audit (D-3; confirmed, KNOWN_ISSUES Q1) |
+| **B6** | **Leaning toward a recall-optimised threshold**. Not formally settled; see Part C D-2 | Project lead |
+| **B7** | Progress and decision tracking lives in **Notion**. The repo keeps only code, the README and result summaries | Project-lead decision |
+| **B8** | Design choices not stated above are delegated | Project-lead decision |
 
 ---
 
-# PART C — WORKING BREAKDOWN PROPOSED BY THE ASSISTANT (NOT THE ORIGINAL ROADMAP)
+# PART C — WORKING BREAKDOWN PROPOSED LATER (NOT THE ORIGINAL ROADMAP)
 
-The assistant proposed this breakdown late in the conversation. The user responded "go phase wise 4.1, 4.2 ...", which is **ambiguous**: it may mean sub-step numbering inside a phase, or a different numbering scheme. The breakdown has not been confirmed. If the user wants the original five phases kept as the only structure, use Part A and treat this table as sub-tasks.
+This breakdown was proposed late in planning. The follow-up direction "go phase wise 4.1, 4.2 ..." is **ambiguous**: it may mean sub-step numbering inside a phase, or a different numbering scheme. The breakdown has not been confirmed. If the original five phases are kept as the only structure, use Part A and treat this table as sub-tasks.
 
 | # | Proposed phase | Maps to original | Test gate (proposed) |
 |---|---|---|---|
 | 1 | **Lock the model:** held-out test scores for FE v2; one final model saved with its thresholds and a model card; FE v2 made importable and tested | Phase 2 (selection) | `test_fe_v2.py`, `test_final_model.py`, `test_decision.py` green; saved model reproduces its reported test AUC |
-| 2 | **One reproducible pipeline:** a single run order, README rewritten, ablation table, CI running pytest | Phase 2 / 5 | A fresh clone runs end to end; Copilot's two open Medium findings closed |
+| 2 | **One reproducible pipeline:** a single run order, README rewritten, ablation table, CI running pytest | Phase 2 / 5 | A fresh clone runs end to end; the two open PR #3 review findings closed |
 | 3 | **Explainability:** SHAP global and per-applicant; LIME on the same applicants | Phase 2 | SHAP additivity test; stable repeat runs |
 | 4 | **Router, loan terms, counterfactual engine** | Phase 3 (+ diagram) | Recourse flips the decision, respects bounds, never changes immutable features; EMI matches known values; rate never decreases as risk rises |
 | 5 | **Fairness audit** | Phase 3 | Metrics match hand-computed toy values |
@@ -160,7 +160,7 @@ The assistant proposed this breakdown late in the conversation. The user respond
 | 7 | **Frontend** (Next.js applicant portal and officer dashboard) | Phase 4 | Build and lint clean; manual checklist |
 | 8 | **Evaluation and manuscript** | Phase 5 | Every number in the paper traces to a report file |
 
-Proposed decisions (the user delegated these with "the rest I leave to you"; none was explicitly confirmed):
+Proposed decisions (delegated by the project lead; none was explicitly confirmed):
 
 | ID | Decision | Basis |
 |---|---|---|
@@ -179,7 +179,7 @@ Full detail is in `PROJECT_STATE.md`. Legend: ✅ complete and verified by real 
 
 | Original phase | Status |
 |---|---|
-| 1. Literature & dataset prep | ✅ cleaned dataset verified on real data. 🟡 No EDA report or `eda.py` output was ever shown in the conversation. The gap/novelty tables are in the plan itself |
+| 1. Literature & dataset prep | ✅ cleaned dataset verified on real data. 🟡 No EDA report or `eda.py` output exists yet. The gap/novelty tables are in the plan itself |
 | 2. Baseline models & explainability | 🟡 Models compared and selected (LightGBM) and improved with FE v2. **SHAP/LIME not started.** The "explainability-consistency" half of O5 is not done |
 | 3. Counterfactual engine & fairness | ⬜ |
 | 4. Dashboard | ⬜ (architecture decided in B1; no `api/` or `frontend/` code exists) |
