@@ -1,6 +1,6 @@
 # PROJECT_STATE — CreditXplain
 
-**Snapshot:** Nov 25, 2026, end of Phase 4.6. Written from the repository itself (branch `dev-varun` at `b68c3f7` plus the Phase 4.6 working-tree changes) and from a full test run on the Mac. The previous version (Nov 19) was written from conversation memory and was out of date.
+**Snapshot:** Nov 25, 2026, end of Phase 4.7. Written from the repository (branch `dev-varun`, Phase 4.6 at `dedac96` plus the Phase 4.7 changes) and from test and evaluation runs on the Mac.
 
 **Status legend**
 
@@ -14,7 +14,7 @@
 
 ## 1. How to resume
 
-1. Read this file, then `KNOWN_ISSUES.md` #52–#60 (the newest findings).
+1. Read this file, then `KNOWN_ISSUES.md` #61–#66 (the newest findings).
 2. Check the repo: `git log --oneline -5`, `git status --short`.
 3. Follow the working agreement in section 6: propose the next phase and wait for approval.
 
@@ -25,10 +25,10 @@
 | Item | State |
 |---|---|
 | Remote | `https://github.com/MKN-Sai-Varun/CreditXplain` |
-| Working branch | `dev-varun`, at `b68c3f7` before Phase 4.6. The user merges into `main` at the end |
+| Working branch | `dev-varun`. Phase 4.6 at `dedac96`; Phase 4.7 committed on top. The user merges into `main` at the end |
 | Machine | MacBook Air, zsh, Python 3.9.6 (`/usr/bin/python3`), pytest 8.4.2, Node 26.7.0 |
 | Untracked | `frontend/`: a Next.js 16 / React 19 / Tailwind 4 scaffold plus `lib/api.ts`. Never committed |
-| Local-only (gitignored) | `data/`, `creditxplain.db`, `home-credit-default-risk.zip`. Model files in `models/` |
+| Local-only (gitignored) | `data/`, `creditxplain.db`, `home-credit-default-risk.zip`, `models/*.pkl`, `models/recourse_reference.npz` (rebuild with `python3 -m src.build_recourse_reference`) |
 
 ---
 
@@ -52,9 +52,9 @@
 | Component | Status | Evidence / gap |
 |---|---|---|
 | SHAP (`src/explainability.py`) | ✅ | Additivity difference 0.0; repeat-run correlation 1.0. Top features: `CREDIT_GOODS_EXT_RISK`, `EXT_SOURCE_MEAN`, `CREDIT_ANNUITY_RATIO` |
-| LIME | 🟡 | **Not local as configured** (#52), numerical overflow (#53), agreement measured on 6 applicants only (58.3% top-10 overlap) (#54) |
-| Recourse, API version (`src/recourse.py`) | 🟡 | Bounded search over loan amount, income and tenure (D-38). On 300 rejected test applicants: recourse found for 87.7%, 0% reach Approve, 13.6 ms mean latency. Reported validity of 1.0 is circular (#55, #56) |
-| Counterfactuals, Phase 3 version (`src/counterfactuals.py`, DiCE) | 🟡 | Offline only; candidate baseline for the recourse comparison (#59) |
+| LIME (`src/lime_local.py`) | ✅ | Local, sign-correct, seeded (D-43). On 150 applicants: Spearman with SHAP 0.64 (was 0.00), locality gap 0.49 (was 0.00), sign agreement 0.74, seed stability 0.83, 38 ms (`reports/explanation_consistency.json`). Covers 25 top-gain features (#66) |
+| Recourse (`src/recourse.py`) | ✅ | Bounded search over loan amount, income and tenure (D-38) with a safety margin, a plausibility check, refinement, two tiers and SHAP drivers (D-44 to D-48). Usable option: 59.0% of rejected applicants (previous engine 21.3%), 27.3% of Review applicants get a path to Approve; 24% smaller changes than before, 30% smaller than random search; about 20 ms (`reports/recourse_evaluation.json`). DiCE comparison not completed (#61) |
+| Counterfactuals, Phase 3 version (`src/counterfactuals.py`, DiCE) | 🟡 | Offline Phase 3 script; DiCE now also runs as a baseline inside `src/recourse_eval.py` |
 | Fairness audit (`src/fairness_audit.py`) | ✅ / 🟡 | Age-band DPD 0.349 and EOD 0.350; has-children DPD 0.045. The age gap tracks real default rates (11.4% for under-25 vs 5.2% for 55+) even with age excluded, so it comes through proxies. Mitigation or a documented decision is still open (#16) |
 
 ### Application (original Phase 4)
@@ -62,7 +62,7 @@
 | Component | Status | Evidence / gap |
 |---|---|---|
 | FastAPI backend, SQLite, JWT login with roles | ✅ | Registration always creates applicants (D-40) |
-| Applications, predictions (SHAP + LIME + recourse), loan terms (EMI) | ✅ | `backend/tests/test_predict_api.py`, `test_recourse_api.py`, `test_loan_calculator.py` |
+| Applications, predictions (SHAP + LIME with rules + recourse for Reject and Review, with drivers), loan terms (EMI) | ✅ | `backend/tests/test_predict_api.py`, `test_recourse_api.py`, `test_loan_calculator.py` |
 | Officer queue, actions, analytics, audit log | 🟡 | Queue formatting TODO at `backend/routers/officer.py:21`; no API tests for officer routes (#32) |
 | Fairness monitoring API | ✅ | 4 officer-only endpoints, manual trigger (#48) |
 | Document upload | ⬜ | Officers can request documents, but applicants cannot upload them |
@@ -81,17 +81,16 @@
 
 ---
 
-## 4. Test baseline (Nov 25, 2026)
+## 4. Test baseline (Nov 25, 2026, after Phase 4.7)
 
 | Suite | Result |
 |---|---|
-| `python3 -m pytest tests -q` | ✅ 88 passed |
-| `python3 -m pytest backend/tests -q` | ✅ 36 passed |
+| `python3 -m pytest tests backend/tests -q` | ✅ 142 passed (124 before 4.7 + 18 new) |
 | `npx tsc --noEmit` (frontend) | ✅ |
 | `npm run build` (frontend) | ✅ |
 | `npm run lint` (frontend) | ❌ 1 error (#57) |
 
-Warnings to clean up: Pydantic class-based `Config` (#27, reopened), pandas `observed=` (#58), LIME RuntimeWarnings (#53).
+Warnings to clean up: Pydantic class-based `Config` (#27), pandas `observed=` (#58), FastAPI `on_event` (#64). The matmul RuntimeWarnings are a numpy/macOS artefact (#53).
 
 ---
 
@@ -99,9 +98,9 @@ Warnings to clean up: Pydantic class-based `Config` (#27, reopened), pandas `obs
 
 The model and the system are in place. Reviewers will look hardest at the claims around the novelty, so these come first:
 
-1. **LIME must explain individual applicants** before any SHAP–LIME comparison is reported (#52–#54).
-2. **Recourse needs standard evaluation:** coverage, proximity, sparsity, plausibility, latency, and a baseline under the same bounds. The circular validity rate must go (#55).
-3. **Recourse framing:** present it as Reject→Review, and state that Approve is out of reach because the strongest risk drivers (bureau scores) are not actionable (#56).
+1. ~~LIME must explain individual applicants~~ ✅ done in 4.7.
+2. ~~Recourse needs standard evaluation~~ ✅ done in 4.7, except the DiCE baseline (#61), which needs a 30–40 minute run.
+3. **Recourse framing:** a graduated path (Reject → Review → Approve). State the coverage trade-off of the stricter rules (#62) and confirm the age-band gaps on a larger sample (#63).
 4. **Fairness:** report the age disparity with per-group default rates and AUC, and decide on mitigation or a documented justification (#16).
 5. **A working demo:** frontend, PDF export, and the remaining backend gaps.
 
@@ -121,7 +120,7 @@ Phases 4.7 onward (TECHNICAL_DECISIONS D-41) follow this order.
 
 ## 7. Next phase and open questions
 
-**Next phase (awaiting approval): 4.7, publication-grade evaluation of LIME and recourse**, following the proposed standard in D-42.
+**Next phase (awaiting approval): 4.8, backend gaps:** document upload, officer queue formatting, tenure as an input (D-41). Optionally first: finish the DiCE baseline run (#61).
 
 | # | Open question | Status |
 |---|---|---|
@@ -131,4 +130,4 @@ Phases 4.7 onward (TECHNICAL_DECISIONS D-41) follow this order.
 | Q4 | What have Members 2, 3 and 4 built? | Open |
 | Q5 | Family status: keep as a feature and audit, or exclude? | Open (age is already excluded) |
 | Q7 | Registration: real sign-up or seeded demo applicants only? | Open (real sign-up exists for applicants) |
-| Q8 | Recourse in the paper: accept Reject→Review as the claim, or add a Review→Approve tier? | New, for 4.7 |
+| Q8 | Recourse in the paper: Reject→Review only, or add a Review→Approve tier? | **Settled:** both tiers (user: 'do the best you can'), implemented in 4.7 |

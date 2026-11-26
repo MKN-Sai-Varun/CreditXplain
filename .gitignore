@@ -1,6 +1,7 @@
 ﻿data/home_credit/*.csv
 data/processed/*.csv
 models/*.pkl
+models/*.npz
 __pycache__/
 .pytest_cache/
 *.zip

@@ -68,6 +68,7 @@ class ShapValue(BaseModel):
 class LimeFeature(BaseModel):
     feature: str
     weight: float
+    rule: Optional[str] = None
 
 class Counterfactual(BaseModel):
     levers: List[str] = []
@@ -80,6 +81,10 @@ class Counterfactual(BaseModel):
     success: bool = True
     cost: Optional[float] = None
     feasibility_score: Optional[float] = None
+    robust_margin: Optional[float] = None
+    plausible: Optional[bool] = None
+    plausibility_distance: Optional[float] = None
+    drivers: Optional[List[Dict[str, Any]]] = None
 
 class ExplanationResponse(BaseModel):
     shap_values: List[ShapValue]

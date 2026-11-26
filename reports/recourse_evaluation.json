@@ -1,0 +1,230 @@
+{
+  "margin_logodds": 0.1,
+  "plausibility_threshold": 0.23461853426368814,
+  "methods": {
+    "reject_to_review": {
+      "ablation_no_margin": {
+        "applicants": 300,
+        "coverage": 0.6467,
+        "improves_share": 1.0,
+        "mean_cost": 0.1556,
+        "median_cost": 0.1113,
+        "mean_levers": 1.479,
+        "plausible_share": 1.0,
+        "robust_share": 0.1753,
+        "latency_ms_mean": 23.9,
+        "latency_ms_p95": 30.3
+      },
+      "ablation_no_plausibility": {
+        "applicants": 300,
+        "coverage": 0.8367,
+        "improves_share": 1.0,
+        "mean_cost": 0.2554,
+        "median_cost": 0.18,
+        "mean_levers": 1.498,
+        "plausible_share": 0.6414,
+        "robust_share": 1.0,
+        "latency_ms_mean": 25.5,
+        "latency_ms_p95": 29.0
+      },
+      "previous": {
+        "applicants": 300,
+        "coverage": 0.8767,
+        "improves_share": 1.0,
+        "mean_cost": 0.2536,
+        "median_cost": 0.2,
+        "mean_levers": 1.395,
+        "plausible_share": 0.635,
+        "robust_share": 0.3726,
+        "latency_ms_mean": 14.5,
+        "latency_ms_p95": 15.2
+      },
+      "proposed": {
+        "applicants": 300,
+        "coverage": 0.59,
+        "improves_share": 1.0,
+        "mean_cost": 0.1934,
+        "median_cost": 0.1425,
+        "mean_levers": 1.565,
+        "plausible_share": 1.0,
+        "robust_share": 1.0,
+        "latency_ms_mean": 23.0,
+        "latency_ms_p95": 29.8
+      },
+      "random": {
+        "applicants": 300,
+        "coverage": 0.6,
+        "improves_share": 1.0,
+        "mean_cost": 0.2762,
+        "median_cost": 0.2407,
+        "mean_levers": 3.0,
+        "plausible_share": 1.0,
+        "robust_share": 1.0,
+        "latency_ms_mean": 17.9,
+        "latency_ms_p95": 18.8
+      }
+    },
+    "review_to_approve": {
+      "ablation_no_margin": {
+        "applicants": 300,
+        "coverage": 0.3733,
+        "improves_share": 1.0,
+        "mean_cost": 0.1976,
+        "median_cost": 0.1462,
+        "mean_levers": 1.58,
+        "plausible_share": 1.0,
+        "robust_share": 0.0893,
+        "latency_ms_mean": 20.6,
+        "latency_ms_p95": 30.0
+      },
+      "ablation_no_plausibility": {
+        "applicants": 300,
+        "coverage": 0.49,
+        "improves_share": 1.0,
+        "mean_cost": 0.3314,
+        "median_cost": 0.27,
+        "mean_levers": 1.599,
+        "plausible_share": 0.5238,
+        "robust_share": 1.0,
+        "latency_ms_mean": 21.3,
+        "latency_ms_p95": 29.3
+      },
+      "previous": {
+        "applicants": 300,
+        "coverage": 0.6,
+        "improves_share": 1.0,
+        "mean_cost": 0.3272,
+        "median_cost": 0.275,
+        "mean_levers": 1.567,
+        "plausible_share": 0.5111,
+        "robust_share": 0.2111,
+        "latency_ms_mean": 14.8,
+        "latency_ms_p95": 15.4
+      },
+      "proposed": {
+        "applicants": 300,
+        "coverage": 0.2733,
+        "improves_share": 1.0,
+        "mean_cost": 0.1897,
+        "median_cost": 0.15,
+        "mean_levers": 1.488,
+        "plausible_share": 1.0,
+        "robust_share": 1.0,
+        "latency_ms_mean": 19.3,
+        "latency_ms_p95": 30.1
+      },
+      "random": {
+        "applicants": 300,
+        "coverage": 0.3,
+        "improves_share": 1.0,
+        "mean_cost": 0.3065,
+        "median_cost": 0.271,
+        "mean_levers": 3.0,
+        "plausible_share": 1.0,
+        "robust_share": 1.0,
+        "latency_ms_mean": 18.2,
+        "latency_ms_p95": 19.1
+      }
+    }
+  },
+  "recourse_burden_by_group": {
+    "reject_to_review": {
+      "age_band": {
+        "groups": {
+          "25-35": {
+            "applicants": 119,
+            "coverage": 0.5798,
+            "mean_cost": 0.2213
+          },
+          "35-45": {
+            "applicants": 80,
+            "coverage": 0.5625,
+            "mean_cost": 0.1988
+          },
+          "45-55": {
+            "applicants": 58,
+            "coverage": 0.6552,
+            "mean_cost": 0.1666
+          },
+          "55+": {
+            "applicants": 24,
+            "coverage": 0.4583,
+            "mean_cost": 0.1552
+          },
+          "<25": {
+            "applicants": 19,
+            "coverage": 0.7368,
+            "mean_cost": 0.1411
+          }
+        },
+        "coverage_gap": 0.2785,
+        "cost_gap": 0.0802
+      },
+      "has_children": {
+        "groups": {
+          "no": {
+            "applicants": 200,
+            "coverage": 0.585,
+            "mean_cost": 0.1964
+          },
+          "yes": {
+            "applicants": 100,
+            "coverage": 0.6,
+            "mean_cost": 0.1876
+          }
+        },
+        "coverage_gap": 0.015,
+        "cost_gap": 0.0088
+      }
+    },
+    "review_to_approve": {
+      "age_band": {
+        "groups": {
+          "25-35": {
+            "applicants": 68,
+            "coverage": 0.2206,
+            "mean_cost": 0.2392
+          },
+          "35-45": {
+            "applicants": 76,
+            "coverage": 0.3816,
+            "mean_cost": 0.1891
+          },
+          "45-55": {
+            "applicants": 77,
+            "coverage": 0.2857,
+            "mean_cost": 0.1727
+          },
+          "55+": {
+            "applicants": 70,
+            "coverage": 0.2143,
+            "mean_cost": 0.1617
+          },
+          "<25": {
+            "applicants": 9,
+            "coverage": 0.1111,
+            "mean_cost": 0.255
+          }
+        },
+        "coverage_gap": 0.2705,
+        "cost_gap": 0.0933
+      },
+      "has_children": {
+        "groups": {
+          "no": {
+            "applicants": 215,
+            "coverage": 0.2558,
+            "mean_cost": 0.1881
+          },
+          "yes": {
+            "applicants": 85,
+            "coverage": 0.3176,
+            "mean_cost": 0.1928
+          }
+        },
+        "coverage_gap": 0.0618,
+        "cost_gap": 0.0047
+      }
+    }
+  }
+}

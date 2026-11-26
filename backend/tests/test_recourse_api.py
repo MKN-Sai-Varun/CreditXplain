@@ -45,3 +45,37 @@ def test_rejected_application_returns_valid_recourse(client, applicant_headers):
     for cf in cfs:
         assert cf["new_decision"] in ("REVIEW", "APPROVE")
         assert cf["changes"]
+
+def test_review_application_gets_path_to_approve_with_drivers(client, applicant_headers):
+    from backend.services.prediction_service import get_prediction_service
+    from src.decision import decide
+    from src.recourse import find_recourse
+
+    sc = get_prediction_service().scorer
+    base = pd.read_csv("data/processed/X_test.csv").head(600)
+    fe = pd.read_csv("data/processed/X_test_fe_v2.csv").head(600)
+    dec = decide(sc.model.predict(fe[sc.features]), sc.approve_below, sc.reject_from)
+
+    chosen = None
+    for i in np.where(dec == "review")[0][:60]:
+        raw = json.loads(base.iloc[i].to_json())
+        if find_recourse(sc, raw):
+            chosen = raw
+            break
+    assert chosen is not None
+
+    app_id = client.post("/api/applications/", json={"features": chosen},
+                         headers=applicant_headers).json()["id"]
+    p = client.post(f"/api/predictions/{app_id}", headers=applicant_headers)
+    assert p.status_code == 200, p.text
+    assert p.json()["decision"] == "REVIEW"
+
+    expl = client.get(f"/api/applications/{app_id}", headers=applicant_headers).json()["explanation"]
+    cfs = expl["counterfactuals"]
+    assert cfs
+    for cf in cfs:
+        assert cf["new_decision"] == "APPROVE"
+        assert cf["robust_margin"] > 0
+        assert cf["drivers"] and {"feature", "delta"} <= set(cf["drivers"][0])
+    lime_rows = expl["lime_explanation"]
+    assert lime_rows and lime_rows[0]["rule"]

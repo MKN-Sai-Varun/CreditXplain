@@ -83,9 +83,9 @@ def predict_application(
         # Step 4: Generate LIME explanation
         lime_explanation = explainability_service.generate_lime_explanation(application.features_json)
         
-        # Step 5: Generate counterfactuals if rejected
+        # Step 5: Recourse for anyone not approved (Reject -> Review, Review -> Approve)
         counterfactuals = None
-        if decision_str == "REJECT":
+        if decision_str in ("REJECT", "REVIEW"):
             counterfactuals = counterfactual_service.generate_counterfactuals(application.features_json)
         
         # Step 6: Create explanation record

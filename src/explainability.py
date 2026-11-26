@@ -19,7 +19,7 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 
 import shap
-from lime.lime_tabular import LimeTabularExplainer
+from lime_local import LocalLime
 from sklearn.metrics import roc_auc_score
 
 # Suppress warnings for cleaner output
@@ -243,13 +243,9 @@ print("\n" + "=" * 80)
 print("LIME EXPLANATIONS")
 print("=" * 80)
 
-print("\nInitializing LIME explainer...")
-lime_explainer = LimeTabularExplainer(
-    X_test.values,
-    feature_names=features_used,
-    mode='regression',
-    discretize_continuous=False
-)
+print("\nInitializing LIME explainer (top-gain features, perturbed around each applicant)...")
+lime_background = pd.read_csv("data/processed/X_train_fe_v2.csv", nrows=5000)[features_used]
+lime_explainer = LocalLime(model, features_used, lime_background)
 
 # Generate LIME explanations for same applicants
 print(f"Generating LIME explanations for {len(selected_applicants)} applicants...")
@@ -259,17 +255,14 @@ for i, app in enumerate(selected_applicants):
     original_idx = app['original_index']  # Use original test set index
     
     # Get LIME explanation
-    lime_exp = lime_explainer.explain_instance(
-        X_test.iloc[original_idx].values,
-        model.predict,
-        num_features=15
-    )
+    lime_rows, _, _ = lime_explainer.explain(X_test.iloc[original_idx].values, num_features=15)
+    lime_exp = lime_explainer.last_exp
     
     # Save as HTML
     lime_exp.save_to_file(f"reports/lime/explanation_applicant_{i+1}_{app['band']}.html")
     
     # Extract feature contributions
-    lime_features = dict(lime_exp.as_list())
+    lime_features = {r['feature']: r['weight'] for r in lime_rows}
     lime_explanations.append({
         'applicant': i + 1,
         'band': app['band'],
@@ -278,7 +271,7 @@ for i, app in enumerate(selected_applicants):
     })
     
     # Plot LIME
-    fig = lime_exp.as_pyplot_figure()
+    fig = lime_exp.as_pyplot_figure(label=1)
     fig.set_size_inches(10, 6)
     plt.title(f"LIME Explanation - Applicant {i+1} ({app['band'].capitalize()})\n"
               f"Prediction: {app['prediction']:.4f}", fontsize=12)
@@ -308,8 +301,7 @@ for i, app in enumerate(selected_applicants):
     shap_top_features = pd.Series(shap_vals, index=features_used).abs().nlargest(10).index.tolist()
     
     # Get top 10 LIME features
-    lime_top_features = [feat.split('<=')[0].split('>')[0].strip() 
-                        for feat, _ in lime_explanations[i]['lime_features'].items()][:10]
+    lime_top_features = list(lime_explanations[i]['lime_features'])[:10]
     
     # Calculate overlap
     overlap = len(set(shap_top_features) & set(lime_top_features))

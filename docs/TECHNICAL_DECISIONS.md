@@ -1,6 +1,6 @@
 # TECHNICAL_DECISIONS — CreditXplain
 
-**Last Updated:** Phase 4.6 cleanup and doc sync (Nov 25, 2026)
+**Last Updated:** Phase 4.7 explanation and recourse upgrade (Nov 25, 2026)
 
 This document records all technical and architectural decisions made during the project, with rationale.
 
@@ -1341,11 +1341,89 @@ The first three decisions were made in commits ae6ad19, fef60f8 and b68c3f7 (Nov
 
 ---
 
-### D-42: Evaluation Standard for Explanations and Recourse (Proposed for 4.7)
+### D-42: Evaluation Standard for Explanations and Recourse (confirmed in 4.7, see D-43 to D-49)
 **Decision (proposed, to be confirmed at the start of 4.7):** The paper reports only explanation and recourse numbers that a reviewer cannot dismiss as artefacts of the setup.  
 **LIME:** sample around the instance, quartile discretisation, explicit kernel width, fixed seed. Evaluate 100–200 stratified applicants with top-k overlap, rank correlation with SHAP, and stability across seeds (#52–#54).  
 **Recourse:** report coverage, proximity, sparsity, plausibility (distance to real applicants) and latency. Compare against a baseline under the same bounds: DiCE (`src/counterfactuals.py`) or random search. Drop the circular validity rate (#55). Present recourse as Reject→Review and state why Approve is out of reach (#56).  
 **Rationale:** The user's goal is a result worth presenting and publishing (Nov 25, 2026).  
+**Date:** Nov 25, 2026
+
+---
+
+## 18. Explanation and Recourse Upgrade (Phase 4.7)
+
+D-42 (the evaluation standard) is now **confirmed and implemented** by the decisions below. The user's instruction (Nov 25, 2026): "Do the best you can to improve the model functionality and novelty."
+
+### D-43: Local LIME Over the Model's Top-Gain Features
+**Decision:** LIME (`src/lime_local.py`, `LocalLime`) perturbs only the 25 features with the highest LightGBM gain and holds every other feature at the applicant's own value. It uses LIME's default quartile discretisation, treats binary columns as categorical, fits the surrogate to the model's **log-odds** (the scale SHAP uses), and is seeded (both of LIME's random generators are reset per call). Background: 5,000 training rows (previously 2,000 in the API; the offline script used the **test** set).  
+**Why:** Measured on 150 held-out applicants (50 per band), against the old set-up (all 300 features, continuous, sampled around the training mean):
+
+| Metric | Old | New |
+|---|---|---|
+| Rank agreement with SHAP (Spearman, applicant's top-25 SHAP features) | 0.00 | 0.64 |
+| Locality gap (own applicant's SHAP minus another applicant's) | 0.00 | 0.49 |
+| Sign agreement on SHAP top-5 | 0.52 | 0.74 |
+| Top-10 overlap with SHAP | 0.36 | 0.55 |
+| Stability across 5 seeds (top-5 Jaccard) | n/a | 0.83 |
+| Surrogate R² | 0.54 | 0.31 |
+| Latency per explanation | 57 ms | 38 ms |
+
+The old set-up had a higher R² because it fitted one global linear model, which is why it gave every applicant nearly the same answer (locality gap 0). The new set-up's R² is lower because it explains bin membership locally, the quantity LIME is designed for.  
+**Bug found on the way:** in regression mode LIME stores the real weights under label 1 and the same weights **negated** under label 0. `LocalLime` reads label 1; a test guards it (`test_signs_match_shap`).  
+**Limitation (for the paper):** LIME covers 25 of 300 features. Gain importance comes from the model, not from SHAP, so the subset does not use SHAP's answer.
+
+---
+
+### D-44: Recourse Must Clear the Cutoff by a Safety Margin
+**Decision:** A recourse option qualifies only if it reaches the better band with the cutoff tightened by 0.1 in log-odds (about 10% on the odds). Each option reports `robust_margin`, the log-odds distance below the cutoff it crosses.  
+**Why:** Options that land just under the cutoff flip back with any small model update. A margin is a simple, transparent form of robust recourse.
+
+---
+
+### D-45: Plausibility Check on the Loan/Income Profile
+**Decision:** A suggestion is kept only if its profile (log income, credit, annuity, goods price) has a mean 5-nearest-neighbour distance (standardised) to real **non-rejected training applicants** no larger than the 95th percentile of that distance among held-back real non-rejected applicants.  
+**Built by:** `python3 -m src.build_recourse_reference` → `models/recourse_reference.npz` (20,000 reference profiles, 5,000 calibration, threshold 0.2346). Gitignored, because it holds individual rows. If the file is missing the check is switched off and `plausible` is `null`.  
+**Why:** Without it, the search can suggest profiles no real approved applicant has, such as a very large down payment on top of a large income increase.
+
+---
+
+### D-46: Refinement Towards the Applicant's Own Values
+**Decision:** After the grid search, each lever combination's cheapest qualifying point is pulled back towards the applicant's own values in 20 steps. The smallest step that still qualifies is kept.  
+**Why:** The grid is coarse (credit steps of 5–10%), so the grid optimum often asks for more change than needed. Refinement never increases cost (`test_refinement_never_costs_more`).
+
+---
+
+### D-47: Two-Tier Recourse (Reject → Review, Review → Approve)
+**Decision:** The API now returns recourse for **Review** applicants too (options that reach Approve), not only for rejections.  
+**Why:** Recourse from Reject cannot reach Approve within the bounds (KNOWN_ISSUES #56), but Review applicants can often be moved to automatic approval with small changes. Together the two tiers form a graduated path.
+
+---
+
+### D-48: Each Recourse Option Says Why It Works
+**Decision:** Each API recourse option carries `drivers`: the 3 model features whose SHAP contribution changes most when the option is applied (`src/recourse.explain_change`, log-odds). The deltas sum exactly to the change in the model's score (SHAP additivity; tested).  
+**Why:** It links explanation and recourse. The applicant and the officer see, for example, that a lower loan amount helps through the credit-to-goods and annuity ratios.
+
+---
+
+### D-49: Recourse Evaluation Protocol
+**Decision:** `python3 -m src.recourse_eval` compares methods on held-out applicants: 300 rejected (tier Reject→Review) and 300 in Review (tier Review→Approve).
+- **Methods:**
+  - `previous`: the pre-4.7 engine.
+  - `proposed`.
+  - Two ablations, each switching off one rule.
+  - `random`: random search in the same box with a similar budget and the same rules.
+  - `dice`: DiCE random method on the same three levers through the same FE v2 path. About 40–120 s per applicant, so meant for 20 per tier. **Not completed in 4.7** (KNOWN_ISSUES #61).
+- **Metrics:**
+  - coverage;
+  - cost, i.e. proximity: the sum of relative lever changes;
+  - levers changed (sparsity);
+  - plausible and robust shares of the best option;
+  - latency.
+
+  Every method's best option is re-scored from scratch, so all methods are measured the same way.
+- **Recourse burden by group:** coverage and mean cost by age band and by children, for the proposed method.
+- **Dropped:** the old "validity rate" (circular, KNOWN_ISSUES #55) and `src/recourse_validity.py`.
+
 **Date:** Nov 25, 2026
 
 ---
@@ -1359,7 +1437,8 @@ The first three decisions were made in commits ae6ad19, fef60f8 and b68c3f7 (Nov
 | Nov 19, 2026 | Phase 4.3 | D-26 to D-31 (loan calculator) |
 | Nov 19, 2026 | Phase 4.5 | D-32 to D-37 (fairness monitoring) |
 | Nov 25, 2026 | Phase 4.6 | D-38 to D-40 (recorded from commits b68c3f7, ae6ad19, fef60f8); D-41 working agreement and phase order; D-42 proposed evaluation standard |
+| Nov 25, 2026 | Phase 4.7 | D-42 confirmed; D-43 local LIME; D-44 to D-48 recourse upgrade (margin, plausibility, refinement, two tiers, drivers); D-49 recourse evaluation protocol |
 
 ---
 
-**Next Update:** Phase 4.7
+**Next Update:** Phase 4.8

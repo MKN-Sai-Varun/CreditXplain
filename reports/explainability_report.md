@@ -1,6 +1,6 @@
 # Explainability Analysis Report
 
-**Generated:** 2026-11-19 07:46:40  
+**Generated:** 2026-11-25 22:25:19  
 **Model:** LightGBM  
 **Test Samples:** 61,503  
 **SHAP Sample Size:** 5,000  
@@ -51,12 +51,12 @@ Average top-10 feature overlap: **58.3%**
 
 | Applicant | Band | Overlap | Percentage |
 |---|---|---|---|
-| 1 | approve | 4/10 | 40% |
+| 1 | approve | 5/10 | 50% |
 | 2 | approve | 6/10 | 60% |
-| 3 | review | 6/10 | 60% |
-| 4 | review | 7/10 | 70% |
+| 3 | review | 8/10 | 80% |
+| 4 | review | 6/10 | 60% |
 | 5 | reject | 5/10 | 50% |
-| 6 | reject | 7/10 | 70% |
+| 6 | reject | 5/10 | 50% |
 
 **Interpretation:**
 - SHAP and LIME agree on **58%** of top features on average

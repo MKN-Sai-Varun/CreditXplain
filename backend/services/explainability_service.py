@@ -7,9 +7,8 @@ from typing import Any, Dict, List
 import numpy as np
 import pandas as pd
 import shap
-from lime.lime_tabular import LimeTabularExplainer
-
 from backend.services.prediction_service import get_prediction_service
+from src.lime_local import LocalLime
 
 TRAIN_PATH = Path(__file__).resolve().parents[2] / "data" / "processed" / "X_train_fe_v2.csv"
 
@@ -30,13 +29,8 @@ class ExplainabilityService:
             print("⚠ Training data not found, LIME disabled")
             return
         feats = self.ps.get_feature_names()
-        background = pd.read_csv(TRAIN_PATH, nrows=2000)[feats].astype(float)
-        self.lime_explainer = LimeTabularExplainer(
-            background.values,
-            feature_names=feats,
-            mode="regression",
-            discretize_continuous=False,
-        )
+        background = pd.read_csv(TRAIN_PATH, nrows=5000)[feats].astype(float)
+        self.lime_explainer = LocalLime(self.ps.model, feats, background)
 
     def generate_shap_explanation(self, features: Dict[str, Any], top_n: int = 20) -> List[Dict[str, Any]]:
         if self.shap_explainer is None:
@@ -58,10 +52,8 @@ class ExplainabilityService:
             return []
         try:
             X = self.ps.build_frame(features)
-            exp = self.lime_explainer.explain_instance(
-                X.iloc[0].values, self.ps.model.predict, num_features=num_features
-            )
-            return [{"feature": name, "weight": float(w)} for name, w in exp.as_list()]
+            rows, _, _ = self.lime_explainer.explain(X.iloc[0].values, num_features=num_features)
+            return rows
         except Exception as e:
             print(f"⚠ LIME failed: {e}")
             return []

@@ -1,6 +1,6 @@
 # KNOWN_ISSUES — CreditXplain
 
-**Last Updated:** Nov 25, 2026 (Phase 4.6: cleanup and doc sync)
+**Last Updated:** Nov 25, 2026 (Phase 4.7: explanation and recourse upgrade)
 
 This document tracks bugs, gaps, technical debt, and unresolved questions. Items are numbered for reference.
 
@@ -960,7 +960,7 @@ loan_amount = application.features_json.get('AMT_CREDIT', 100000)
 Found on Nov 25, 2026 by running every existing test (`tests/`: 88 passed; `backend/tests/`: 36 passed; frontend `tsc` and `build` clean) and by reading the explainability and recourse outputs.
 
 ### #52: LIME Explanations Are Not Local
-**Status:** 🔴 Open (blocks publishable SHAP-vs-LIME results)  
+**Status:** ✅ Resolved (Nov 25, 2026, Phase 4.7). `src/lime_local.py` explains each applicant locally; locality gap 0.00 → 0.49 on 150 applicants (TECHNICAL_DECISIONS D-43)  
 **Phase:** 4.6 (fix planned for 4.7)  
 **Description:** Both `src/explainability.py:247` and `backend/services/explainability_service.py` build `LimeTabularExplainer` with `discretize_continuous=False` and the default `sample_around_instance=False`. LIME then draws its perturbations around the training-data mean, not around the applicant. With 300 features the default kernel width (0.75·√300 ≈ 13) also gives almost every sample the same weight.  
 **Evidence:** Three different test applicants got nearly identical LIME weights for the top feature (`EXT_SOURCE_MEAN`: −0.01741, −0.01758, −0.01740).  
@@ -970,7 +970,7 @@ Found on Nov 25, 2026 by running every existing test (`tests/`: 88 passed; `back
 ---
 
 ### #53: LIME Fit Overflows Numerically
-**Status:** Open  
+**Status:** ✅ Resolved: not a LIME problem. numpy 2.0.2 with macOS Accelerate raises these warnings on any matrix product, even clean random data; results are correct (max error vs `einsum` 3e-14). Silenced in the evaluation scripts only  
 **Phase:** 4.6  
 **Description:** Each LIME call raises about 5,000 `RuntimeWarning`s (overflow, divide by zero, invalid value) from scikit-learn's ridge regression. The returned weights are still finite.  
 **Likely cause:** The same setup as #52: 300 unscaled features, some with values in the millions.  
@@ -979,7 +979,7 @@ Found on Nov 25, 2026 by running every existing test (`tests/`: 88 passed; `back
 ---
 
 ### #54: SHAP–LIME Consistency Measured on 6 Applicants
-**Status:** Open  
+**Status:** ✅ Resolved (Phase 4.7). `src/explanation_eval.py` measures 150 stratified applicants with overlap, rank and sign agreement, locality and seed stability (`reports/explanation_consistency.json`)  
 **Phase:** 4.6 (fix planned for 4.7)  
 **Description:** `reports/shap_lime_consistency.csv` holds top-10 overlap for 6 applicants (2 per band). That sample is too small for a paper, and overlap alone ignores ranking.  
 **Action:** Measure on 100–200 stratified applicants. Report top-k overlap, rank correlation (Spearman/Kendall), and LIME stability across seeds.
@@ -987,7 +987,7 @@ Found on Nov 25, 2026 by running every existing test (`tests/`: 88 passed; `back
 ---
 
 ### #55: Recourse "Validity Rate" Is Circular
-**Status:** 🔴 Open (reviewer risk)  
+**Status:** ✅ Resolved (Phase 4.7). Replaced by `src/recourse_eval.py` (coverage, cost, sparsity, plausibility, robustness, latency, baselines). `src/recourse_validity.py` and its reports deleted (D-49)  
 **Phase:** 4.6 (fix planned for 4.7)  
 **Description:** `reports/recourse_validity.json` reports `validity_rate: 1.0`. The search keeps only candidates that the model scores into a better band, and "verification" rescores them with the same model, so 100% follows by construction.  
 **Missing metrics:** proximity (size of change), sparsity (number of levers), plausibility (distance to real applicants, e.g. kNN or LOF), diversity, and a baseline (DiCE or random search under the same bounds).  
@@ -996,7 +996,7 @@ Found on Nov 25, 2026 by running every existing test (`tests/`: 88 passed; `back
 ---
 
 ### #56: Recourse Never Reaches Approve
-**Status:** Open (needs a framing decision)  
+**Status:** 🟡 Mitigated (Phase 4.7). Two-tier recourse added: 27.3% of Review applicants now get a robust, plausible path to Approve (D-47). Reject → Approve in one step remains out of reach (structural). For the paper: present recourse as a graduated path  
 **Phase:** 4.6  
 **Description:** 0 of 300 rejected test applicants reach Approve (`reaches_approve_rate: 0.0`). Recourse moves them only from Reject to Review.  
 **Why:** Approve needs a predicted default probability below 0.0349. Rejected applicants average 0.213 (`reports/final_model_bands.csv`). The strongest features are external bureau scores (`EXT_SOURCE_*`, `CREDIT_GOODS_EXT_RISK`), which the three levers (loan amount, income, tenure) cannot change.  
@@ -1022,7 +1022,7 @@ Found on Nov 25, 2026 by running every existing test (`tests/`: 88 passed; `back
 ---
 
 ### #59: Two Counterfactual Implementations Exist
-**Status:** Open (documentation)  
+**Status:** ✅ Resolved (Phase 4.7). The API uses `src/recourse.py`; DiCE runs only as a comparison baseline in `src/recourse_eval.py`. `src/counterfactuals.py` stays as the Phase 3 offline script  
 **Phase:** 4.6  
 **Description:** `src/counterfactuals.py` (Phase 3, DiCE, with `tests/test_counterfactuals.py`) is still in the repo, while the API uses `src/recourse.py` (bounded lever search). The paper and README must say which one produced which numbers.  
 **Action:** Use the DiCE version as the comparison baseline in the #55 evaluation, or retire it.
@@ -1034,6 +1034,55 @@ Found on Nov 25, 2026 by running every existing test (`tests/`: 88 passed; `back
 **Phase:** 4.6  
 **Description:** The untracked `backend/tests/recourse_validity.py` was a near-copy of `src/recourse_validity.py` that ran on import and wrote `reports/recourse_validity.json` and `reports/recourse_validity_per_applicant.csv`. Pytest skipped it only because of its name.  
 **Fix:** Deleted. `src/recourse_validity.py` remains the single source.
+
+---
+
+## Phase 4.7: Explanation and Recourse Upgrade — New Issues
+
+### #61: DiCE Baseline Not Completed
+**Status:** Open  
+**Phase:** 4.7  
+**Description:** DiCE (random method, same three levers) took about 40–120 s per applicant. The full run was stopped at the user's request; no DiCE numbers were saved.  
+**Action:** Run `python3 -m src.recourse_eval --n 300 --dice 20` (about 30–40 minutes) before the paper's results section.
+
+---
+
+### #62: Stricter Recourse Finds Options for Fewer Applicants
+**Status:** Open (trade-off, by design)  
+**Phase:** 4.7  
+**Description:** The margin and plausibility rules lower the share of applicants with any option. Reject → Review falls from 87.7% to 59.0%, but the share with a *usable* option rises from 21.3% to 59.0%. The margin causes most of the drop (D-44).  
+**Options:** A smaller margin (e.g. 0.05) or a finer grid could recover some coverage; random search reaches 60.0%, so a finer search may add about 1 point.  
+**Action:** Report the trade-off and ablations in the paper. Revisit the margin only if the user wants more coverage.
+
+---
+
+### #63: Age-Band Recourse Gaps on Small Groups
+**Status:** Open  
+**Phase:** 4.7  
+**Description:** Recourse coverage differs by about 0.28 between age bands, but the extreme groups are small (Reject → Review: under-25 n=19, 55+ n=24; Review → Approve: under-25 n=9).  
+**Action:** Re-run with a larger `--n`, or stratify by age, before reporting group gaps.
+
+---
+
+### #64: FastAPI `on_event` Deprecated
+**Status:** Open (low)  
+**Phase:** 4.7 (found in the 4.6 test run)  
+**Description:** `backend/main.py:23` uses `@app.on_event("startup")`, which FastAPI has deprecated in favour of lifespan handlers.  
+**Action:** Move startup code to a `lifespan` context manager.
+
+---
+
+### #65: SHAP "List of ndarray" Notice
+**Status:** By design (informational)  
+**Phase:** 4.7  
+**Description:** SHAP warns that LightGBM binary output changed to a list of arrays. `explainability_service.py` and `src/recourse.explain_change` take the last element, the default-class contribution; tests confirm additivity.
+
+---
+
+### #66: LIME Covers 25 of 300 Features
+**Status:** By design (limitation to state in the paper)  
+**Phase:** 4.7  
+**Description:** `LocalLime` explains only the 25 top-gain features; the rest stay fixed at the applicant's values. That set-up is what makes the explanations local (D-43). The paper must state it.
 
 ---
 
@@ -1053,7 +1102,10 @@ Found on Nov 25, 2026 by running every existing test (`tests/`: 88 passed; `back
 | Nov 25, 2026 | #27 | Reopened: Pydantic warnings still present |
 | Nov 25, 2026 | #52–#59 | Identified: LIME not local, LIME overflow, small consistency sample, circular recourse validity, no Approve recourse, frontend lint, pandas warning, two CF implementations |
 | Nov 25, 2026 | #60 | Resolved: duplicate recourse script deleted |
+| Nov 25, 2026 | #52, #53, #54, #55, #59 | Resolved in Phase 4.7 |
+| Nov 25, 2026 | #56 | Mitigated: Review → Approve tier |
+| Nov 25, 2026 | #61–#66 | Identified: DiCE not completed, coverage trade-off, small age groups, FastAPI on_event, SHAP notice, LIME subset |
 
 ---
 
-**Next Update:** Phase 4.7 (explanation and recourse evaluation)
+**Next Update:** Phase 4.8
