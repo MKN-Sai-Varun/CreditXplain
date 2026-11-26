@@ -1,6 +1,6 @@
 # KNOWN_ISSUES — CreditXplain
 
-**Last Updated:** Nov 25, 2026 (Phase 4.7: explanation and recourse upgrade)
+**Last Updated:** Nov 26, 2026 (Phase 4.8: backend completion)
 
 This document tracks bugs, gaps, technical debt, and unresolved questions. Items are numbered for reference.
 
@@ -460,7 +460,7 @@ predictions_df['default_probability'] = predictions_df['predicted_probability']
 ---
 
 ### #27: Pydantic V2 Deprecation Warnings
-**Status:** 🔁 Reopened (Nov 25, 2026). The full test run still shows `PydanticDeprecatedSince20` warnings from class-based `Config` at `backend/schemas.py` lines 18, 39, 50, 84, 93, 115 and 129  
+**Status:** ✅ Resolved (Phase 4.8). All 7 response schemas use `model_config = ConfigDict(from_attributes=True)`  
 **Phase:** 4.1  
 **Description:** Class-based `Config` deprecated in Pydantic V2, causing multiple warnings.  
 **Fix:** Migrated all schemas to use `model_config = ConfigDict(...)` instead of inner `Config` class.  
@@ -510,7 +510,7 @@ predictions_df['default_probability'] = predictions_df['predicted_probability']
 ---
 
 ### #32: No Integration Tests for API Endpoints
-**Status:** 🟡 Partly resolved. TestClient API tests now exist (`test_predict_api.py`, `test_recourse_api.py`, `test_access_control.py`); officer and fairness routes still have no API tests  
+**Status:** ✅ Resolved (Phase 4.8). Officer, fairness, document and application routes now have API tests (`test_officer_api.py`, `test_fairness_api.py`, `test_documents_api.py`, `test_applications_api.py`)  
 **Phase:** 4.1  
 **Description:** Only unit tests exist (auth, database). No end-to-end API tests with FastAPI TestClient.  
 **Impact:** Cannot verify full request/response flow without manual curl testing.  
@@ -524,7 +524,7 @@ predictions_df['default_probability'] = predictions_df['predicted_probability']
 ---
 
 ### #33: Database File Not Gitignored by Default
-**Status:** Open  
+**Status:** ✅ Resolved. `.gitignore` covers `*.db` and `*.db-journal`  
 **Phase:** 4.1  
 **Description:** `creditxplain.db` file created in backend directory, not explicitly gitignored.  
 **Impact:** Risk of accidentally committing database with test data.  
@@ -789,7 +789,7 @@ train_path = self.prediction_service.settings.DATA_DIR / "X_train_fe_v2.csv"
 ---
 
 ### #44: Loan Tenure Fixed at 12 Months
-**Status:** Open  
+**Status:** ✅ Resolved (Phase 4.8). Applicants choose 12, 24, 36, 48 or 60 months (D-52)  
 **Phase:** 4.3  
 **Description:** Default tenure hardcoded to 12 months in predictions router.  
 **Current Code:**
@@ -833,7 +833,7 @@ tenure_months=12  # Default 12-month tenure
 ---
 
 ### #46: Loan Amount Fallback to 100k
-**Status:** Open  
+**Status:** ✅ Resolved (Phase 4.8). `AMT_CREDIT` is required at submission; the fallback is removed (D-53)  
 **Phase:** 4.3  
 **Description:** If AMT_CREDIT field missing from application, defaults to ₹100,000.  
 **Current Code:**
@@ -1014,7 +1014,7 @@ Found on Nov 25, 2026 by running every existing test (`tests/`: 88 passed; `back
 ---
 
 ### #58: pandas FutureWarning in Fairness Audit
-**Status:** Open (low)  
+**Status:** ✅ Resolved (Phase 4.8). `observed=False` passed explicitly in `src/fairness_audit.py` and `backend/services/fairness_service.py`  
 **Phase:** 4.6  
 **Description:** `src/fairness_audit.py:98` calls `df.groupby(sensitive_feature)` on a categorical column without `observed=`, which raises a FutureWarning 11 times in `tests/test_fairness.py`.  
 **Action:** Pass `observed=False` explicitly.
@@ -1065,7 +1065,7 @@ Found on Nov 25, 2026 by running every existing test (`tests/`: 88 passed; `back
 ---
 
 ### #64: FastAPI `on_event` Deprecated
-**Status:** Open (low)  
+**Status:** ✅ Resolved (Phase 4.8). Startup moved to a `lifespan` handler in `backend/main.py`  
 **Phase:** 4.7 (found in the 4.6 test run)  
 **Description:** `backend/main.py:23` uses `@app.on_event("startup")`, which FastAPI has deprecated in favour of lifespan handlers.  
 **Action:** Move startup code to a `lifespan` context manager.
@@ -1083,6 +1083,39 @@ Found on Nov 25, 2026 by running every existing test (`tests/`: 88 passed; `back
 **Status:** By design (limitation to state in the paper)  
 **Phase:** 4.7  
 **Description:** `LocalLime` explains only the 25 top-gain features; the rest stay fixed at the applicant's values. That set-up is what makes the explanations local (D-43). The paper must state it.
+
+---
+
+## Phase 4.8: Backend Completion — New Issues
+
+### #67: Uploaded Documents Are Not Scanned and Cannot Be Deleted
+**Status:** Open  
+**Phase:** 4.8  
+**Description:** Uploads are checked for type, size and file signature (D-50), but not scanned for malware, and there is no endpoint to delete or replace a document.  
+**Action:** Acceptable for the academic demo. A production system would add scanning and a delete/replace flow with an audit entry.
+
+---
+
+### #68: Live Equalized-Odds Metric Is Always Zero
+**Status:** Open  
+**Phase:** 4.8 (found while testing the fairness API)  
+**Description:** `FairnessService.calculate_fairness_metrics` calls `equalized_odds_difference(y_true=approved, y_pred=approved, ...)`. With identical inputs the result is always 0, so `age_eod` and `family_eod` carry no information. Live applications have no repayment outcome to use as `y_true`.  
+**Action:** Drop EOD from the live monitor, or label it as unavailable. The offline audit (`src/fairness_audit.py`, which has real outcomes) remains the source for EOD.
+
+---
+
+### #69: Demographic "rejected" Count Includes Review
+**Status:** Open (low)  
+**Phase:** 4.8  
+**Description:** `/api/fairness/demographics/*` report `rejected = count - approved`, so Review cases are counted as rejected.  
+**Action:** Rename the field to `not_approved`, or report Review separately, when the officer dashboard is built.
+
+---
+
+### #70: Existing Local Database Upgraded in Place
+**Status:** By design  
+**Phase:** 4.8  
+**Description:** On first start after Phase 4.8, `upgrade_schema` adds `applications.tenure_months` (default 12) to an existing `creditxplain.db`, and `create_all` adds the `documents` table. No data is removed. A full migration tool (Alembic) is not used.
 
 ---
 
@@ -1105,7 +1138,9 @@ Found on Nov 25, 2026 by running every existing test (`tests/`: 88 passed; `back
 | Nov 25, 2026 | #52, #53, #54, #55, #59 | Resolved in Phase 4.7 |
 | Nov 25, 2026 | #56 | Mitigated: Review → Approve tier |
 | Nov 25, 2026 | #61–#66 | Identified: DiCE not completed, coverage trade-off, small age groups, FastAPI on_event, SHAP notice, LIME subset |
+| Nov 26, 2026 | #27, #32, #33, #44, #46, #58, #64 | Resolved in Phase 4.8 |
+| Nov 26, 2026 | #67–#70 | Identified: no upload scanning/deletion, live EOD always zero, demographic rejected count, in-place DB upgrade |
 
 ---
 
-**Next Update:** Phase 4.8
+**Next Update:** Phase 4.4

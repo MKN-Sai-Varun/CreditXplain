@@ -155,3 +155,29 @@ def get_loan_calculator() -> LoanCalculator:
     if _loan_calculator is None:
         _loan_calculator = LoanCalculator()
     return _loan_calculator
+
+
+def loan_terms_for(application, decision):
+    """
+    LoanTerms row for an approved application, priced on the model's risk band
+    (so an officer override of a Review or Reject case pays that band's rate).
+    """
+    from backend.models import LoanTerms
+
+    amount = application.features_json.get("AMT_CREDIT")
+    if not amount or amount <= 0:
+        raise ValueError("Application has no valid requested loan amount (AMT_CREDIT)")
+    terms = get_loan_calculator().calculate_loan_terms(
+        loan_amount=float(amount),
+        decision=decision.decision.value,
+        probability=decision.probability,
+        tenure_months=application.tenure_months,
+    )
+    return LoanTerms(
+        decision_id=decision.id,
+        loan_amount=terms["loan_amount"],
+        interest_rate=terms["interest_rate"],
+        tenure_months=terms["tenure_months"],
+        monthly_emi=terms["monthly_emi"],
+        total_payable=terms["total_payable"],
+    )

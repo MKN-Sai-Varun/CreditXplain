@@ -58,6 +58,23 @@ class FairnessService:
         
         return has_children.map({True: 'Has Children', False: 'No Children'})
     
+    @staticmethod
+    def _group_stats(df: pd.DataFrame, column: str) -> Dict:
+        """
+        {"approved": {"sum": {group: n}, "count": {...}, "mean": {...}}}, with
+        string keys and no NaN, so it can be stored as JSON. Empty groups get 0.
+        """
+        agg = df.groupby(column, observed=False)['approved'].agg(['sum', 'count', 'mean'])
+        return {
+            'approved': {
+                stat: {
+                    str(group): (round(float(v), 4) if pd.notna(v) else 0.0)
+                    for group, v in agg[stat].items()
+                }
+                for stat in ('sum', 'count', 'mean')
+            }
+        }
+
     def calculate_fairness_metrics(
         self,
         db: Session,
@@ -122,11 +139,7 @@ class FairnessService:
             metrics['age_eod'] = float(age_eod)
             
             # Calculate approval rates by age band
-            age_stats = df.groupby('age_band').agg({
-                'approved': ['sum', 'count', 'mean']
-            }).round(4)
-            
-            metrics['age_band_stats'] = age_stats.to_dict()
+            metrics['age_band_stats'] = self._group_stats(df, 'age_band')
         
         # Family status metrics
         if df['family_status'].notna().any():
@@ -146,11 +159,7 @@ class FairnessService:
             metrics['family_eod'] = float(family_eod)
             
             # Calculate approval rates by family status
-            family_stats = df.groupby('family_status').agg({
-                'approved': ['sum', 'count', 'mean']
-            }).round(4)
-            
-            metrics['family_status_stats'] = family_stats.to_dict()
+            metrics['family_status_stats'] = self._group_stats(df, 'family_status')
         
         # Check for alerts
         has_alert = False

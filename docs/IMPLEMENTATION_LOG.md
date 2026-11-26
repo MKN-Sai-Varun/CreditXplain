@@ -1780,6 +1780,61 @@ Full run: **142 passed** (124 before + 18 new). Frontend `tsc` clean.
 
 ---
 
+## Phase 4.8: Backend Completion (Nov 26, 2026)
+
+### Overview
+Closes the backend gaps the frontend needs: document upload, a working officer queue, applicant-chosen loan tenure, required loan amount, three warning cleanups, and API tests for every route group. Two bugs found along the way are fixed. Decisions: TECHNICAL_DECISIONS D-50 to D-55.
+
+### 4.8.1: Document Upload (`backend/routers/documents.py`, new)
+- `POST /api/applications/{id}/documents` (owner only; PDF/PNG/JPEG, 5 MB, signature check, `doc_type` list).
+- `GET /api/applications/{id}/documents` returns the uploaded documents plus officers' document requests.
+- `GET /api/applications/{id}/documents/{doc_id}` downloads a file (owner or officer).
+- New `Document` model (`backend/models.py`); storage under `uploads/` (added to `.gitignore`); settings in `backend/config.py` (`UPLOAD_DIR`, `MAX_UPLOAD_BYTES`, `ALLOWED_UPLOAD_TYPES`).
+- Application detail now includes `documents` and `document_requests`.
+
+### 4.8.2: Officer Queue and Actions (`backend/routers/officer.py`)
+- **Bug fixed:** the queue returned raw rows that did not match its `ApplicationDetail` response model. It now uses the shared `backend/serializers.application_detail`, also used by `GET /api/applications/{id}`.
+- Actions: a justification is required to override the model or to request documents; approving or rejecting an unscored application is refused (D-51).
+- Approving creates loan terms if none exist, priced at the model's band (D-54).
+- The action endpoint now returns a typed `OfficerActionResponse` (application and loan terms) instead of a raw ORM object.
+- The audit log returns 404 for an unknown application.
+
+### 4.8.3: Tenure and Loan Amount
+- `ApplicationCreate.tenure_months` (12/24/36/48/60, default 12), stored in the new `applications.tenure_months` column and used for loan terms (D-52).
+- `features.AMT_CREDIT` is required and must be positive; the ₹100,000 fallback is removed (D-53). The prediction route also refuses a missing amount (422).
+- `backend/database.upgrade_schema` adds the new column to an existing `creditxplain.db` at startup.
+- Loan terms built in one place: `services/loan_calculator.loan_terms_for`.
+
+### 4.8.4: Fairness Fixes
+- **Bug fixed:** `POST /api/fairness/calculate` failed once 50 applications existed, because group statistics had tuple keys that cannot be stored as JSON (D-55).
+- **Bug fixed:** `GET /api/fairness/metrics` returned an error before the first calculation, because `calculated_at` was required (`backend/schemas.py`).
+
+### 4.8.5: Warning Cleanups
+- FastAPI `on_event` replaced by a `lifespan` handler (`backend/main.py`, #64).
+- Pydantic class-based `Config` replaced by `ConfigDict` in 7 schemas (#27).
+- pandas `observed=False` passed explicitly (`src/fairness_audit.py`, `backend/services/fairness_service.py`, #58).
+
+### 4.8.6: Tests (40 new)
+| File | Tests |
+|---|---|
+| `backend/tests/test_documents_api.py` (new) | 11: upload/list/download, PNG accepted, wrong type, spoofed content, too large, empty and unknown type, other applicant blocked, officer read-only, missing items, officer request visible to applicant, upload audited |
+| `backend/tests/test_officer_api.py` (new) | 11: queue details, override needs justification, approval creates loan terms over the chosen tenure, override priced at model band, agreeing needs no justification, rejecting an Approve case, document request message, invalid/unscored/missing, audit log, approval-rate analytics, applicant blocked |
+| `backend/tests/test_fairness_api.py` (new) | 5: metrics before calculation, 50-application minimum, calculate and read back (DPD 0.5 on a constructed sample), demographic breakdowns, empty before calculation |
+| `backend/tests/test_applications_api.py` (new) | 12: default tenure, stored tenure, 4 invalid tenures, 5 invalid loan amounts, old database upgraded |
+| `backend/tests/test_predict_api.py` | 1: approved prediction uses the requested tenure |
+| `backend/tests/conftest.py` | Fixtures: temporary upload folder (autouse), scored application without running the model |
+
+Full run (Nov 26, 2026): **182 passed** (142 before + 40 new). The Pydantic, pandas and FastAPI deprecation warnings no longer appear.
+
+### Phase 4.8 Summary
+✅ Document upload, officer queue and actions, applicant-chosen tenure.  
+✅ Three bugs fixed (officer queue response, fairness calculate, fairness metrics before first run).  
+✅ Warnings #27, #58 and #64 cleared; every route group has API tests.
+
+**Next Phase:** 4.4, PDF reports.
+
+---
+
 ## Change Log (updated)
 
 | Date | Phase | Event | Files Changed |
@@ -1791,7 +1846,8 @@ Full run: **142 passed** (124 before + 18 new). Frontend `tsc` clean.
 | 2026-11-19 | post-4.5 | Commits ae6ad19, fef60f8, b68c3f7 | Inference pipeline, access control, bounded recourse |
 | 2026-11-25 | 4.6 | Cleanup, doc sync, test baseline | Deleted `backend/tests/recourse_validity.py`; 4 docs updated |
 | 2026-11-25 | 4.7 | Explanation and recourse upgrade | Local LIME, recourse margin/plausibility/refinement/two tiers/drivers, two evaluation scripts, 18 new tests |
+| 2026-11-26 | 4.8 | Backend completion | Documents router and model, officer queue/actions, tenure and loan amount, fairness fixes, warning cleanups, 40 new tests |
 
 ---
 
-**Last Updated:** Nov 25, 2026 (Phase 4.7 complete)
+**Last Updated:** Nov 26, 2026 (Phase 4.8 complete)

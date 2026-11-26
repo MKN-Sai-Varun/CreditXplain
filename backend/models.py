@@ -42,6 +42,9 @@ class Application(Base):
     # Application data (JSON for flexibility)
     features_json = Column(JSON, nullable=False)
     
+    # Requested repayment period
+    tenure_months = Column(Integer, default=12, nullable=False)
+
     # Status
     status = Column(Enum(ApplicationStatus), default=ApplicationStatus.SUBMITTED, nullable=False)
     
@@ -53,6 +56,7 @@ class Application(Base):
     user = relationship("User", back_populates="applications")
     decision = relationship("Decision", back_populates="application", uselist=False)
     audit_logs = relationship("AuditLog", back_populates="application")
+    documents = relationship("Document", back_populates="application", order_by="Document.uploaded_at")
 
 class Decision(Base):
     __tablename__ = "decisions"
@@ -129,6 +133,24 @@ class AuditLog(Base):
     # Relationships
     application = relationship("Application", back_populates="audit_logs")
     officer = relationship("User", back_populates="audit_logs")
+
+class Document(Base):
+    __tablename__ = "documents"
+
+    id = Column(Integer, primary_key=True, index=True)
+    application_id = Column(Integer, ForeignKey("applications.id"), nullable=False, index=True)
+    uploaded_by = Column(Integer, ForeignKey("users.id"), nullable=False)
+
+    doc_type = Column(String(50), nullable=False)        # e.g. "income_proof", "id_proof"
+    original_name = Column(String(255), nullable=False)
+    stored_name = Column(String(64), unique=True, nullable=False)
+    content_type = Column(String(100), nullable=False)
+    size_bytes = Column(Integer, nullable=False)
+
+    uploaded_at = Column(DateTime, default=datetime.utcnow)
+
+    application = relationship("Application", back_populates="documents")
+
 
 class FairnessMetric(Base):
     __tablename__ = "fairness_metrics"

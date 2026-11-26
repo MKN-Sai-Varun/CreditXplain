@@ -77,16 +77,23 @@ uvicorn backend.main:app --host 0.0.0.0 --port 8000 --workers 4
 - `GET /api/auth/me` - Get current user info
 
 ### Applications
-- `POST /api/applications/` - Submit new application
+- `POST /api/applications/` - Submit new application. Body: `{"features": {...}, "tenure_months": 12}`; `features.AMT_CREDIT` (requested loan amount) is required and must be positive; `tenure_months` is one of 12, 24, 36, 48, 60 (default 12)
 - `GET /api/applications/` - Get user's applications
-- `GET /api/applications/{id}` - Get application details
+- `GET /api/applications/{id}` - Get application details (decision, explanation, loan terms, documents, document requests)
+
+### Documents
+- `POST /api/applications/{id}/documents` - Upload a document (multipart: `file`, `doc_type`). Applicant who owns the application only. PDF, PNG or JPEG, up to 5 MB; the file content must match its type
+- `GET /api/applications/{id}/documents` - Documents uploaded and documents requested by officers (owner or officer)
+- `GET /api/applications/{id}/documents/{document_id}` - Download a document (owner or officer)
+
+Files are stored under `uploads/<application id>/` (gitignored).
 
 ### Predictions
 - `POST /api/predictions/{application_id}` - Generate prediction & explanation
 
 ### Officer Dashboard
-- `GET /api/officer/queue` - Get review queue
-- `POST /api/officer/{id}/action` - Approve/reject/request documents
+- `GET /api/officer/queue` - Get review queue, with decision, explanation and recourse for each application
+- `POST /api/officer/{id}/action` - Approve/reject/request documents. A justification is required to go against the model or to request documents; approving creates loan terms priced at the model's risk band
 - `GET /api/officer/analytics/approval-rates` - Get approval statistics
 - `GET /api/officer/{id}/audit-log` - Get application audit trail
 
@@ -114,7 +121,7 @@ python3 -m pytest backend/tests/ -v --cov=backend --cov-report=html
 - `id`, `email`, `password_hash`, `role`, `full_name`, `created_at`
 
 ### Applications
-- `id`, `user_id`, `features_json`, `status`, `created_at`, `updated_at`
+- `id`, `user_id`, `features_json`, `tenure_months`, `status`, `created_at`, `updated_at`
 
 ### Decisions
 - `id`, `application_id`, `decision`, `probability`, `thresholds`, `created_at`
@@ -127,6 +134,11 @@ python3 -m pytest backend/tests/ -v --cov=backend --cov-report=html
 
 ### Audit Logs
 - `id`, `application_id`, `officer_id`, `action`, `justification`, `timestamp`
+
+### Documents
+- `id`, `application_id`, `uploaded_by`, `doc_type`, `original_name`, `stored_name`, `content_type`, `size_bytes`, `uploaded_at`
+
+Columns added after the first release (currently `applications.tenure_months`) are added to an existing database at startup (`backend/database.py`, `upgrade_schema`).
 
 ### Fairness Metrics
 - `id`, `age_dpd`, `children_dpd`, `metrics_json`, `has_alert`, `calculated_at`

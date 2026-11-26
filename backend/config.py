@@ -23,6 +23,7 @@ class Settings(BaseSettings):
     MODELS_DIR: Path = BASE_DIR / "models"
     DATA_DIR: Path = BASE_DIR / "data" / "processed"
     REPORTS_DIR: Path = BASE_DIR / "reports"
+    UPLOAD_DIR: Path = BASE_DIR / "uploads"
     
     # Model
     MODEL_PATH: Path = MODELS_DIR / "final_lgbm.pkl"
@@ -44,6 +45,18 @@ class Settings(BaseSettings):
         "REJECT": 0.08     # +8% (18% total, for manual override cases)
     }
     
+    # Loan tenure options (months)
+    TENURE_OPTIONS: list = [12, 24, 36, 48, 60]
+    DEFAULT_TENURE_MONTHS: int = 12
+
+    # Document uploads
+    MAX_UPLOAD_BYTES: int = 5 * 1024 * 1024
+    ALLOWED_UPLOAD_TYPES: dict = {
+        "application/pdf": ".pdf",
+        "image/png": ".png",
+        "image/jpeg": ".jpg",
+    }
+
     # CORS
     CORS_ORIGINS: list = [
         "http://localhost:3000",

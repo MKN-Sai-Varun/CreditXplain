@@ -5,6 +5,7 @@ from backend.database import get_db
 from backend.models import User, Application, ApplicationStatus
 from backend.schemas import ApplicationCreate, ApplicationResponse, ApplicationDetail
 from backend.auth import get_current_user
+from backend.serializers import application_detail
 
 router = APIRouter()
 
@@ -18,6 +19,7 @@ def create_application(
     new_application = Application(
         user_id=current_user.id,
         features_json=application_data.features,
+        tenure_months=application_data.tenure_months,
         status=ApplicationStatus.SUBMITTED
     )
     
@@ -63,26 +65,4 @@ def get_application_detail(
             detail="Not authorized to view this application"
         )
     
-    # Build response with related data
-    response = {
-        "id": application.id,
-        "user_id": application.user_id,
-        "status": application.status,
-        "created_at": application.created_at,
-        "updated_at": application.updated_at,
-        "features": application.features_json
-    }
-    
-    # Add decision if exists
-    if application.decision:
-        response["decision"] = application.decision
-        
-        # Add explanation if exists
-        if application.decision.explanation:
-            response["explanation"] = application.decision.explanation
-        
-        # Add loan terms if exists
-        if application.decision.loan_terms:
-            response["loan_terms"] = application.decision.loan_terms
-    
-    return response
+    return application_detail(application)

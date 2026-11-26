@@ -1,6 +1,6 @@
 # TECHNICAL_DECISIONS — CreditXplain
 
-**Last Updated:** Phase 4.7 explanation and recourse upgrade (Nov 25, 2026)
+**Last Updated:** Phase 4.8 backend completion (Nov 26, 2026)
 
 This document records all technical and architectural decisions made during the project, with rationale.
 
@@ -1131,7 +1131,7 @@ class ApplicationResponse(BaseModel):
 ---
 
 ### D-29: Default Loan Tenure
-**Decision:** 12 months as default tenure  
+**Decision:** 12 months as default tenure. **Superseded in Phase 4.8 by D-52** (tenure chosen by the applicant)  
 **Alternatives:**
 - 6 months (shorter, higher EMI)
 - 24 months (longer, lower EMI)
@@ -1149,7 +1149,7 @@ class ApplicationResponse(BaseModel):
 
 ### D-30: Loan Amount Source
 **Decision:** Extract from application features (AMT_CREDIT field)  
-**Fallback:** Default to ₹100,000 if field missing
+**Fallback:** ~~Default to ₹100,000 if field missing~~ Removed in Phase 4.8: the amount is now required (D-53)
 
 **Rationale:**
 - AMT_CREDIT is the requested credit amount in Home Credit dataset
@@ -1428,6 +1428,55 @@ The old set-up had a higher R² because it fitted one global linear model, which
 
 ---
 
+## 19. Backend Completion (Phase 4.8)
+
+### D-50: Document Storage
+**Decision:** Uploaded documents go to `uploads/<application id>/<random hex>.<ext>` on disk (gitignored as personal data). A `documents` table keeps the original name, type, size, uploader and time.  
+**Rules:**
+- Only the applicant who owns the application can upload. The owner and officers can list and download.
+- PDF, PNG or JPEG only, at most 5 MB (`settings.MAX_UPLOAD_BYTES`).
+- The first bytes must match the declared type, so a renamed file is refused (HTTP 415).
+- `doc_type` must be one of: income_proof, id_proof, address_proof, bank_statement, employment_proof, other.
+- Each upload adds an `AuditLog` entry (`document_uploaded`, `officer_id` empty).
+
+**Why:** Generated file names prevent path tricks and collisions. Keeping files out of the database keeps SQLite small.  
+**Not done:** virus scanning and deletion (KNOWN_ISSUES #67).
+
+---
+
+### D-51: Officer Overrides Need a Justification
+**Decision:** An officer must write a justification to approve a Review or Reject case, to reject an Approve case, or to request documents. Agreeing with the model needs none. Approving or rejecting an unscored application is refused.  
+**Why:** The plan requires overrides with a logged justification. Requested-documents messages are shown to the applicant (`document_requests`, read from the audit log).
+
+---
+
+### D-52: Loan Tenure Chosen by the Applicant
+**Decision:** `tenure_months` is part of the application: one of 12, 24, 36, 48 or 60 (`settings.TENURE_OPTIONS`), default 12. It is stored in a new `applications.tenure_months` column and used for loan terms, both at prediction and on officer approval.  
+**Migration:** `create_all()` does not add columns to existing tables, so `backend/database.upgrade_schema` adds missing columns at startup (currently just this one). Running it twice is harmless.  
+**Limitation:** The model still uses the applicant's `AMT_ANNUITY` as given; tenure affects pricing only.
+
+---
+
+### D-53: Requested Loan Amount Is Required
+**Decision:** `features.AMT_CREDIT` must be a positive number when an application is created (HTTP 422 otherwise). The silent ₹100,000 fallback is removed.  
+**Why:** A loan priced on an invented amount is wrong without anyone noticing (KNOWN_ISSUES #46).
+
+---
+
+### D-54: Officer Approval Creates Loan Terms at the Model's Band
+**Decision:** When an officer approves an application that has no loan terms, terms are created from its requested amount and tenure, priced at the model's band (an approved Review case pays the Review rate). Shared helper: `services/loan_calculator.loan_terms_for`.  
+**Why:** Before, an approved Review case had no loan terms at all.
+
+---
+
+### D-55: Fairness Group Statistics Stored as Plain JSON
+**Decision:** `FairnessService._group_stats` stores per-group counts as `{"approved": {"sum"|"count"|"mean": {group: value}}}` with string keys and no NaN; empty groups get 0.  
+**Why:** The previous `groupby(...).agg(...).to_dict()` produced tuple keys, which cannot be stored as JSON, so `POST /api/fairness/calculate` failed once 50 applications existed. It also did not match the structure `get_demographic_statistics` reads.
+
+**Date:** Nov 26, 2026
+
+---
+
 ## Change Log (Updated)
 
 | Date | Phase | Changes |
@@ -1438,7 +1487,8 @@ The old set-up had a higher R² because it fitted one global linear model, which
 | Nov 19, 2026 | Phase 4.5 | D-32 to D-37 (fairness monitoring) |
 | Nov 25, 2026 | Phase 4.6 | D-38 to D-40 (recorded from commits b68c3f7, ae6ad19, fef60f8); D-41 working agreement and phase order; D-42 proposed evaluation standard |
 | Nov 25, 2026 | Phase 4.7 | D-42 confirmed; D-43 local LIME; D-44 to D-48 recourse upgrade (margin, plausibility, refinement, two tiers, drivers); D-49 recourse evaluation protocol |
+| Nov 26, 2026 | Phase 4.8 | D-50 document storage; D-51 override justification; D-52 applicant-chosen tenure and schema upgrade; D-53 loan amount required; D-54 loan terms on officer approval; D-55 fairness stats format. D-29 and D-30 marked superseded |
 
 ---
 
-**Next Update:** Phase 4.8
+**Next Update:** Phase 4.4 (PDF reports)

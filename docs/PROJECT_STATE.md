@@ -1,6 +1,6 @@
 # PROJECT_STATE — CreditXplain
 
-**Snapshot:** Nov 25, 2026, end of Phase 4.7. Written from the repository (branch `dev-varun`, Phase 4.6 at `dedac96` plus the Phase 4.7 changes) and from test and evaluation runs on the Mac.
+**Snapshot:** Nov 26, 2026, end of Phase 4.8. Written from the repository (branch `dev-varun` at `f1b8bc2` plus the Phase 4.8 changes) and from the full test run.
 
 **Status legend**
 
@@ -14,7 +14,7 @@
 
 ## 1. How to resume
 
-1. Read this file, then `KNOWN_ISSUES.md` #61–#66 (the newest findings).
+1. Read this file, then `KNOWN_ISSUES.md` #61–#70 (the newest findings).
 2. Check the repo: `git log --oneline -5`, `git status --short`.
 3. Follow the working agreement in section 6: propose the next phase and wait for approval.
 
@@ -25,7 +25,7 @@
 | Item | State |
 |---|---|
 | Remote | `https://github.com/MKN-Sai-Varun/CreditXplain` |
-| Working branch | `dev-varun`. Phase 4.6 at `dedac96`; Phase 4.7 committed on top. Merged into `main` at the end |
+| Working branch | `dev-varun`: Phase 4.6 `dedac96`, Phase 4.7 `473917f`, docs wording `f1b8bc2`. Merged into `main` at the end |
 | Machine | MacBook Air, zsh, Python 3.9.6 (`/usr/bin/python3`), pytest 8.4.2, Node 26.7.0 |
 | Untracked | `frontend/`: a Next.js 16 / React 19 / Tailwind 4 scaffold plus `lib/api.ts`. Never committed |
 | Local-only (gitignored) | `data/`, `creditxplain.db`, `home-credit-default-risk.zip`, `models/*.pkl`, `models/recourse_reference.npz` (rebuild with `python3 -m src.build_recourse_reference`) |
@@ -63,11 +63,11 @@
 |---|---|---|
 | FastAPI backend, SQLite, JWT login with roles | ✅ | Registration always creates applicants (D-40) |
 | Applications, predictions (SHAP + LIME with rules + recourse for Reject and Review, with drivers), loan terms (EMI) | ✅ | `backend/tests/test_predict_api.py`, `test_recourse_api.py`, `test_loan_calculator.py` |
-| Officer queue, actions, analytics, audit log | 🟡 | Queue formatting TODO at `backend/routers/officer.py:21`; no API tests for officer routes (#32) |
+| Officer queue, actions, analytics, audit log | ✅ | Queue returns full details; overrides need a justification; approval creates loan terms (D-51, D-54); `test_officer_api.py` |
 | Fairness monitoring API | ✅ | 4 officer-only endpoints, manual trigger (#48) |
-| Document upload | ⬜ | Officers can request documents, but applicants cannot upload them |
+| Document upload | ✅ | Upload, list and download with ownership, type, size and signature checks (D-50); `test_documents_api.py`. No scanning or deletion (#67) |
 | PDF reports | ⬜ | Not implemented (ReportLab planned) |
-| Loan tenure input | ⬜ | Fixed at 12 months (#44) |
+| Loan tenure input | ✅ | 12 to 60 months chosen by the applicant; loan amount required (D-52, D-53); `test_applications_api.py` |
 | Frontend: applicant portal, officer dashboard | ⬜ | Starter page only; lint fails with 1 error (#57) |
 
 ### Testing and documentation (original Phase 5)
@@ -81,16 +81,16 @@
 
 ---
 
-## 4. Test baseline (Nov 25, 2026, after Phase 4.7)
+## 4. Test baseline (Nov 26, 2026, after Phase 4.8)
 
 | Suite | Result |
 |---|---|
-| `python3 -m pytest tests backend/tests -q` | ✅ 142 passed (124 before 4.7 + 18 new) |
+| `python3 -m pytest tests backend/tests -q` | ✅ 182 passed (142 before 4.8 + 40 new) |
 | `npx tsc --noEmit` (frontend) | ✅ |
 | `npm run build` (frontend) | ✅ |
 | `npm run lint` (frontend) | ❌ 1 error (#57) |
 
-Warnings to clean up: Pydantic class-based `Config` (#27), pandas `observed=` (#58), FastAPI `on_event` (#64). The matmul RuntimeWarnings are a numpy/macOS artefact (#53).
+The Pydantic (#27), pandas (#58) and FastAPI (#64) warnings are gone. Remaining warnings come from libraries: matplotlib/pyparsing deprecations, the SHAP output notice (#65), and the numpy/macOS matmul artefact (#53).
 
 ---
 
@@ -102,7 +102,7 @@ The model and the system are in place. Reviewers will look hardest at the claims
 2. ~~Recourse needs standard evaluation~~ ✅ done in 4.7, except the DiCE baseline (#61), which needs a 30–40 minute run.
 3. **Recourse framing:** a graduated path (Reject → Review → Approve). State the coverage trade-off of the stricter rules (#62) and confirm the age-band gaps on a larger sample (#63).
 4. **Fairness:** report the age disparity with per-group default rates and AUC, and decide on mitigation or a documented justification (#16).
-5. **A working demo:** frontend, PDF export, and the remaining backend gaps.
+5. **A working demo:** backend complete after 4.8; PDF export and the frontend remain.
 
 Phases 4.7 onward (TECHNICAL_DECISIONS D-41) follow this order.
 
@@ -120,7 +120,7 @@ Phases 4.7 onward (TECHNICAL_DECISIONS D-41) follow this order.
 
 ## 7. Next phase and open questions
 
-**Next phase (awaiting approval): 4.8, backend gaps:** document upload, officer queue formatting, tenure as an input (D-41). Optionally first: finish the DiCE baseline run (#61).
+**Next phase (awaiting approval): 4.4, PDF reports** (applicant decision report and officer compliance report), then 4.9 and 4.10 (frontend). Still open from 4.7: the DiCE baseline run (#61).
 
 | # | Open question | Status |
 |---|---|---|

@@ -1,6 +1,7 @@
-from pydantic import BaseModel, EmailStr, Field
+from pydantic import BaseModel, ConfigDict, EmailStr, Field, field_validator
 from datetime import datetime
 from typing import Optional, Dict, List, Any
+from backend.config import settings
 from backend.models import UserRole, ApplicationStatus, DecisionType
 
 # User schemas
@@ -20,8 +21,7 @@ class UserResponse(UserBase):
     role: UserRole
     created_at: datetime
     
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 # Token schemas
 class Token(BaseModel):
@@ -35,6 +35,22 @@ class TokenData(BaseModel):
 # Application schemas
 class ApplicationCreate(BaseModel):
     features: Dict[str, Any] = Field(..., description="Application features as key-value pairs")
+    tenure_months: int = Field(settings.DEFAULT_TENURE_MONTHS, description="Requested repayment period in months")
+
+    @field_validator("features")
+    @classmethod
+    def loan_amount_required(cls, v):
+        amount = v.get("AMT_CREDIT")
+        if isinstance(amount, bool) or not isinstance(amount, (int, float)) or amount <= 0:
+            raise ValueError("features.AMT_CREDIT (requested loan amount) must be a positive number")
+        return v
+
+    @field_validator("tenure_months")
+    @classmethod
+    def tenure_allowed(cls, v):
+        if v not in settings.TENURE_OPTIONS:
+            raise ValueError(f"tenure_months must be one of {settings.TENURE_OPTIONS}")
+        return v
 
 class ApplicationResponse(BaseModel):
     id: int
@@ -43,8 +59,7 @@ class ApplicationResponse(BaseModel):
     created_at: datetime
     updated_at: datetime
     
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 # Decision schemas
 class DecisionResponse(BaseModel):
@@ -56,8 +71,7 @@ class DecisionResponse(BaseModel):
     reject_threshold: float
     created_at: datetime
     
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 # Explanation schemas
 class ShapValue(BaseModel):
@@ -91,8 +105,7 @@ class ExplanationResponse(BaseModel):
     lime_explanation: List[LimeFeature]
     counterfactuals: Optional[List[Counterfactual]] = None
     
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 # Loan terms schemas
 class LoanTermsResponse(BaseModel):
@@ -102,20 +115,47 @@ class LoanTermsResponse(BaseModel):
     monthly_emi: float
     total_payable: float
     
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
+
+# Documents
+class DocumentResponse(BaseModel):
+    id: int
+    application_id: int
+    doc_type: str
+    original_name: str
+    content_type: str
+    size_bytes: int
+    uploaded_at: datetime
+
+    model_config = ConfigDict(from_attributes=True)
+
+class DocumentRequest(BaseModel):
+    message: Optional[str]
+    requested_at: datetime
+
+class DocumentsOverview(BaseModel):
+    requests: List[DocumentRequest]
+    documents: List[DocumentResponse]
 
 # Full application detail
 class ApplicationDetail(ApplicationResponse):
     features: Dict[str, Any]
+    tenure_months: int = settings.DEFAULT_TENURE_MONTHS
     decision: Optional[DecisionResponse] = None
     explanation: Optional[ExplanationResponse] = None
     loan_terms: Optional[LoanTermsResponse] = None
+    documents: List[DocumentResponse] = []
+    document_requests: List[DocumentRequest] = []
 
 # Officer schemas
 class OfficerAction(BaseModel):
     action: str = Field(..., description="approve, reject, request_documents")
     justification: Optional[str] = None
+
+class OfficerActionResponse(BaseModel):
+    message: str
+    application: ApplicationResponse
+    loan_terms: Optional[LoanTermsResponse] = None
 
 class AuditLogResponse(BaseModel):
     id: int
@@ -127,8 +167,7 @@ class AuditLogResponse(BaseModel):
     new_status: Optional[str]
     timestamp: datetime
     
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 # Fairness schemas
 class FairnessMetricsResponse(BaseModel):
@@ -137,10 +176,9 @@ class FairnessMetricsResponse(BaseModel):
     has_alert: bool
     alert_message: Optional[str]
     metrics_detail: Dict[str, Any]
-    calculated_at: datetime
+    calculated_at: Optional[datetime] = None
     
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 # Analytics schemas
 class ApprovalRateStats(BaseModel):

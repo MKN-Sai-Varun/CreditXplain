@@ -2,9 +2,11 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 from typing import List
 from backend.database import get_db
-from backend.models import User, Application, ApplicationStatus, AuditLog
-from backend.schemas import ApplicationDetail, OfficerAction, AuditLogResponse, ApprovalRateStats
+from backend.models import User, Application, ApplicationStatus, AuditLog, DecisionType
+from backend.schemas import ApplicationDetail, OfficerAction, OfficerActionResponse, AuditLogResponse, ApprovalRateStats
 from backend.auth import get_current_officer
+from backend.serializers import application_detail
+from backend.services.loan_calculator import loan_terms_for
 
 router = APIRouter()
 
@@ -18,57 +20,84 @@ def get_review_queue(
         Application.status == ApplicationStatus.UNDER_REVIEW
     ).order_by(Application.created_at.asc()).all()
     
-    # TODO: Format with decision and explanation data
-    return applications
+    return [application_detail(a) for a in applications]
 
-@router.post("/{application_id}/action")
+@router.post("/{application_id}/action", response_model=OfficerActionResponse)
 def officer_action(
     application_id: int,
     action_data: OfficerAction,
     current_officer: User = Depends(get_current_officer),
     db: Session = Depends(get_db)
 ):
-    """Perform officer action on an application (approve/reject/request documents)"""
+    """
+    Officer action on an application: approve, reject or request_documents.
+    Going against the model (approving a Review/Reject case, rejecting an
+    Approve case) and requesting documents both need a written justification.
+    """
     application = db.query(Application).filter(
         Application.id == application_id
     ).first()
-    
+
     if not application:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="Application not found"
         )
-    
-    previous_status = application.status
-    
-    # Update status based on action
-    if action_data.action == "approve":
-        application.status = ApplicationStatus.APPROVED
-    elif action_data.action == "reject":
-        application.status = ApplicationStatus.REJECTED
-    elif action_data.action == "request_documents":
-        application.status = ApplicationStatus.UNDER_REVIEW
-    else:
+
+    action = action_data.action
+    if action not in ("approve", "reject", "request_documents"):
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="Invalid action"
         )
-    
-    # Create audit log
-    audit_log = AuditLog(
+
+    decision = application.decision
+    if action in ("approve", "reject") and decision is None:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Application has not been scored yet"
+        )
+
+    justification = (action_data.justification or "").strip()
+    overrides_model = decision is not None and (
+        (action == "approve" and decision.decision != DecisionType.APPROVE)
+        or (action == "reject" and decision.decision == DecisionType.APPROVE)
+    )
+    if (overrides_model or action == "request_documents") and not justification:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="A justification is required for this action"
+        )
+
+    previous_status = application.status
+    if action == "approve":
+        application.status = ApplicationStatus.APPROVED
+        if decision.loan_terms is None:
+            try:
+                db.add(loan_terms_for(application, decision))
+            except ValueError as e:
+                raise HTTPException(status_code=status.HTTP_422_UNPROCESSABLE_ENTITY, detail=str(e))
+    elif action == "reject":
+        application.status = ApplicationStatus.REJECTED
+    else:
+        application.status = ApplicationStatus.UNDER_REVIEW
+
+    db.add(AuditLog(
         application_id=application.id,
         officer_id=current_officer.id,
-        action=action_data.action,
-        justification=action_data.justification,
+        action=action,
+        justification=justification or None,
         previous_status=previous_status.value,
         new_status=application.status.value
-    )
-    
-    db.add(audit_log)
+    ))
     db.commit()
     db.refresh(application)
-    
-    return {"message": "Action completed successfully", "application": application}
+
+    return {
+        "message": "Action completed successfully",
+        "application": application,
+        "loan_terms": application.decision.loan_terms if application.decision else None,
+    }
 
 @router.get("/analytics/approval-rates", response_model=ApprovalRateStats)
 def get_approval_rates(
@@ -104,6 +133,11 @@ def get_application_audit_log(
     db: Session = Depends(get_db)
 ):
     """Get audit log for a specific application"""
+    if not db.query(Application).filter(Application.id == application_id).first():
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Application not found"
+        )
     audit_logs = db.query(AuditLog).filter(
         AuditLog.application_id == application_id
     ).order_by(AuditLog.timestamp.desc()).all()

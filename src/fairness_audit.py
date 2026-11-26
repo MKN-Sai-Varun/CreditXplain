@@ -95,7 +95,7 @@ def compute_fairness_metrics(df, sensitive_feature):
     eo_diff = compute_equalized_odds(df, sensitive_feature)
     
     # Group-level metrics
-    groups = df.groupby(sensitive_feature)
+    groups = df.groupby(sensitive_feature, observed=False)
     
     group_metrics = []
     for group_name, group_df in groups:

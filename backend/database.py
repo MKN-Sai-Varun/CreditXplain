@@ -1,4 +1,4 @@
-from sqlalchemy import create_engine
+from sqlalchemy import create_engine, inspect, text
 from sqlalchemy.orm import sessionmaker, declarative_base
 from backend.config import settings
 
@@ -19,6 +19,26 @@ def get_db():
     finally:
         db.close()
 
-def init_db():
+# Columns added after the first release. create_all() only creates missing
+# tables, so older databases get these columns added here.
+_ADDED_COLUMNS = {
+    "applications": {"tenure_months": "INTEGER NOT NULL DEFAULT 12"},
+}
+
+
+def upgrade_schema(bind):
+    insp = inspect(bind)
+    with bind.begin() as conn:
+        for table, cols in _ADDED_COLUMNS.items():
+            if not insp.has_table(table):
+                continue
+            have = {c["name"] for c in insp.get_columns(table)}
+            for name, ddl in cols.items():
+                if name not in have:
+                    conn.execute(text(f"ALTER TABLE {table} ADD COLUMN {name} {ddl}"))
+
+
+def init_db(bind=engine):
     """Initialize database tables"""
-    Base.metadata.create_all(bind=engine)
+    Base.metadata.create_all(bind=bind)
+    upgrade_schema(bind)
