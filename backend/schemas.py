@@ -32,10 +32,44 @@ class Token(BaseModel):
 class TokenData(BaseModel):
     email: Optional[str] = None
 
+# Recourse preferences
+class RecoursePreferences(BaseModel):
+    locked_levers: List[str] = Field([], description="Levers the applicant cannot use: credit, income, tenure, wait")
+    max_loan_reduction: float = Field(settings.MAX_LOAN_REDUCTION, description="Largest share the loan may shrink by")
+    max_wait_months: int = Field(max(settings.WAIT_OPTIONS), description="Longest acceptable wait before re-applying")
+
+    @field_validator("locked_levers")
+    @classmethod
+    def known_levers(cls, v):
+        unknown = set(v) - set(settings.RECOURSE_LEVERS)
+        if unknown:
+            raise ValueError(f"unknown levers {sorted(unknown)}; choose from {settings.RECOURSE_LEVERS}")
+        return sorted(set(v))
+
+    @field_validator("max_loan_reduction")
+    @classmethod
+    def reduction_range(cls, v):
+        if not 0 <= v <= settings.MAX_LOAN_REDUCTION:
+            raise ValueError(f"max_loan_reduction must be between 0 and {settings.MAX_LOAN_REDUCTION}")
+        return v
+
+    @field_validator("max_wait_months")
+    @classmethod
+    def wait_option(cls, v):
+        if v not in settings.WAIT_OPTIONS:
+            raise ValueError(f"max_wait_months must be one of {settings.WAIT_OPTIONS}")
+        return v
+
+    def as_kwargs(self):
+        return {"locked": tuple(self.locked_levers), "max_loan_reduction": self.max_loan_reduction,
+                "max_wait_months": self.max_wait_months}
+
+
 # Application schemas
 class ApplicationCreate(BaseModel):
     features: Dict[str, Any] = Field(..., description="Application features as key-value pairs")
     tenure_months: int = Field(settings.DEFAULT_TENURE_MONTHS, description="Requested repayment period in months")
+    recourse_preferences: Optional[RecoursePreferences] = None
 
     @field_validator("features")
     @classmethod
@@ -88,6 +122,7 @@ class Counterfactual(BaseModel):
     levers: List[str] = []
     changes: List[Dict[str, Any]]
     num_changes: int
+    wait_months: int = 0
     original_probability: Optional[float] = None
     new_probability: float
     new_decision: str
@@ -141,6 +176,7 @@ class DocumentsOverview(BaseModel):
 class ApplicationDetail(ApplicationResponse):
     features: Dict[str, Any]
     tenure_months: int = settings.DEFAULT_TENURE_MONTHS
+    recourse_preferences: Optional[RecoursePreferences] = None
     decision: Optional[DecisionResponse] = None
     explanation: Optional[ExplanationResponse] = None
     loan_terms: Optional[LoanTermsResponse] = None

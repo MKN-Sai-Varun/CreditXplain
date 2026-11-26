@@ -49,6 +49,11 @@ class Settings(BaseSettings):
     TENURE_OPTIONS: list = [12, 24, 36, 48, 60]
     DEFAULT_TENURE_MONTHS: int = 12
 
+    # Recourse preferences an applicant can set
+    RECOURSE_LEVERS: list = ["credit", "income", "tenure", "wait"]
+    WAIT_OPTIONS: list = [0, 3, 6, 12]
+    MAX_LOAN_REDUCTION: float = 0.5
+
     # Document uploads
     MAX_UPLOAD_BYTES: int = 5 * 1024 * 1024
     ALLOWED_UPLOAD_TYPES: dict = {

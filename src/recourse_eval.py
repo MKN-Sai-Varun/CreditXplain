@@ -1,9 +1,10 @@
 """
 Evaluates recourse on held-out applicants who are not approved.
 
-Methods (all limited to the same three levers and the same bounds):
+Methods (all but proposed_with_wait limited to the same three loan levers and bounds):
   previous  - the pre-4.7 engine: grid only, no margin, no plausibility check
-  proposed  - src/recourse.py defaults: grid + refinement, margin, plausibility
+  proposed  - src/recourse.py with margin, plausibility and refinement, loan levers only
+  proposed_with_wait - proposed plus the waiting lever (3, 6 or 12 months)
   random    - random search over the same box with a similar evaluation budget,
               same margin and plausibility rules
   dice      - DiCE (random method) on the same levers, scored through the
@@ -45,7 +46,9 @@ warnings.filterwarnings("ignore")
 
 RANDOM_BUDGET = 300
 DICE_BACKGROUND = 200
-METHODS = ["previous", "proposed", "ablation_no_margin", "ablation_no_plausibility", "random", "dice"]
+METHODS = ["previous", "proposed", "proposed_with_wait", "ablation_no_margin", "ablation_no_plausibility",
+           "random", "dice"]
+LOAN_ONLY = ("wait",)
 PER_APPLICANT = Path("reports/recourse_evaluation_per_applicant.csv")
 SUMMARY = Path("reports/recourse_evaluation.json")
 LO = np.array([min(CREDIT_SCALES), 1.0, min(INSTALMENT_SCALES)])
@@ -71,6 +74,7 @@ def summarise_option(sc, opt, plaus, base_band):
         "robust": margin >= DEFAULT_MARGIN,
         "margin": margin,
         "plausible": bool(plaus.distance(prof)[0] <= plaus.threshold),
+        "wait_months": int(opt.get("wait_months", 0)),
     }
 
 
@@ -82,7 +86,7 @@ def from_engine(sc, raw, res):
     for ch in best["changes"]:
         row[ch["feature"]] = ch["recommended"]
     return {"raw": raw, "changes": best["changes"], "row": row,
-            "cost": best["cost"], "levers": best["levers"]}
+            "cost": best["cost"], "levers": best["levers"], "wait_months": best.get("wait_months", 0)}
 
 
 def changes_for(base, s):
@@ -220,6 +224,9 @@ def aggregate(df):
         "mean_cost": round(float(f["cost"].mean()), 4) if len(f) else None,
         "median_cost": round(float(f["cost"].median()), 4) if len(f) else None,
         "mean_levers": round(float(f["levers"].mean()), 3) if len(f) else None,
+        **({"uses_wait_share": round(float((f["wait_months"] > 0).mean()), 4),
+            "mean_wait_months": round(float(f["wait_months"].mean()), 2)}
+           if len(f) and "wait_months" in f and f["wait_months"].fillna(0).gt(0).any() else {}),
         "plausible_share": round(float(f["plausible"].mean()), 4) if len(f) else None,
         "robust_share": round(float(f["robust"].mean()), 4) if len(f) else None,
         "latency_ms_mean": round(float(df["latency_ms"].mean()), 1),
@@ -239,20 +246,20 @@ def summarise(df, plaus):
     for (tier, method), g in df.groupby(["tier", "method"]):
         summary["methods"].setdefault(tier, {})[method] = aggregate(g)
 
-    prop = df[df["method"] == "proposed"]
     burden = {}
-    for tier, g in prop.groupby("tier"):
-        burden[tier] = {}
-        for attr in ("age_band", "has_children"):
-            per = {k: aggregate(v) for k, v in g.groupby(attr)}
-            cov = [v["coverage"] for v in per.values()]
-            cost = [v["mean_cost"] for v in per.values() if v["mean_cost"] is not None]
-            burden[tier][attr] = {
-                "groups": {k: {"applicants": v["applicants"], "coverage": v["coverage"],
-                               "mean_cost": v["mean_cost"]} for k, v in per.items()},
-                "coverage_gap": round(max(cov) - min(cov), 4),
-                "cost_gap": round(max(cost) - min(cost), 4) if cost else None,
-            }
+    for method in ("proposed", "proposed_with_wait"):
+        for tier, g in df[df["method"] == method].groupby("tier"):
+            out = burden.setdefault(method, {}).setdefault(tier, {})
+            for attr in ("age_band", "has_children"):
+                per = {k: aggregate(v) for k, v in g.groupby(attr)}
+                cov = [v["coverage"] for v in per.values()]
+                cost = [v["mean_cost"] for v in per.values() if v["mean_cost"] is not None]
+                out[attr] = {
+                    "groups": {k: {"applicants": v["applicants"], "coverage": v["coverage"],
+                                   "mean_cost": v["mean_cost"]} for k, v in per.items()},
+                    "coverage_gap": round(max(cov) - min(cov), 4),
+                    "cost_gap": round(max(cost) - min(cost), 4) if cost else None,
+                }
     summary["recourse_burden_by_group"] = burden
     return summary
 
@@ -316,11 +323,14 @@ def main():
                         "has_children": "yes" if raw.get("CNT_CHILDREN", 0) > 0 else "no"}
 
                 runs = {
-                    "previous": lambda: from_engine(sc, raw, find_recourse(sc, raw, margin=0.0,
-                                                                           plausibility=None, refine=False)),
-                    "proposed": lambda: from_engine(sc, raw, find_recourse(sc, raw)),
-                    "ablation_no_margin": lambda: from_engine(sc, raw, find_recourse(sc, raw, margin=0.0)),
-                    "ablation_no_plausibility": lambda: from_engine(sc, raw, find_recourse(sc, raw, plausibility=None)),
+                    "previous": lambda: from_engine(sc, raw, find_recourse(sc, raw, margin=0.0, plausibility=None,
+                                                                           refine=False, locked=LOAN_ONLY)),
+                    "proposed": lambda: from_engine(sc, raw, find_recourse(sc, raw, locked=LOAN_ONLY)),
+                    "proposed_with_wait": lambda: from_engine(sc, raw, find_recourse(sc, raw)),
+                    "ablation_no_margin": lambda: from_engine(sc, raw, find_recourse(sc, raw, margin=0.0,
+                                                                                     locked=LOAN_ONLY)),
+                    "ablation_no_plausibility": lambda: from_engine(sc, raw, find_recourse(sc, raw, plausibility=None,
+                                                                                           locked=LOAN_ONLY)),
                     "random": lambda: random_search(sc, raw, plaus, search_rng),
                     "dice": lambda: dice_search(sc, raw, plaus, base_band, background),
                 }

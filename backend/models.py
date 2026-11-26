@@ -45,6 +45,9 @@ class Application(Base):
     # Requested repayment period
     tenure_months = Column(Integer, default=12, nullable=False)
 
+    # What the applicant can change if not approved (see RecoursePreferences)
+    recourse_preferences = Column(JSON, nullable=True)
+
     # Status
     status = Column(Enum(ApplicationStatus), default=ApplicationStatus.SUBMITTED, nullable=False)
     

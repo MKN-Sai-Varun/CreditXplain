@@ -20,6 +20,8 @@ def create_application(
         user_id=current_user.id,
         features_json=application_data.features,
         tenure_months=application_data.tenure_months,
+        recourse_preferences=(application_data.recourse_preferences.model_dump()
+                              if application_data.recourse_preferences else None),
         status=ApplicationStatus.SUBMITTED
     )
     

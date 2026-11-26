@@ -1908,6 +1908,63 @@ DiCE produced **67 suggestions outside the lever space** (37 in Reject → Revie
 
 ---
 
+## Phase 4.7c: Richer Recourse (Nov 26, 2026)
+
+### Overview
+Broadens recourse beyond loan structure and lets applicants say what they can and cannot change. Decisions: TECHNICAL_DECISIONS D-56 to D-58.
+
+### 4.7c.1: Waiting Lever (`src/recourse.py`)
+- New lever `wait` (3, 6 or 12 months) with `_pass_time`. Job tenure, ID, registration, phone and car record ages grow; credit enquiries age out of their windows; the applicant's age is held fixed (D-56).
+- Search space: 8 × 5 × 4 × 4 = 640 candidates. Refinement pulls back only the loan levers; the waiting time stays as found.
+- Waiting options list every changed field with a `lever` tag, so re-scoring matches. Options carry `wait_months`.
+- A debt-paydown lever was considered and rejected: the bureau columns are averages and counts over all past credits, so repayment would not change them.
+
+### 4.7c.2: Applicant Preferences
+- `find_recourse(..., locked, max_loan_reduction, max_wait_months)`, validated in `_search_space`.
+- API (`backend/schemas.py`, `backend/models.py`, `backend/database.py`, `backend/routers/applications.py`, `backend/routers/predictions.py`, `backend/services/counterfactual_service.py`):
+  - `recourse_preferences` stored with an application and used at scoring;
+  - `POST /api/predictions/{id}/recourse` recomputes options for new preferences without storing anything;
+  - `Counterfactual.wait_months` added.
+- Settings: `RECOURSE_LEVERS`, `WAIT_OPTIONS`, `MAX_LOAN_REDUCTION` (`backend/config.py`).
+
+### 4.7c.3: Evaluation (`src/recourse_eval.py`)
+- `proposed` and the ablations are now explicitly loan-levers-only, so they stay comparable with random search and DiCE. New method `proposed_with_wait`.
+- Summaries report `uses_wait_share` and `mean_wait_months`; recourse burden by group is reported for both proposed variants.
+- **Results (full run, Nov 26, 2026; 1 min 56 s at about one core).** All other methods reproduce the Phase 4.7b numbers exactly.
+
+| Tier | Method | Usable coverage | Mean cost | Levers | Best option waits | ms |
+|---|---|---|---|---|---|---|
+| Reject → Review | proposed (loan levers) | 59.0% | 0.193 | 1.57 | — | 23.4 |
+| | **proposed_with_wait** | **67.0%** | 0.255 | 1.77 | 14.4% | 38.2 |
+| | random search | 61.3% | 0.286 | 3.00 | — | 18.6 |
+| Review → Approve | proposed (loan levers) | 34.0% | 0.227 | 1.65 | — | 19.7 |
+| | **proposed_with_wait** | **43.7%** | 0.309 | 2.01 | 27.5% | 34.3 |
+| | random search | 37.0% | 0.318 | 3.00 | — | 18.4 |
+
+- **Reading:**
+  - Waiting gives a usable option to 24 more rejected applicants (+8.0 points) and 29 more Review applicants (+9.7 points). With it, the proposed engine reaches more applicants than random search in both tiers.
+  - Among the newly covered applicants, the wait needed is 3 months for 4, 6 months for 4 and 12 months for 16 (Reject → Review), and 3 months for 11, 6 months for 5 and 12 months for 13 (Review → Approve).
+  - Mean cost rises because waiting options carry their time cost (0.04 per month).
+- **Recourse burden with waiting:**
+  - Age-band coverage gap, Reject → Review: falls from 0.28 to 0.16. The 55+ group rises from 45.8% to 70.8%.
+  - Age-band coverage gap, Review → Approve: rises from 0.12 to 0.19. Under-25 stays at 30.8% (n=13) while other groups gain.
+  - Children: coverage gaps of 0.015 (Reject → Review) and 0.047 (Review → Approve).
+- **Bug found by the tests and fixed:** `_pass_time` returned the input record itself when there was no wait, so candidate rows changed the shared base record and compounded. It now always returns a copy, and `test_no_wait_changes_nothing` checks this. Full test run after the fix: **201 passed**.
+
+### 4.7c.4: Doc Correction
+- PROJECT_STATE and MASTER_PLAN wrongly stated that age was excluded from the model. Corrected: only `DAYS_BIRTH` is excluded; `AGE_YEARS` (with square and cube) is used and audited (KNOWN_ISSUES #71).
+
+### 4.7c.5: Tests (19 new)
+| File | Tests |
+|---|---|
+| `tests/test_recourse_time.py` (new) | 11: no-wait identity, DAYS fields grow but age does not, enquiries move to the year window, all gone after 12 months, no tenure gain when not employed, no car or missing values, input not modified, search space respects preferences, 3 bad-preference cases |
+| `tests/test_recourse.py` | 4: waiting option verified and spelled out (age untouched), locked levers unused, loan-reduction and wait caps, unknown lever rejected |
+| `backend/tests/test_recourse_api.py` | 4: preferences stored and validated, stored preferences shape recourse, recourse endpoint (unscored, preferences, validation, access), approved refused |
+
+Full run (Nov 26, 2026): **201 passed** (182 + 19).
+
+---
+
 ## Change Log (updated)
 
 | Date | Phase | Event | Files Changed |
@@ -1921,7 +1978,8 @@ DiCE produced **67 suggestions outside the lever space** (37 in Reject → Revie
 | 2026-11-25 | 4.7 | Explanation and recourse upgrade | Local LIME, recourse margin/plausibility/refinement/two tiers/drivers, two evaluation scripts, 18 new tests |
 | 2026-11-26 | 4.8 | Backend completion | Documents router and model, officer queue/actions, tenure and loan amount, fairness fixes, warning cleanups, 40 new tests |
 | 2026-11-26 | 4.7b | Faster DiCE baseline | `src/recourse_eval.py`: binary sparsity search, cached wrapper, thread limit, incremental saving, `--methods`; wrapper ratio fix |
+| 2026-11-26 | 4.7c | Richer recourse | Waiting lever (age held fixed), applicant preferences and recourse endpoint, proposed_with_wait evaluation, age doc correction, 19 new tests |
 
 ---
 
-**Last Updated:** Nov 26, 2026 (Phase 4.8 complete)
+**Last Updated:** Nov 26, 2026 (Phase 4.7c complete)

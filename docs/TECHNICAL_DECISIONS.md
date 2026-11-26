@@ -1,6 +1,6 @@
 # TECHNICAL_DECISIONS — CreditXplain
 
-**Last Updated:** Phase 4.8 backend completion (Nov 26, 2026)
+**Last Updated:** Phase 4.7c richer recourse (Nov 26, 2026)
 
 This document records all technical and architectural decisions made during the project, with rationale.
 
@@ -1484,6 +1484,44 @@ The old set-up had a higher R² because it fitted one global linear model, which
 
 ---
 
+## 20. Richer Recourse (Phase 4.7c)
+
+### D-56: Waiting as a Recourse Lever, With Age Held Fixed
+**Decision:** A fourth lever, `wait`: re-apply after 3, 6 or 12 months, staying in the same job and making no new credit applications meanwhile (`src/recourse._pass_time`).
+
+**What changes while waiting:**
+- `DAYS_EMPLOYED`, `DAYS_REGISTRATION`, `DAYS_ID_PUBLISH` and `DAYS_LAST_PHONE_CHANGE` grow by the waiting time. Job tenure does not grow for applicants who are not in employment (`IS_EMPLOYED_ANOMALY = 1`).
+- `OWN_CAR_AGE` grows for car owners.
+- Credit-bureau enquiries age out of their exclusive windows. After 3 or 6 months every recent enquiry (hour to quarter) sits in the year window; after 12 months there are none within a year.
+
+**What does not change:** the applicant's age (`DAYS_BIRTH`, `AGE_YEARS`) is held fixed, although the model uses age. No option may rely on the applicant getting older, which would be unfair advice and would not reflect anything the applicant did.
+
+**Cost:** 0.04 per month, so 12 months costs about as much as halving the loan. Each option reports `wait_months` separately.
+
+**Spelled out:** a waiting option lists every changed field, with original and new values and a `lever` tag, so re-scoring gives the same result wherever it is done. DAYS fields also carry positive display values.
+
+**Rejected lever, paying down existing loans:** `BUREAU_AVG_CREDIT_AMT` and `BUREAU_CREDIT_COUNT` are averages and counts over all past credits, closed ones included. Repaying a loan would not change them, so this lever cannot be modelled honestly with this data.
+
+---
+
+### D-57: Applicant Preferences for Recourse
+**Decision:** `find_recourse` accepts `locked` levers (credit, income, tenure, wait), `max_loan_reduction` (0–0.5) and `max_wait_months` (0, 3, 6, 12).
+
+**API:**
+- Applicants can store `recourse_preferences` with an application (new `applications.recourse_preferences` JSON column, added to old databases by `upgrade_schema`). Stored preferences are used when the application is scored.
+- `POST /api/predictions/{id}/recourse` returns options for new preferences, for a scored, not-approved application, without storing anything. Access: the owner or an officer.
+
+**Why:** Advice to add income is useless to someone who cannot, and a 50% loan cut may defeat the purpose of the loan.
+
+---
+
+### D-58: Evaluation Keeps the Comparison Like-for-Like
+**Decision:** In `src/recourse_eval.py`, `proposed` and the ablations use the three loan levers only (`locked=("wait",)`), as random search and DiCE do. A new method, `proposed_with_wait`, measures what waiting adds. Recourse burden by group is reported for both.
+
+**Date:** Nov 26, 2026
+
+---
+
 ## Change Log (Updated)
 
 | Date | Phase | Changes |
@@ -1495,6 +1533,7 @@ The old set-up had a higher R² because it fitted one global linear model, which
 | Nov 25, 2026 | Phase 4.6 | D-38 to D-40 (recorded from commits b68c3f7, ae6ad19, fef60f8); D-41 working agreement and phase order; D-42 proposed evaluation standard |
 | Nov 25, 2026 | Phase 4.7 | D-42 confirmed; D-43 local LIME; D-44 to D-48 recourse upgrade (margin, plausibility, refinement, two tiers, drivers); D-49 recourse evaluation protocol |
 | Nov 26, 2026 | Phase 4.8 | D-50 document storage; D-51 override justification; D-52 applicant-chosen tenure and schema upgrade; D-53 loan amount required; D-54 loan terms on officer approval; D-55 fairness stats format. D-29 and D-30 marked superseded |
+| Nov 26, 2026 | Phase 4.7c | D-56 waiting lever with age held fixed (debt-paydown lever rejected); D-57 applicant preferences and recourse endpoint; D-58 like-for-like evaluation |
 
 ---
 

@@ -165,3 +165,49 @@ def test_plausibility_on_toy_reference():
     p = Plausibility(ref, ref.mean(axis=0), ref.std(axis=0), threshold=0.5)
     near, far = p.distance(np.array([[0.0, 0, 0, 0], [8.0, 8, 8, 8]]))
     assert near <= p.threshold < far
+
+
+# --- Phase 4.7c: waiting lever and applicant preferences ---
+
+@pytest.fixture(scope="module")
+def wait_option(scorer, sample):
+    """First rejected or Review applicant whose options include waiting."""
+    base, dec = sample
+    for i in np.where(dec != "approve")[0][:80]:
+        raw = base.iloc[i].to_dict()
+        for cf in find_recourse(scorer, raw):
+            if cf["wait_months"] > 0:
+                return raw, cf
+    pytest.skip("no waiting option in the sample")
+
+
+def test_waiting_option_is_verified_and_spelled_out(scorer, wait_option):
+    raw, cf = wait_option
+    feats = {c["feature"] for c in cf["changes"]}
+    assert "WAIT_MONTHS" in feats
+    assert "wait" in cf["levers"]
+    assert cf["wait_months"] in (3, 6, 12)
+    assert "DAYS_BIRTH" not in feats and "AGE_YEARS" not in feats   # age held fixed
+    out = scorer.score(apply_changes(raw, cf["changes"]))
+    assert out["probability"] == pytest.approx(cf["new_probability"], abs=1e-6)
+
+
+def test_locked_levers_are_not_used(scorer, solved):
+    for raw, _ in solved[:8]:
+        for cf in find_recourse(scorer, raw, locked=("income", "wait")):
+            assert "income" not in cf["levers"] and "wait" not in cf["levers"]
+        assert find_recourse(scorer, raw, locked=("credit", "income", "tenure", "wait")) == []
+
+
+def test_loan_reduction_and_wait_caps(scorer, solved):
+    for raw, _ in solved[:8]:
+        for cf in find_recourse(scorer, raw, max_loan_reduction=0.1, max_wait_months=3):
+            assert cf["wait_months"] <= 3
+            ch = {c["feature"]: c for c in cf["changes"]}
+            if "AMT_CREDIT" in ch:
+                assert ch["AMT_CREDIT"]["recommended"] / ch["AMT_CREDIT"]["original"] >= 0.9 - 1e-9
+
+
+def test_unknown_lever_rejected(scorer, solved):
+    with pytest.raises(ValueError):
+        find_recourse(scorer, solved[0][0], locked=("savings",))

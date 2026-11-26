@@ -1,15 +1,21 @@
+from typing import List, Optional
+
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 from backend.database import get_db
 from backend.models import User, Application, Decision, Explanation, ApplicationStatus, DecisionType
 from backend.auth import get_current_user
-from backend.schemas import DecisionResponse
+from backend.schemas import Counterfactual, DecisionResponse, RecoursePreferences
 from backend.services.prediction_service import get_prediction_service
 from backend.services.explainability_service import get_explainability_service
 from backend.services.counterfactual_service import get_counterfactual_service
 from backend.services.loan_calculator import loan_terms_for
 
 router = APIRouter()
+
+
+def _preferences(stored: Optional[dict]) -> Optional[dict]:
+    return RecoursePreferences(**stored).as_kwargs() if stored else None
 
 @router.post("/{application_id}", response_model=DecisionResponse)
 def predict_application(
@@ -91,7 +97,8 @@ def predict_application(
         # Step 5: Recourse for anyone not approved (Reject -> Review, Review -> Approve)
         counterfactuals = None
         if decision_str in ("REJECT", "REVIEW"):
-            counterfactuals = counterfactual_service.generate_counterfactuals(application.features_json)
+            counterfactuals = counterfactual_service.generate_counterfactuals(
+                application.features_json, preferences=_preferences(application.recourse_preferences))
         
         # Step 6: Create explanation record
         explanation = Explanation(
@@ -126,3 +133,28 @@ def predict_application(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"Prediction failed: {str(e)}"
         )
+
+
+@router.post("/{application_id}/recourse", response_model=List[Counterfactual])
+def recourse_with_preferences(
+    application_id: int,
+    preferences: RecoursePreferences,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """
+    Recourse options for a scored, not-approved application under different
+    preferences (for example, income locked). Nothing is stored.
+    """
+    application = db.query(Application).filter(Application.id == application_id).first()
+    if not application:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Application not found")
+    if current_user.role == "applicant" and application.user_id != current_user.id:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Not authorized for this application")
+    if application.decision is None:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Application has not been scored yet")
+    if application.decision.decision == DecisionType.APPROVE:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Approved applications need no recourse")
+
+    return get_counterfactual_service().generate_counterfactuals(
+        application.features_json, preferences=preferences.as_kwargs())

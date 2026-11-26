@@ -1,6 +1,6 @@
 # KNOWN_ISSUES — CreditXplain
 
-**Last Updated:** Nov 26, 2026 (Phase 4.8: backend completion)
+**Last Updated:** Nov 26, 2026 (Phase 4.7c: richer recourse)
 
 This document tracks bugs, gaps, technical debt, and unresolved questions. Items are numbered for reference.
 
@@ -1054,7 +1054,7 @@ Found on Nov 25, 2026 by running every existing test (`tests/`: 88 passed; `back
 **Status:** Open (trade-off, by design)  
 **Phase:** 4.7  
 **Description:** The margin and plausibility rules lower the share of applicants with any option. Reject → Review falls from 87.7% to 59.0%, but the share with a *usable* option rises from 21.3% to 59.0%. The margin causes most of the drop (D-44).  
-**Options:** A smaller margin (e.g. 0.05) or a finer grid could recover some coverage. Random search with the same rules reaches 61.3% (Reject → Review) and 37.0% (Review → Approve), 2–3 points more than the proposed engine, but always changes all three levers and asks for about 30% more change. Adding random candidates to the grid could close the gap.  
+**Options:** A smaller margin (e.g. 0.05) or a finer grid could recover some coverage. Random search with the same rules reaches 61.3% (Reject → Review) and 37.0% (Review → Approve), 2–3 points more than the proposed engine, but always changes all three levers and asks for about 30% more change. Adding random candidates to the grid could close the gap. With the waiting lever (Phase 4.7c), the proposed engine reaches 67.0% and 43.7%, above random search in both tiers.  
 **Action:** Report the trade-off and ablations in the paper. Revisit the margin if more coverage is needed.
 
 ---
@@ -1063,6 +1063,7 @@ Found on Nov 25, 2026 by running every existing test (`tests/`: 88 passed; `back
 **Status:** Open  
 **Phase:** 4.7  
 **Description:** Recourse coverage differs between age bands by 0.28 (Reject → Review) and 0.12 (Review → Approve, Phase 4.7b sample), but the extreme groups are small (Reject → Review: under-25 n=19, 55+ n=24; Review → Approve: under-25 n=13).  
+**With waiting (Phase 4.7c):** the gap falls to 0.16 (Reject → Review) but rises to 0.19 (Review → Approve), where under-25 (n=13) does not gain.  
 **Action:** Re-run with a larger `--n`, or stratify by age, before reporting group gaps.
 
 ---
@@ -1122,6 +1123,34 @@ Found on Nov 25, 2026 by running every existing test (`tests/`: 88 passed; `back
 
 ---
 
+## Phase 4.7c: Richer Recourse — New Issues
+
+### #71: Docs Said Age Was Excluded From the Model
+**Status:** ✅ Resolved (Phase 4.7c)  
+**Phase:** 4.6 (introduced), 4.7c (corrected)  
+**Description:** PROJECT_STATE and MASTER_PLAN stated that age was excluded along with gender. Only the raw `DAYS_BIRTH` column is excluded; the model uses `AGE_YEARS`, `AGE_SQUARED` and `AGE_CUBED`, as decided in D-3 (keep age and audit it). The age-band disparity (#16) therefore comes partly from age used directly, not only through proxies.  
+**Fix:** Statements corrected in PROJECT_STATE (model table, fairness row, Q1, Q5) and MASTER_PLAN Part D.
+
+---
+
+### #72: Waiting Lever Rests on Stated Assumptions
+**Status:** By design (state in the paper)  
+**Phase:** 4.7c  
+**Description:** The waiting lever (D-56) assumes the applicant keeps the same job and makes no new credit applications.
+- Enquiries already in the year window are kept for 3–6 months, because the data does not say how old they are within the window. This is conservative.
+- External bureau scores (`EXT_SOURCE_*`) are held fixed, although real scores may improve with time.
+- Age is held fixed on purpose.
+
+---
+
+### #73: Time Cost Is a Judgement
+**Status:** Open (sensitivity check)  
+**Phase:** 4.7c  
+**Description:** `TIME_COST_PER_MONTH = 0.04` (12 months ≈ halving the loan) decides how waiting ranks against loan changes. The value is a judgement, not measured.  
+**Action:** Report `wait_months` separately (done). Optionally show rankings for 0.02 and 0.08 in the paper.
+
+---
+
 ## Change Log (Updated)
 
 | Date | Issue | Action |
@@ -1145,6 +1174,9 @@ Found on Nov 25, 2026 by running every existing test (`tests/`: 88 passed; `back
 | Nov 26, 2026 | #67–#70 | Identified: no upload scanning/deletion, live EOD always zero, demographic rejected count, in-place DB upgrade |
 | Nov 26, 2026 | #61 | Resolved: DiCE speed-up, wrapper fixes and full run (Phase 4.7b) |
 | Nov 26, 2026 | #56, #62, #63 | Numbers updated from the Phase 4.7b run |
+| Nov 26, 2026 | #71 | Resolved: wrong 'age excluded' statements corrected |
+| Nov 26, 2026 | #72, #73 | Identified: waiting-lever assumptions, time-cost judgement |
+| Nov 26, 2026 | #62, #63 | Updated with Phase 4.7c results |
 
 ---
 
