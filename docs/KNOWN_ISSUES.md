@@ -1,6 +1,6 @@
 # KNOWN_ISSUES — CreditXplain
 
-**Last Updated:** Nov 26, 2026 (Phase 4.10: officer dashboard)
+**Last Updated:** Nov 26, 2026 (Phase 5.1: reproducibility and CI)
 
 This document tracks bugs, gaps, technical debt, and unresolved questions. Items are numbered for reference.
 
@@ -38,7 +38,7 @@ This document tracks bugs, gaps, technical debt, and unresolved questions. Items
 ---
 
 ### #3: Test AUC Reporting Method Unclear
-**Status:** Open  
+**Status:** ✅ Resolved (Phase 5.1). The reported model is the single fit in `src/final_model.py` (test ROC-AUC 0.7668, model card); the 0.7722 fold-average is an experiment result only  
 **Phase:** 2  
 **Description:** `reports/fe_v2_test_results.csv` reports test AUC 0.7722, but this is a **fold-averaged prediction** score, not a single model fit on 80% then scored on test. The final production model may differ slightly.  
 **Options:**
@@ -64,8 +64,8 @@ This document tracks bugs, gaps, technical debt, and unresolved questions. Items
 
 ---
 
-### #5: PR #3 Review Medium Findings (Open)
-**Status:** Open  
+### #5: PR #3 Review Medium Findings
+**Status:** ✅ Resolved (Phase 5.1). `scale_and_balance.py` is documented as an experiment outside the main pipeline (README); the main path is `scripts/run_pipeline.sh`  
 **Phase:** 2  
 **Source:** Code review on PR #3
 
@@ -84,7 +84,7 @@ This document tracks bugs, gaps, technical debt, and unresolved questions. Items
 ## 🟢 Low Priority (Nice to Have)
 
 ### #6: README Outdated
-**Status:** Open  
+**Status:** ✅ Resolved (Phase 5.1). README rewritten  
 **Phase:** 5  
 **Description:** README references Streamlit (changed to Next.js per Amendment B1). Phase status badge shows "2 of 5" but Phase 2 is incomplete (SHAP/LIME missing). Directory structure lists `api/` and `frontend/` that don't exist yet.  
 **Impact:** First-time users get wrong instructions.  
@@ -94,7 +94,7 @@ This document tracks bugs, gaps, technical debt, and unresolved questions. Items
 ---
 
 ### #7: No CI/CD Pipeline
-**Status:** Open  
+**Status:** ✅ Resolved (Phase 5.1). GitHub Actions: `.github/workflows/ci.yml`  
 **Phase:** 5  
 **Description:** No automated test execution on push/PR (planned for Phase 5 per MASTER_PLAN Part C).  
 **Impact:** Manual test execution required; risk of pushing broken code.  
@@ -188,7 +188,7 @@ This document tracks bugs, gaps, technical debt, and unresolved questions. Items
 ## 📝 Technical Debt
 
 ### #12: Hardcoded Paths
-**Status:** Open  
+**Status:** 🟡 Mitigated (Phase 5.1). Paths stay relative, and `scripts/run_pipeline.sh` always runs from the project root  
 **Phase:** All  
 **Description:** Scripts use hardcoded relative paths (`data/processed/X_train.csv`) instead of config file or command-line args.  
 **Impact:** Cannot easily change data location; breaks if run from wrong directory.  
@@ -1211,6 +1211,23 @@ Found on Nov 25, 2026 by running every existing test (`tests/`: 88 passed; `back
 
 ---
 
+## Phase 5.1: Reproducibility and CI — New Issues
+
+### #81: CI Pins Python 3.9
+**Status:** Open (watch)  
+**Phase:** 5.1  
+**Description:** CI uses Python 3.9 to match the development machine. Python 3.9 reached end of life in October 2025, so GitHub runners may stop offering it.  
+**Action:** If the setup step fails, move the development machine and CI to Python 3.11 together and re-pin `requirements.txt`.
+
+---
+
+### #82: CI Cannot Run the Data-Dependent Tests
+**Status:** By design  
+**Phase:** 5.1  
+**Description:** About half the model tests (final model, inference, LIME, recourse, counterfactuals, fairness, prediction API) need the gitignored model and data, so they skip in CI. They are run locally before each commit. CI covers the backend workflow, PDFs, documents, fairness API, preferences, metric arithmetic and the frontend.
+
+---
+
 ## Change Log (Updated)
 
 | Date | Issue | Action |
@@ -1242,6 +1259,8 @@ Found on Nov 25, 2026 by running every existing test (`tests/`: 88 passed; `back
 | Nov 26, 2026 | #76–#78 | Identified: token in localStorage, waiting details only in PDF, no browser tests |
 | Nov 26, 2026 | #68, #69 | Handled in the officer UI: EOD not shown; not-approved column labelled |
 | Nov 26, 2026 | #79, #80 | Identified: no officer list of all applications, officer accounts by seeding |
+| Nov 26, 2026 | #3, #5, #6, #7 | Resolved in Phase 5.1; #12 mitigated |
+| Nov 26, 2026 | #81, #82 | Identified: CI on Python 3.9, data-dependent tests skip in CI |
 
 ---
 

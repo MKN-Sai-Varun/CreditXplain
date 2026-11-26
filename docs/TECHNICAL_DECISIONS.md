@@ -1,6 +1,6 @@
 # TECHNICAL_DECISIONS — CreditXplain
 
-**Last Updated:** Phase 4.10 officer dashboard (Nov 26, 2026)
+**Last Updated:** Phase 5.1 reproducibility and CI (Nov 26, 2026)
 
 This document records all technical and architectural decisions made during the project, with rationale.
 
@@ -1628,6 +1628,32 @@ The old set-up had a higher R² because it fitted one global linear model, which
 
 ---
 
+## 24. Reproducibility and CI (Phase 5.1)
+
+### D-67: One Pinned Dependency File
+**Decision:** `requirements.txt` at the root lists every Python dependency (pipeline, backend, tests) with exact versions: the set the 212-test suite passes with on Python 3.9. `backend/requirements.txt` includes it (`-r ../requirements.txt`). Streamlit, retired by amendment B1, is removed.  
+**Why:** The two files had drifted apart. The backend list lacked `httpx`, `email-validator` and `imbalanced-learn`, and no versions were pinned.
+
+---
+
+### D-68: One Script Rebuilds Every Artifact
+**Decision:** `scripts/run_pipeline.sh` runs the 10 main-path steps in order, from the raw Kaggle files to every report: data prep, split and baselines, FE v2, final model with ablation, feature defaults, recourse reference, explanations, explanation evaluation, fairness audit, recourse evaluation.
+- `--list` shows the steps; a number resumes from that step.
+- Experiments (CV, CatBoost, blend, threshold strategies, `scale_and_balance.py`) stay outside the main path and are listed in the README.
+
+---
+
+### D-69: CI Without Private Data
+**Decision:** GitHub Actions (`.github/workflows/ci.yml`) runs two jobs on every push and pull request.
+- **Model and API tests:** Python 3.9, pinned requirements, `pytest tests backend/tests -rs`.
+- **Frontend:** Node 22, `npm ci`, lint, build, then `tsc --noEmit`. The build generates the route types the type check needs.
+
+**Data handling:** the trained model and processed data are not in git, so tests that need them skip (module-level guards, and a new `@pytest.mark.needs(...)` marker in `tests/conftest.py`). Locally, with the files present, every test runs.
+
+**Date:** Nov 26, 2026
+
+---
+
 ## Change Log (Updated)
 
 | Date | Phase | Changes |
@@ -1643,6 +1669,7 @@ The old set-up had a higher R² because it fitted one global linear model, which
 | Nov 26, 2026 | Phase 4.4 | D-59 applicant and compliance PDF reports; D-60 no dominated options; D-48 drivers limited to changed features |
 | Nov 26, 2026 | Phase 4.9 | D-61 client-rendered frontend; D-62 token storage; D-63 labels from backend; D-64 application form |
 | Nov 26, 2026 | Phase 4.10 | D-65 officer workflow in the browser; D-66 fairness panel wording |
+| Nov 26, 2026 | Phase 5.1 | D-67 pinned requirements; D-68 pipeline script; D-69 CI without private data |
 
 ---
 

@@ -5,136 +5,177 @@
 B.Tech Final Year Major Project - KMIT, Hyderabad | Academic Year 2026–2027
 Target venue: IEEE Access (or comparable Q1/Q2 peer-reviewed venue)
 
-[![Status](https://img.shields.io/badge/status-in%20development-yellow)]()
-[![Phase](https://img.shields.io/badge/phase-2%20of%205-blue)]()
+[![CI](https://github.com/MKN-Sai-Varun/CreditXplain/actions/workflows/ci.yml/badge.svg?branch=dev-varun)](https://github.com/MKN-Sai-Varun/CreditXplain/actions/workflows/ci.yml)
+[![Phase](https://img.shields.io/badge/phase-5%20of%205-blue)]()
 [![License](https://img.shields.io/badge/license-MIT-green)]()
 
 ---
 
 ## Overview
 
-CreditXplain extends a peer-reviewed explainable credit-scoring baseline -
-Shreya & Pathak (2025), [arXiv:2506.19383](https://arxiv.org/abs/2506.19383) -
-by adding three capabilities the base paper does not provide:
+CreditXplain extends an explainable credit-scoring baseline, Shreya & Pathak (2025),
+[arXiv:2506.19383](https://arxiv.org/abs/2506.19383), with three capabilities the base paper does not provide:
 
-| Capability | Base Paper | CreditXplain |
+| Capability | Base paper | CreditXplain |
 |---|---|---|
-| Risk prediction + SHAP/LIME explainability | ✅ | ✅ Retained as baseline |
-| Actionable recourse for rejected applicants | ❌ | ✅ Counterfactual Recommendation Engine |
-| Fairness/bias audit across subgroups | ❌ | ✅ Explicit subgroup fairness audit |
-| Interactive, live decision-support tool | ❌ Static HTML/JSON/PNG | ✅ Interactive web app + PDF export |
+| Risk prediction + SHAP/LIME explanations | ✅ | ✅ LightGBM, test ROC-AUC 0.767 (base paper 0.720); local LIME checked against SHAP |
+| Actionable recourse for applicants who are not approved | ❌ | ✅ Robust, plausible, two-tier recourse (Reject → Review → Approve), including waiting options |
+| Fairness audit across subgroups | ❌ | ✅ Offline audit plus live monitoring with alerts |
+| Interactive decision-support tool | ❌ static HTML/JSON/PNG | ✅ Applicant portal, officer dashboard, PDF reports |
 
-The system is designed as a three-sided application:
+The application follows a three-band decision router:
+- **Approve** below a low risk cutoff: loan terms are priced at once.
+- **Reject** from a high cutoff: the applicant gets recourse options.
+- **Review** in between: a loan officer decides, with a written justification required to override the model.
 
-1. **Applicant self-service portal** - submit an application, check status live, and receive concrete, actionable recourse if rejected.
-2. **Bank loan officer dashboard** - risk scores, explanations, historical analytics, compliance alerts, PDF report generation.
-3. **Backend decision engine + fairness monitor** - prediction, explainability, counterfactual generation, and bias auditing.
-
-## Repository Structure
+## Architecture
 
 ```
-creditxplain/
-├── data/
-│   ├── home_credit/     # raw Kaggle CSVs (not tracked in git)
-│   ├── processed/       # cleaned/engineered output (not tracked)
-│   └── uploads/         # applicant document uploads (Phase 4)
-├── models/               # saved model artifacts (not tracked)
-├── reports/               # EDA plots, SHAP plots, model comparison results
-├── src/                   # ML pipeline: data prep, model training, explainability, counterfactual engine, fairness audit
-├── api/                   # FastAPI backend serving predictions/explanations/recourse
-├── frontend/              # Next.js app (applicant portal + officer dashboard)
-├── notebooks/             # exploratory analysis
-├── tests/                 # unit tests
-└── requirements.txt
+applicant portal ─┐                                  ┌─ PDF reports (decision, compliance)
+(Next.js)         ├─ FastAPI ─ inference pipeline ───┤
+officer dashboard ┘    │       (FE v2 → LightGBM)    ├─ SHAP + local LIME
+                       │                             ├─ recourse engine (src/recourse.py)
+                    SQLite                           └─ fairness monitor (Fairlearn)
 ```
 
-## Getting Started
+## Repository structure
 
-### 1. Clone the repository
+```
+src/            ML pipeline: data prep, feature engineering, final model, inference,
+                explanations (SHAP, local LIME), recourse engine, fairness audit, evaluations
+backend/        FastAPI app: auth, applications, predictions, recourse, documents,
+                officer workflow, fairness monitoring, PDF reports (see backend/README.md)
+frontend/       Next.js 16 app: applicant portal and officer dashboard (see frontend/README.md)
+tests/          model and pipeline tests
+backend/tests/  API tests
+scripts/        run_pipeline.sh: rebuilds every artifact and report from the raw data
+reports/        results: model comparison, explanations, recourse and fairness evaluations
+docs/           project state, implementation log, technical decisions, known issues, plan
+data/, models/  local only (not in git): raw data, processed data, trained model
+```
+
+## Setup
+
+Requirements: Python 3.9, Node.js 20 or newer.
 
 ```bash
 git clone https://github.com/MKN-Sai-Varun/CreditXplain.git
 cd CreditXplain
+python3 -m pip install -r requirements.txt
+(cd frontend && npm ci)
 ```
 
-### 2. Install Python dependencies
+### Data
 
-```bash
-pip install -r requirements.txt
-```
-
-### 3. Obtain the dataset
-
-This project uses the [Home Credit Default Risk](https://www.kaggle.com/c/home-credit-default-risk) dataset (Kaggle), which requires accepting the competition rules before download.
+The project uses the [Home Credit Default Risk](https://www.kaggle.com/c/home-credit-default-risk) dataset. Accept the competition rules on Kaggle, set up the Kaggle CLI (`pip install kaggle` and an API token), then:
 
 ```bash
 kaggle competitions download -c home-credit-default-risk
 unzip home-credit-default-risk.zip -d data/home_credit/
 ```
 
-The pipeline requires:
-- `application_train.csv`
-- `bureau.csv`
-- `previous_application.csv`
+The pipeline reads `application_train.csv`, `bureau.csv` and `previous_application.csv`.
 
-(Remaining files are used only for stretch-goal features - see [Dataset Scope](#dataset-scope).)
-
-### 4. Run the data pipeline
+### Rebuild the model and every report
 
 ```bash
-python src/data_prep.py --data-path data/home_credit/ --out data/processed/app_train_clean.csv
+scripts/run_pipeline.sh          # all steps
+scripts/run_pipeline.sh --list   # show the steps
+scripts/run_pipeline.sh 7        # resume from a step
 ```
 
-Produces a cleaned, feature-engineered dataset - verified output: 307,511 rows × 133 columns, ~8.07% default rate, zero missing values.
+| Step | Script | Produces |
+|---|---|---|
+| 1 | `src/data_prep.py` | `data/processed/app_train_clean.csv` (307,511 rows, 8.07% default rate) |
+| 2 | `src/train_baseline.py` | stratified 80/20 split, `reports/baseline_model_comparison.csv` |
+| 3 | `src/feature_engineering_v2.py` | `X_train_fe_v2.csv`, `X_test_fe_v2.csv` |
+| 4 | `src/final_model.py --ablation` | `models/final_lgbm.pkl`, `models/final_model_card.json`, `reports/final_model_bands.csv`, `reports/gender_ablation.csv` |
+| 5 | `src/build_feature_defaults.py` | `models/feature_defaults.json` |
+| 6 | `src.build_recourse_reference` | `models/recourse_reference.npz` |
+| 7 | `src/explainability.py` | `reports/shap/`, `reports/lime/`, `reports/explainability_report.md` |
+| 8 | `src.explanation_eval` | `reports/explanation_consistency.json` |
+| 9 | `src/fairness_audit.py` | `reports/fairness/` |
+| 10 | `src.recourse_eval` | `reports/recourse_evaluation.json` |
 
-### 5. Train baseline models
+Experiments behind the model choice (cross-validation, CatBoost, the blend, threshold strategies) are in `src/lgbm_fe_v2_cv.py`, `src/catboost_fe_v2_cv.py`, `src/ensemble_lgbm_catboost.py`, `src/evaluate_on_test.py`, `src/compare_lightgbm_strategies.py` and `src/scale_and_balance.py` (scaling and SMOTENC variants; the final model does not use their outputs).
+
+## Run the application
 
 ```bash
-python src/train_baseline.py
+python3 -m backend.seed_db                                    # demo users, once
+python3 -m uvicorn backend.main:app --reload --port 8000      # from the project root
+(cd frontend && npm run dev)                                  # in a second terminal
 ```
 
-Trains and compares Logistic Regression, Random Forest, XGBoost, and LightGBM with SMOTE-balanced training and F1-optimal threshold tuning. Results saved to `reports/baseline_model_comparison.csv`.
+Open http://localhost:3000. Demo accounts (password `password123`):
+- `applicant@creditxplain.com`
+- `officer@creditxplain.com`
 
-## Dataset Scope
+New applicants can also register. The application form has sample profiles that land in each decision band. API documentation is at http://localhost:8000/docs.
 
-To keep the project achievable within a 24-week semester timeline, only the
-merge/aggregation logic needed to reproduce the base paper's reported top
-features is implemented: `EXT_SOURCE_1/2/3`, `CREDIT_TO_GOODS_RATIO`,
-`CNT_FAM_MEMBERS`, `AGE_YEARS`. These come primarily from
-`application_{train,test}.csv`, with shallow aggregates from `bureau.csv` and
-`previous_application.csv`. The remaining relational tables
-(`bureau_balance.csv`, `POS_CASH_balance.csv`, `credit_card_balance.csv`,
-`installments_payments.csv`) are treated as stretch-goal feature sources.
+## Tests
 
-## Baseline Model Results
+```bash
+python3 -m pytest tests backend/tests -q
+(cd frontend && npm run lint && npm run build && npx tsc --noEmit)
+```
 
-Trained on the real Home Credit dataset, 80/20 stratified split, SMOTE applied to training data only. Metrics reported at each model's F1-optimal decision threshold (not the default 0.5 - see `docs/` for why this matters under class imbalance).
+Tests that need the trained model or processed data skip when those files are absent (as in CI). GitHub Actions runs both suites on every push (`.github/workflows/ci.yml`).
+
+## Results (held-out test set, 61,503 applicants)
+
+**Model.**
+- LightGBM on 300 engineered features, with gender excluded: test ROC-AUC 0.7668, PR-AUC 0.2553.
+- Excluding gender costs 0.0017 AUC.
+- Bands: Approve 34.8% of applicants (actual default rate 2.1%), Review 45.0% (6.7%), Reject 20.1% (21.6%).
+
+**Baselines** (80/20 split, SMOTE on training data as in the base paper; precision, recall and F1 at each model's F1-optimal threshold):
 
 | Model | ROC-AUC | Precision | Recall | F1 |
 |---|---|---|---|---|
 | Logistic Regression | 0.722 | 0.217 | 0.407 | 0.283 |
 | Random Forest | 0.703 | 0.185 | 0.401 | 0.253 |
 | XGBoost | 0.747 | 0.225 | 0.435 | 0.296 |
-| **LightGBM** (selected) | **0.748** | **0.237** | 0.404 | **0.299** |
+| LightGBM | 0.748 | 0.237 | 0.404 | 0.299 |
 
-**LightGBM selected as the primary model** for explainability, counterfactual generation, and the API layer, using a tuned decision threshold of **0.162**. This matches the base paper's own conclusion, and ROC-AUC/precision/F1 modestly exceed its reported numbers.
+**Explanations** (150 applicants, `reports/explanation_consistency.json`). SHAP additivity is exact. Local LIME against SHAP:
+- rank correlation 0.64;
+- sign agreement on SHAP's top 5 is 74%;
+- seed stability 0.83.
+
+The previous whole-model LIME set-up scored 0.00 on rank correlation and gave nearly the same explanation for everyone.
+
+**Recourse** (300 rejected and 300 Review applicants, `reports/recourse_evaluation.json`). An option counts as usable when it is plausible and clears a safety margin.
+
+| | Usable option | Mean change | Levers changed |
+|---|---|---|---|
+| Rejected → Review, proposed with waiting | **67.0%** | 0.255 | 1.77 |
+| Rejected → Review, proposed (loan levers) | 59.0% | 0.193 | 1.57 |
+| Rejected → Review, random search | 61.3% | 0.286 | 3.00 |
+| Rejected → Review, previous engine | 21.3% | 0.254 | 1.40 |
+| Review → Approve, proposed with waiting | **43.7%** | 0.309 | 2.01 |
+
+On the same 20 applicants per tier, DiCE produced a usable option for 5% (Reject) and 20% (Review), against 60% and 50% for the proposed engine.
+
+**Fairness** (offline audit). Age-band demographic parity difference 0.349; children / no children 0.045. Age is a model feature and is audited; the disparity is documented in `docs/KNOWN_ISSUES.md`.
 
 ## Roadmap
 
-| Phase | Weeks | Focus | Status |
-|---|---|---|---|
-| 1 | 1–4 | Literature review, dataset acquisition, cleaning, EDA | ✅ Complete |
-| 2 | 5–9 | Baseline models (LR, RF, XGBoost, LightGBM) + SHAP/LIME | 🔲 Models done, SHAP/LIME in progress |
-| 3 | 10–13 | Counterfactual Recommendation Engine + fairness audit | 🔲 Planned |
-| 4 | 14–18 | FastAPI backend + Next.js dashboard/portal | 🔲 Planned |
-| 5 | 19–24 | Evaluation, manuscript, code release | 🔲 Planned |
+| Phase | Focus | Status |
+|---|---|---|
+| 1 | Literature review, data acquisition, cleaning | ✅ |
+| 2 | Baselines, final model, SHAP/LIME | ✅ |
+| 3 | Recourse engine, fairness audit | ✅ |
+| 4 | FastAPI backend, PDF reports, Next.js portal and dashboard | ✅ |
+| 5 | Evaluation, reproducibility, manuscript | In progress |
 
-## Tech Stack
+Details: `docs/PROJECT_STATE.md`, `docs/IMPLEMENTATION_LOG.md`, `docs/TECHNICAL_DECISIONS.md`, `docs/KNOWN_ISSUES.md`.
 
-**ML:** `scikit-learn` · `XGBoost` · `LightGBM` · `SHAP` · `LIME` · `DiCE` · `Fairlearn`
-**Backend:** `FastAPI` · `SQLite`
-**Frontend:** `React` · `Next.js`
-**Reporting:** `ReportLab`
+## Tech stack
+
+**ML:** scikit-learn · LightGBM · XGBoost · CatBoost · SHAP · LIME · DiCE · Fairlearn
+**Backend:** FastAPI · SQLAlchemy · SQLite · ReportLab
+**Frontend:** Next.js 16 · React 19 · TypeScript · Tailwind CSS · Recharts
 
 ## Team
 
@@ -147,7 +188,7 @@ Trained on the real Home Credit dataset, 80/20 stratified split, SMOTE applied t
 
 ## Citation
 
-If referencing the base paper this project extends:
+Base paper this project extends:
 
 ```bibtex
 @article{shreya2025explainable,
@@ -160,12 +201,8 @@ If referencing the base paper this project extends:
 
 ## License
 
-MIT - see `LICENSE` for details.
+MIT - see `LICENSE`.
 
-## Status Note
+## Note on results
 
-This is an active research project. Phase 1 and Phase 2 baseline model results
-above are this project's own verified results on real data. Any figures
-referenced elsewhere in planning documents that are not yet backed by a
-results table in this README remain hypothesized targets or numbers reported
-by the base paper.
+Every number above comes from a file in `reports/` or `models/final_model_card.json`, produced by `scripts/run_pipeline.sh`. Interest rates in the application are illustrative. Recourse suggestions are model-based estimates, not causal guarantees.

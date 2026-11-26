@@ -183,4 +183,4 @@ Full detail is in `PROJECT_STATE.md`. Legend: ✅ complete and verified by real 
 | 2. Baseline models & explainability | ✅ Final LightGBM (test AUC 0.7668, gender excluded; age kept as a feature and audited, D-3). SHAP verified; local LIME with SHAP agreement measured on 150 applicants (Phase 4.7) |
 | 3. Counterfactual engine & fairness | ✅ Two-tier recourse with safety margin and plausibility check, evaluated against the previous engine, random search, DiCE and ablations. Offline fairness audit done; age disparity documented |
 | 4. Dashboard | ✅ FastAPI backend complete (auth, applications, predictions, recourse, loan terms, documents, officer workflow, fairness monitoring; Phase 4.8) and PDF reports (Phase 4.4); Next.js applicant portal (Phase 4.9) and officer dashboard (Phase 4.10). Phase 4 complete |
-| 5. Testing & documentation | 🟡 Automated tests for model and API; docs kept per phase. README rewrite, CI, latency and usability checks, and the manuscript remain |
+| 5. Testing & documentation | 🟡 Automated tests, CI and a rewritten README with a reproducible pipeline (Phase 5.1). Robustness, latency and usability checks, and the manuscript remain |

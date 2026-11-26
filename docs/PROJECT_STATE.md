@@ -14,7 +14,7 @@
 
 ## 1. How to resume
 
-1. Read this file, then `KNOWN_ISSUES.md` #61–#80 (the newest findings).
+1. Read this file, then `KNOWN_ISSUES.md` #61–#82 (the newest findings).
 2. Check the repo: `git log --oneline -5`, `git status --short`.
 3. Follow the working agreement in section 6: propose the next phase and wait for approval.
 
@@ -75,8 +75,8 @@
 
 | Item | Status |
 |---|---|
-| CI | ⬜ No `.github/` workflow |
-| README | ⬜ Out of date |
+| CI | ✅ GitHub Actions: model/API tests and frontend checks (D-69) |
+| README | ✅ Rewritten with setup, pipeline and results (Phase 5.1) |
 | End-to-end latency, usability check | ⬜ |
 | Manuscript | ⬜ |
 
@@ -121,7 +121,7 @@ Phases 4.7 onward (TECHNICAL_DECISIONS D-41) follow this order.
 
 ## 7. Next phase and open questions
 
-**Next phase (awaiting approval): Phase 5, evaluation and paper:** CI, top-level README rewrite, end-to-end latency, usability check, robustness across retrained models, manuscript results.
+**Next phase (awaiting approval): 5.2, recourse robustness across retrained models**, then 5.3 system measurements, 5.4 usability check, 5.5 manuscript.
 
 | # | Open question | Status |
 |---|---|---|

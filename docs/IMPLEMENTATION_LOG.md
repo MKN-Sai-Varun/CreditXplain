@@ -2073,6 +2073,36 @@ Completes the frontend with the officer side of the workflow diagram: review que
 
 ---
 
+## Phase 5.1: Reproducibility and CI (Nov 26, 2026)
+
+### Overview
+Makes the project reproducible from a fresh clone and checked on every push. Decisions: TECHNICAL_DECISIONS D-67 to D-69.
+
+### Changes
+- **`README.md`** rewritten:
+  - overview with measured results against the base paper;
+  - architecture and repository structure;
+  - setup, data download and the pipeline table;
+  - running the app, with demo accounts;
+  - tests and CI;
+  - a results summary (model, baselines, explanations, recourse, fairness), each number traceable to `reports/` or the model card;
+  - roadmap, tech stack, team, citation.
+- **`scripts/run_pipeline.sh`** (new): the 10-step main pipeline, with `--list` and resume-from-step.
+- **`requirements.txt`**: one pinned list (pipeline, backend, tests); Streamlit removed. **`backend/requirements.txt`** includes it.
+- **`.github/workflows/ci.yml`** (new): model/API tests and frontend lint/build/types on every push and pull request.
+- **`tests/conftest.py`**: `needs(...)` marker that skips a test when local-only files are missing. Applied to `tests/test_counterfactuals.py` and `tests/test_fairness.py` (module level), and to three tests in `tests/test_final_model.py`.
+- **`frontend/README.md`**: check order corrected (lint, build, then type check).
+- **KNOWN_ISSUES:** #3, #5, #6, #7 resolved; #12 mitigated; #81, #82 added.
+
+### Checks
+- Workflow YAML parses; `scripts/run_pipeline.sh --list` works.
+- Local test run: **212 passed, none skipped** (all model and data files present).
+- First CI run: result to be recorded.
+
+**Next Phase:** 5.2, recourse robustness across retrained models.
+
+---
+
 ## Change Log (updated)
 
 | Date | Phase | Event | Files Changed |
@@ -2090,7 +2120,8 @@ Completes the frontend with the officer side of the workflow diagram: review que
 | 2026-11-26 | 4.4 | PDF reports | Report service, applicant and compliance PDF endpoints, 7 new tests |
 | 2026-11-26 | 4.9 | Frontend and applicant portal | Typed API client, auth, applicant pages, decision page with recourse and documents; labels from backend |
 | 2026-11-26 | 4.10 | Officer dashboard | Review queue, review page with actions and audit trail, analytics, fairness panel |
+| 2026-11-26 | 5.1 | Reproducibility and CI | README rewrite, pipeline script, pinned requirements, GitHub Actions, needs marker |
 
 ---
 
-**Last Updated:** Nov 26, 2026 (Phase 4.10 complete)
+**Last Updated:** Nov 26, 2026 (Phase 5.1 complete)

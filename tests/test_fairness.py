@@ -16,6 +16,10 @@ from src.fairness_audit import (
     generate_fairness_report
 )
 
+# needs the trained model and processed data, which are not in git
+pytestmark = pytest.mark.needs("models/final_lgbm.pkl", "data/processed/audit_test.csv", "data/processed/X_test_fe_v2.csv")
+
+
 
 @pytest.fixture
 def fairness_data():

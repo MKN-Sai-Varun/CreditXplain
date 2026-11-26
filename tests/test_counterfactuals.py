@@ -13,6 +13,10 @@ from src.counterfactuals import (
     save_counterfactual_report
 )
 
+# needs the trained model and processed data, which are not in git
+pytestmark = pytest.mark.needs("models/final_lgbm.pkl", "data/processed/X_test_fe_v2.csv")
+
+
 
 @pytest.fixture
 def model_artifacts():

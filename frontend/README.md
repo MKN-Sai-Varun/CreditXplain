@@ -30,8 +30,8 @@ Checks:
 
 ```bash
 npm run lint
+npm run build      # also generates the route types used by the next check
 npx tsc --noEmit
-npm run build
 ```
 
 ## Pages

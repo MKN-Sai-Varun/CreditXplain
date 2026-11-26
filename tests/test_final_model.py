@@ -29,6 +29,7 @@ def model():
     return joblib.load(model_path)
 
 
+@pytest.mark.needs("models/final_lgbm.pkl")
 def test_model_exists():
     """Verify the model file was created."""
     assert Path("models/final_lgbm.pkl").exists()
@@ -76,6 +77,7 @@ def test_thresholds_ordered(model_card):
         f"Invalid thresholds: approve={approve}, reject={reject}"
 
 
+@pytest.mark.needs("data/processed/X_test_fe_v2.csv")
 def test_model_produces_probabilities(model):
     """Verify model outputs are valid probabilities."""
     X_test = pd.read_csv("data/processed/X_test_fe_v2.csv")
@@ -104,6 +106,7 @@ def test_bands_file_created():
     assert Path("reports/final_model_bands.csv").exists()
 
 
+@pytest.mark.needs("data/processed/audit_test.csv")
 def test_audit_data_created():
     """Verify audit dataset was created for Phase 3."""
     audit_path = Path("data/processed/audit_test.csv")
