@@ -8,7 +8,7 @@ Next.js 16 (App Router, React 19, TypeScript, Tailwind CSS 4) frontend for the C
 |---|---|
 | Sign in, register, session restore | Done (Phase 4.9) |
 | Applicant portal: applications list, new application, decision page | Done (Phase 4.9) |
-| Officer dashboard | Phase 4.10 (placeholder page at `/officer`) |
+| Officer dashboard: review queue, application review and actions, analytics, fairness monitoring | Done (Phase 4.10) |
 
 ## Run it
 
@@ -43,14 +43,18 @@ npm run build
 | `/applications` | applicant | Own applications with status |
 | `/applications/new` | applicant | Application form (sample profiles, repayment estimate, optional bureau scores, recourse limits); submitting scores the application |
 | `/applications/[id]` | applicant (own), officer | Decision and risk, main reasons, recourse options with "What if…?", loan terms, document requests and upload, PDF report |
-| `/officer` | officer | Placeholder until Phase 4.10 |
+| `/officer` | officer | Review queue: Review-band applications, oldest first, with risk, amount, tenure, documents and waiting time |
+| `/officer/applications/[id]` | officer | Decision, officer action (approve / reject / request documents with justification), SHAP and LIME tables, recourse and the applicant's limits, loan terms, documents (read-only), audit trail, compliance report |
+| `/officer/analytics` | officer | Status totals, approval rate and a chart of applications by status |
+| `/officer/fairness` | officer | Age-band and children/no-children parity gaps, alert banner, approval rate per group (chart and table), recalculation |
 
 ## Structure
 
 ```
 app/                     routes (App Router)
 components/              AuthProvider, RequireAuth, AppHeader, AuthForm, ui
-components/application/  decision page parts: DecisionSummary, Recourse, PreferencesEditor, Documents, ApplicationView
+components/application/  decision page parts: DecisionSummary, Recourse, PreferencesEditor, Documents, LoanTermsCard, ApplicationView
+components/officer/      ActionPanel, ExplanationTables, AuditTrail, OfficerReview
 lib/api.ts               typed API client (axios), token storage, error messages, downloads
 lib/types.ts             response types matching backend/schemas.py
 lib/applicationForm.ts   form options, sample profiles, form values -> model features
@@ -63,3 +67,4 @@ lib/format.ts            money, percentages, dates, labels
 - `cacheComponents` is enabled in `next.config.ts`, so the dynamic `/applications/[id]` page wraps its client view in `<Suspense>`.
 - Plain-language names for model features come from the backend (`label` on explanation rows), the same wording as the PDF reports.
 - Gender is not collected: the model excludes it.
+- Demo accounts: `python3 -m backend.seed_db` (from the project root) creates `applicant@creditxplain.com` and `officer@creditxplain.com`, both with password `password123`. Officer accounts cannot be self-registered.

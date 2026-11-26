@@ -1,6 +1,6 @@
 # KNOWN_ISSUES — CreditXplain
 
-**Last Updated:** Nov 26, 2026 (Phase 4.9: frontend and applicant portal)
+**Last Updated:** Nov 26, 2026 (Phase 4.10: officer dashboard)
 
 This document tracks bugs, gaps, technical debt, and unresolved questions. Items are numbered for reference.
 
@@ -1194,6 +1194,23 @@ Found on Nov 25, 2026 by running every existing test (`tests/`: 88 passed; `back
 
 ---
 
+## Phase 4.10: Officer Dashboard — New Issues
+
+### #79: Officers Can Only Browse the Review Queue
+**Status:** Open (low)  
+**Phase:** 4.10  
+**Description:** The officer UI lists Review-band applications (the queue). Approved or rejected applications can be opened by URL, but there is no officer list or search of all applications, because the backend has no endpoint for it.  
+**Action:** Add `GET /api/officer/applications` with filters if officers need to revisit decided cases.
+
+---
+
+### #80: Officer Accounts Come Only From Seeding
+**Status:** By design  
+**Phase:** 4.10  
+**Description:** Registration always creates applicants (D-40), so officer access needs `python3 -m backend.seed_db` (demo officer `officer@creditxplain.com`) or a database insert.
+
+---
+
 ## Change Log (Updated)
 
 | Date | Issue | Action |
@@ -1223,6 +1240,8 @@ Found on Nov 25, 2026 by running every existing test (`tests/`: 88 passed; `back
 | Nov 26, 2026 | #74, #75 | Identified: plain-language name coverage, reports rebuilt not archived |
 | Nov 26, 2026 | #57 | Resolved: frontend lint error (Phase 4.9) |
 | Nov 26, 2026 | #76–#78 | Identified: token in localStorage, waiting details only in PDF, no browser tests |
+| Nov 26, 2026 | #68, #69 | Handled in the officer UI: EOD not shown; not-approved column labelled |
+| Nov 26, 2026 | #79, #80 | Identified: no officer list of all applications, officer accounts by seeding |
 
 ---
 

@@ -2043,6 +2043,36 @@ The first working frontend: sign-in, registration, and the applicant portal on t
 
 ---
 
+## Phase 4.10: Officer Dashboard (Nov 26, 2026)
+
+### Overview
+Completes the frontend with the officer side of the workflow diagram: review queue, application review and actions, analytics, and fairness monitoring. Decisions: TECHNICAL_DECISIONS D-65, D-66.
+
+### Frontend files (`frontend/`)
+| File | Purpose |
+|---|---|
+| `lib/types.ts`, `lib/api.ts` | Officer and fairness types; `officerAPI` (queue, action, audit log, approval rates, compliance download) and `fairnessAPI` (metrics, by age, by family, calculate) |
+| `components/AppHeader.tsx` | Officer navigation: review queue, analytics, fairness |
+| `app/officer/page.tsx` | Review queue (replaces the 4.9 placeholder) |
+| `app/officer/applications/[id]/page.tsx` + `components/officer/OfficerReview.tsx` | Review page in a Suspense boundary: decision, action panel, SHAP and LIME tables, recourse limits and options, loan terms, documents, audit trail, compliance report |
+| `components/officer/ActionPanel.tsx` | Approve / reject / request documents; justification required where the backend requires it |
+| `components/officer/ExplanationTables.tsx`, `AuditTrail.tsx` | SHAP and LIME tables with labels and raw names; audit timeline |
+| `app/officer/analytics/page.tsx` | Status totals, approval rate, bar chart (recharts) |
+| `app/officer/fairness/page.tsx` | Parity gaps, alert banner, per-group charts and tables, recalculation |
+| `components/application/LoanTermsCard.tsx` | Loan terms card, moved out of `ApplicationView` for reuse |
+| `components/application/Documents.tsx` | `canUpload` option (officers view and download only) |
+| `README.md` | Officer pages, structure and demo accounts |
+
+### Checks
+- `npm run lint`: clean. `npx tsc --noEmit`: clean.
+- `npm run build`: 12 routes; `/applications/[id]` and `/officer/applications/[id]` partially prerendered behind their Suspense boundaries, all others static.
+- Backend tests: **212 passed** (no backend change in this phase).
+- Manual checklist (officer sign-in, queue, approve with and without justification, request documents, compliance report, analytics, fairness recalculation): **passed** (project lead, Nov 26, 2026).
+
+**Next Phase:** 5, evaluation and paper (CI, README, latency, usability check, manuscript).
+
+---
+
 ## Change Log (updated)
 
 | Date | Phase | Event | Files Changed |
@@ -2059,7 +2089,8 @@ The first working frontend: sign-in, registration, and the applicant portal on t
 | 2026-11-26 | 4.7c | Richer recourse | Waiting lever (age held fixed), applicant preferences and recourse endpoint, proposed_with_wait evaluation, age doc correction, 19 new tests |
 | 2026-11-26 | 4.4 | PDF reports | Report service, applicant and compliance PDF endpoints, 7 new tests |
 | 2026-11-26 | 4.9 | Frontend and applicant portal | Typed API client, auth, applicant pages, decision page with recourse and documents; labels from backend |
+| 2026-11-26 | 4.10 | Officer dashboard | Review queue, review page with actions and audit trail, analytics, fairness panel |
 
 ---
 
-**Last Updated:** Nov 26, 2026 (Phase 4.9 complete)
+**Last Updated:** Nov 26, 2026 (Phase 4.10 complete)

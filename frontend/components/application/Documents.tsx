@@ -23,10 +23,12 @@ export function Documents({
   appId,
   initialDocuments,
   requests,
+  canUpload = true,
 }: {
   appId: number;
   initialDocuments: DocumentInfo[];
   requests: DocumentRequest[];
+  canUpload?: boolean;
 }) {
   const [docs, setDocs] = useState(initialDocuments);
   const [file, setFile] = useState<File | null>(null);
@@ -85,6 +87,8 @@ export function Documents({
           ))}
         </ul>
       )}
+      {docs.length === 0 && !canUpload && <p className="text-sm text-slate-600">No documents uploaded.</p>}
+      {canUpload && (
       <form onSubmit={upload} className="mt-4 grid items-end gap-3 sm:grid-cols-[1fr_1fr_auto]">
         <Field label="Document type">
           <Select
@@ -106,6 +110,7 @@ export function Documents({
           {busy ? "Uploading…" : "Upload"}
         </Button>
       </form>
+      )}
       {error && (
         <div className="mt-3">
           <Alert>{error}</Alert>

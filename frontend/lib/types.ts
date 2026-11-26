@@ -140,3 +140,56 @@ export interface DocumentsOverview {
   requests: DocumentRequest[];
   documents: DocumentInfo[];
 }
+
+// Officer and fairness endpoints
+
+export type OfficerActionType = "approve" | "reject" | "request_documents";
+
+export interface OfficerActionResponse {
+  message: string;
+  application: ApplicationSummary;
+  loan_terms?: LoanTerms | null;
+}
+
+export interface AuditEntry {
+  id: number;
+  application_id: number;
+  officer_id: number | null;
+  action: string;
+  justification: string | null;
+  previous_status: string | null;
+  new_status: string | null;
+  timestamp: string;
+}
+
+export interface ApprovalRateStats {
+  total_applications: number;
+  approved: number;
+  rejected: number;
+  under_review: number;
+  approval_rate: number;
+}
+
+export interface FairnessMetrics {
+  age_dpd: number | null;
+  children_dpd: number | null;
+  has_alert: boolean;
+  alert_message: string | null;
+  metrics_detail: Record<string, unknown>;
+  calculated_at: string | null;
+}
+
+/** Per-group counts. `rejected` is count - approved, so it includes Review cases. */
+export interface DemographicStats {
+  group: string;
+  count: number;
+  approved: number;
+  rejected: number;
+  approval_rate: number;
+}
+
+export interface FairnessCalculation {
+  message: string;
+  success: boolean;
+  metrics?: { age_dpd?: number; family_dpd?: number; has_alert?: boolean; total_applications?: number };
+}

@@ -14,7 +14,7 @@
 
 ## 1. How to resume
 
-1. Read this file, then `KNOWN_ISSUES.md` #61–#78 (the newest findings).
+1. Read this file, then `KNOWN_ISSUES.md` #61–#80 (the newest findings).
 2. Check the repo: `git log --oneline -5`, `git status --short`.
 3. Follow the working agreement in section 6: propose the next phase and wait for approval.
 
@@ -69,7 +69,7 @@
 | PDF reports | ✅ | Applicant decision report and officer compliance report (D-59); `test_reports_api.py` |
 | Loan tenure input | ✅ | 12 to 60 months chosen by the applicant; loan amount required (D-52, D-53); `test_applications_api.py` |
 | Frontend: applicant portal | ✅ | Next.js 16: sign-in/register, applications list, application form, decision page with reasons, recourse and "What if…?", documents, PDF report (D-61 to D-64) |
-| Frontend: officer dashboard | ⬜ | Phase 4.10 (placeholder page) |
+| Frontend: officer dashboard | ✅ | Review queue, review page with actions (justification enforced), SHAP/LIME tables, recourse, documents, audit trail, compliance report; analytics; fairness panel (D-65, D-66) |
 
 ### Testing and documentation (original Phase 5)
 
@@ -88,7 +88,7 @@
 |---|---|
 | `python3 -m pytest tests backend/tests -q` | ✅ 212 passed |
 | `npx tsc --noEmit` (frontend) | ✅ |
-| `npm run build` (frontend) | ✅ 9 routes |
+| `npm run build` (frontend) | ✅ 12 routes |
 | `npm run lint` (frontend) | ✅ clean |
 
 The Pydantic (#27), pandas (#58) and FastAPI (#64) warnings are gone. Remaining warnings come from libraries: matplotlib/pyparsing deprecations, the SHAP output notice (#65), and the numpy/macOS matmul artefact (#53).
@@ -103,7 +103,7 @@ The model and the system are in place. Reviewers will look hardest at the claims
 2. ~~Recourse needs standard evaluation~~ ✅ done in 4.7 and 4.7b, including DiCE.
 3. **Recourse framing:** a graduated path (Reject → Review → Approve). State the coverage trade-off of the stricter rules (#62) and confirm the age-band gaps on a larger sample (#63).
 4. **Fairness:** report the age disparity with per-group default rates and AUC, and decide on mitigation or a documented justification (#16).
-5. **A working demo:** backend, PDF reports and applicant portal complete; the officer dashboard remains.
+5. ~~A working demo~~ ✅ backend, PDF reports, applicant portal and officer dashboard complete (Phase 4).
 
 Phases 4.7 onward (TECHNICAL_DECISIONS D-41) follow this order.
 
@@ -121,7 +121,7 @@ Phases 4.7 onward (TECHNICAL_DECISIONS D-41) follow this order.
 
 ## 7. Next phase and open questions
 
-**Next phase (awaiting approval): 4.10, officer dashboard** (review queue, application review, actions, analytics, fairness panel).
+**Next phase (awaiting approval): Phase 5, evaluation and paper:** CI, top-level README rewrite, end-to-end latency, usability check, robustness across retrained models, manuscript results.
 
 | # | Open question | Status |
 |---|---|---|

@@ -4,9 +4,16 @@ import type {
   ApplicationCreate,
   ApplicationDetail,
   ApplicationSummary,
+  ApprovalRateStats,
+  AuditEntry,
   Decision,
+  DemographicStats,
   DocumentInfo,
   DocumentsOverview,
+  FairnessCalculation,
+  FairnessMetrics,
+  OfficerActionResponse,
+  OfficerActionType,
   RecourseOption,
   RecoursePreferences,
   TokenResponse,
@@ -94,6 +101,28 @@ export const documentAPI = {
   },
   download: (appId: number, doc: DocumentInfo) =>
     download(`/api/applications/${appId}/documents/${doc.id}`, doc.original_name),
+};
+
+export const officerAPI = {
+  queue: async (): Promise<ApplicationDetail[]> => (await api.get<ApplicationDetail[]>("/api/officer/queue")).data,
+  act: async (id: number, action: OfficerActionType, justification?: string): Promise<OfficerActionResponse> =>
+    (await api.post<OfficerActionResponse>(`/api/officer/${id}/action`, { action, justification })).data,
+  auditLog: async (id: number): Promise<AuditEntry[]> =>
+    (await api.get<AuditEntry[]>(`/api/officer/${id}/audit-log`)).data,
+  approvalRates: async (): Promise<ApprovalRateStats> =>
+    (await api.get<ApprovalRateStats>("/api/officer/analytics/approval-rates")).data,
+  downloadCompliance: (id: number) =>
+    download(`/api/officer/${id}/compliance-report.pdf`, `creditxplain-compliance-${id}.pdf`),
+};
+
+export const fairnessAPI = {
+  metrics: async (): Promise<FairnessMetrics> => (await api.get<FairnessMetrics>("/api/fairness/metrics")).data,
+  byAge: async (): Promise<DemographicStats[]> =>
+    (await api.get<DemographicStats[]>("/api/fairness/demographics/age")).data,
+  byFamily: async (): Promise<DemographicStats[]> =>
+    (await api.get<DemographicStats[]>("/api/fairness/demographics/family")).data,
+  calculate: async (): Promise<FairnessCalculation> =>
+    (await api.post<FairnessCalculation>("/api/fairness/calculate")).data,
 };
 
 export default api;

@@ -1,6 +1,6 @@
 # TECHNICAL_DECISIONS — CreditXplain
 
-**Last Updated:** Phase 4.9 frontend and applicant portal (Nov 26, 2026)
+**Last Updated:** Phase 4.10 officer dashboard (Nov 26, 2026)
 
 This document records all technical and architectural decisions made during the project, with rationale.
 
@@ -1605,6 +1605,29 @@ The old set-up had a higher R² because it fitted one global linear model, which
 
 ---
 
+## 23. Frontend: Officer Dashboard (Phase 4.10)
+
+### D-65: Officer Workflow in the Browser
+**Decision:** Four officer pages (`/officer`, `/officer/applications/[id]`, `/officer/analytics`, `/officer/fairness`), all guarded to officer and admin roles.
+- **Justification enforced twice:** the action form applies the backend rule (overrides and document requests need a reason) and keeps the button disabled until one is given. The backend still checks.
+- **Read-only documents:** officers can download but not upload.
+- **Recourse view:** officers see the applicant's limits and can use the same "What if…?" recomputation.
+- **Compliance report:** downloaded from the review page; each download is logged and the audit trail refreshes.
+
+---
+
+### D-66: Honest Fairness Panel
+**Decision:**
+- The panel shows the demographic parity difference for age bands and for children / no children, with the 0.1 alert threshold, plus approval rate per group as a chart and a table.
+- The "not approved" column is labelled as including Review cases (#69).
+- Equalised odds is not shown, because live applications have no repayment outcome (#68). It stays in the offline audit.
+
+**Why:** It avoids presenting a metric that is always zero, or a count that reads as rejections.
+
+**Date:** Nov 26, 2026
+
+---
+
 ## Change Log (Updated)
 
 | Date | Phase | Changes |
@@ -1619,6 +1642,7 @@ The old set-up had a higher R² because it fitted one global linear model, which
 | Nov 26, 2026 | Phase 4.7c | D-56 waiting lever with age held fixed (debt-paydown lever rejected); D-57 applicant preferences and recourse endpoint; D-58 like-for-like evaluation |
 | Nov 26, 2026 | Phase 4.4 | D-59 applicant and compliance PDF reports; D-60 no dominated options; D-48 drivers limited to changed features |
 | Nov 26, 2026 | Phase 4.9 | D-61 client-rendered frontend; D-62 token storage; D-63 labels from backend; D-64 application form |
+| Nov 26, 2026 | Phase 4.10 | D-65 officer workflow in the browser; D-66 fairness panel wording |
 
 ---
 

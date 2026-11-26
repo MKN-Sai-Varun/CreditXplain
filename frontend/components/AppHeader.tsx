@@ -27,6 +27,19 @@ export function AppHeader() {
               </Link>
             </>
           )}
+          {(user?.role === "officer" || user?.role === "admin") && (
+            <>
+              <Link href="/officer" className="rounded-md px-3 py-2 text-slate-700 hover:bg-slate-100">
+                Review queue
+              </Link>
+              <Link href="/officer/analytics" className="rounded-md px-3 py-2 text-slate-700 hover:bg-slate-100">
+                Analytics
+              </Link>
+              <Link href="/officer/fairness" className="rounded-md px-3 py-2 text-slate-700 hover:bg-slate-100">
+                Fairness
+              </Link>
+            </>
+          )}
           {user ? (
             <>
               <span className="hidden px-2 text-slate-500 sm:inline">{user.full_name || user.email}</span>
