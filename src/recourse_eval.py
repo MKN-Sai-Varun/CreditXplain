@@ -7,7 +7,8 @@ Methods (all limited to the same three levers and the same bounds):
   random    - random search over the same box with a similar evaluation budget,
               same margin and plausibility rules
   dice      - DiCE (random method) on the same levers, scored through the
-              same FE v2 path; about 40 s per applicant, so run on a subset (--dice N)
+              same FE v2 path, with DiCE's binary post-hoc sparsity search;
+              run on a subset (--dice N)
   ablation_no_margin, ablation_no_plausibility - proposed with one rule switched off
 
 Tiers: reject -> review, and review -> approve.
@@ -16,15 +17,23 @@ Reported per method and tier: coverage, cost (proximity), levers changed
 Also reports recourse coverage and cost by age band and by children, for the
 proposed method (burden of recourse across groups).
 
-Run: python3 -m src.recourse_eval [--n 300] [--dice 20]
+Run: python3 -m src.recourse_eval [--n 300] [--dice 20] [--methods dice]
+
+--methods runs only the listed methods and merges their rows into the existing
+per-applicant file, so DiCE can be added without re-running the rest.
+Rows are saved every 10 applicants and on Ctrl+C. The run uses 2 CPU threads
+(--threads) and low priority, so the machine stays responsive.
 """
 import argparse
 import json
+import os
 import time
 import warnings
+from pathlib import Path
 
 import numpy as np
 import pandas as pd
+from threadpoolctl import threadpool_limits
 
 from src.decision import decide
 from src.inference import Scorer
@@ -35,6 +44,10 @@ from src.recourse import (BAND, DEFAULT_MARGIN, INCOME_SCALES, CREDIT_SCALES, IN
 warnings.filterwarnings("ignore")
 
 RANDOM_BUDGET = 300
+DICE_BACKGROUND = 200
+METHODS = ["previous", "proposed", "ablation_no_margin", "ablation_no_plausibility", "random", "dice"]
+PER_APPLICANT = Path("reports/recourse_evaluation_per_applicant.csv")
+SUMMARY = Path("reports/recourse_evaluation.json")
 LO = np.array([min(CREDIT_SCALES), 1.0, min(INSTALMENT_SCALES)])
 HI = np.array([1.0, max(INCOME_SCALES), 1.0])
 
@@ -99,22 +112,39 @@ def random_search(sc, raw, plaus, rng):
 
 
 class _DiceModel:
-    """Lever values in, class probabilities out (class 1 = reaches the better band with margin)."""
+    """
+    Lever values in, class probabilities out (class 1 = reaches the better band
+    with margin). Rebuilds the derived ratios like src/recourse.py does, and
+    caches single-row calls, which DiCE's sparsity search repeats.
+    """
+    COLS = ["AMT_CREDIT", "AMT_INCOME_TOTAL", "AMT_ANNUITY"]
 
     def __init__(self, sc, base, target_cut):
-        self.sc, self.base = sc, base
+        from src.feature_engineering_v2 import add_features
+        self.sc, self.add_features = sc, add_features
+        self.base = pd.DataFrame([base])
         self.target = _logit(target_cut) - DEFAULT_MARGIN
+        self.cache = {}
+
+    def _scores(self, levers):
+        X = self.base.loc[np.zeros(len(levers), dtype=int)].reset_index(drop=True)
+        X[self.COLS] = levers
+        if X.at[0, "AMT_GOODS_PRICE"] > 0:
+            X["CREDIT_TO_GOODS_RATIO"] = X["AMT_CREDIT"] / X["AMT_GOODS_PRICE"]
+        X["CREDIT_INCOME_RATIO"] = X["AMT_CREDIT"] / X["AMT_INCOME_TOTAL"].where(X["AMT_INCOME_TOTAL"] > 0)
+        X = self.add_features(X).reindex(columns=self.sc.features).astype(float)
+        z = self.target - self.sc.model.predict(X, raw_score=True)
+        return 1 / (1 + np.exp(-20 * z))
 
     def predict_proba(self, df):
-        rows = []
-        for credit, income, annuity in df[["AMT_CREDIT", "AMT_INCOME_TOTAL", "AMT_ANNUITY"]].to_numpy(float):
-            r = dict(self.base)
-            r.update(AMT_CREDIT=credit, AMT_INCOME_TOTAL=income, AMT_ANNUITY=annuity)
-            rows.append(r)
-        from src.feature_engineering_v2 import add_features
-        X = add_features(pd.DataFrame(rows)).reindex(columns=self.sc.features).astype(float)
-        z = self.target - self.sc.model.predict(X, raw_score=True)
-        q = 1 / (1 + np.exp(-20 * z))
+        levers = df[self.COLS].to_numpy(float)
+        if len(levers) == 1:
+            key = tuple(np.round(levers[0], 2))
+            if key not in self.cache:
+                self.cache[key] = self._scores(levers)[0]
+            q = np.array([self.cache[key]])
+        else:
+            q = self._scores(levers)
         return np.column_stack([1 - q, q])
 
 
@@ -139,20 +169,31 @@ def dice_search(sc, raw, plaus, base_band, background):
     query = pd.DataFrame([{c: base[c] for c in cols}])
     try:
         res = exp.generate_counterfactuals(query, total_CFs=3, desired_class=1,
-                                           permitted_range=bounds, random_seed=0)
+                                           permitted_range=bounds, random_seed=0,
+                                           posthoc_sparsity_algorithm="binary")
         cfs = res.cf_examples_list[0].final_cfs_df
     except Exception:
         return None
     if cfs is None or not len(cfs):
         return None
-    best = None
+    # DiCE varies amount and installment independently; our levers tie them
+    # (installment = amount x tenure factor). Suggestions outside that space
+    # are counted, not clipped, so DiCE is scored on what it actually proposed.
+    best, outside, eps = None, 0, 1e-6
     for _, r in cfs.iterrows():
         c = r["AMT_CREDIT"] / base["AMT_CREDIT"]
         i = r["AMT_INCOME_TOTAL"] / base["AMT_INCOME_TOTAL"]
         a = (r["AMT_ANNUITY"] / base["AMT_ANNUITY"]) / c
+        inside = (LO[0] - eps <= c <= 1 + eps and 1 - eps <= i <= HI[1] + eps
+                  and LO[2] - eps <= a <= 1 + eps)
+        if not inside:
+            outside += 1
+            continue
         s = (min(c, 1.0), max(i, 1.0), min(a, 1.0))
         if best is None or _cost(*s) < _cost(*best):
             best = s
+    if best is None:
+        return {"outside": outside}
     row = dict(base)
     for ch in changes_for(base, best):
         row[ch["feature"]] = ch["recommended"]
@@ -161,7 +202,7 @@ def dice_search(sc, raw, plaus, base_band, background):
         if row[den] > 0:
             row[d] = row[num] / row[den]
     return {"raw": raw, "changes": changes_for(base, best), "row": row,
-            "cost": _cost(*best), "levers": list(_levers(*best))}
+            "cost": _cost(*best), "levers": list(_levers(*best)), "outside": outside}
 
 
 def age_band(days_birth):
@@ -183,57 +224,13 @@ def aggregate(df):
         "robust_share": round(float(f["robust"].mean()), 4) if len(f) else None,
         "latency_ms_mean": round(float(df["latency_ms"].mean()), 1),
         "latency_ms_p95": round(float(df["latency_ms"].quantile(0.95)), 1),
+        **({"suggestions_outside_lever_space": int(df["outside"].fillna(0).sum())}
+           if "outside" in df and df["outside"].notna().any() else {}),
     }
 
 
-def main():
-    ap = argparse.ArgumentParser()
-    ap.add_argument("--n", type=int, default=300, help="applicants per tier")
-    ap.add_argument("--dice", type=int, default=20, help="applicants per tier for DiCE (0 = skip)")
-    args = ap.parse_args()
-
-    sc = Scorer()
-    plaus = default_plausibility()
-    if plaus is None:
-        raise SystemExit("Run python3 -m src.build_recourse_reference first")
-
-    raw_test = pd.read_csv("data/processed/X_test.csv")
-    fe = pd.read_csv("data/processed/X_test_fe_v2.csv")
-    bands = decide(sc.model.predict(fe[sc.features]), sc.approve_below, sc.reject_from)
-    background = raw_test.sample(1000, random_state=0)
-
-    rng = np.random.default_rng(42)
-    rows = []
-    for tier, band in (("reject_to_review", "reject"), ("review_to_approve", "review")):
-        pick = rng.choice(np.where(bands == band)[0], args.n, replace=False)
-        for n_done, i in enumerate(pick):
-            raw = raw_test.iloc[i].to_dict()
-            base_band = BAND[band]
-            meta = {"tier": tier, "row": int(i),
-                    "age_band": age_band(pd.Series([raw["DAYS_BIRTH"]]))[0],
-                    "has_children": "yes" if raw.get("CNT_CHILDREN", 0) > 0 else "no"}
-
-            runs = {
-                "previous": lambda: from_engine(sc, raw, find_recourse(sc, raw, margin=0.0,
-                                                                       plausibility=None, refine=False)),
-                "proposed": lambda: from_engine(sc, raw, find_recourse(sc, raw)),
-                "ablation_no_margin": lambda: from_engine(sc, raw, find_recourse(sc, raw, margin=0.0)),
-                "ablation_no_plausibility": lambda: from_engine(sc, raw, find_recourse(sc, raw, plausibility=None)),
-                "random": lambda: random_search(sc, raw, plaus, rng),
-            }
-            if n_done < args.dice:
-                runs["dice"] = lambda: dice_search(sc, raw, plaus, base_band, background)
-
-            for method, fn in runs.items():
-                t = time.perf_counter()
-                opt = fn()
-                ms = 1000 * (time.perf_counter() - t)
-                rows.append({**meta, "method": method, "latency_ms": ms,
-                             **summarise_option(sc, opt, plaus, base_band)})
-            if (n_done + 1) % 50 == 0:
-                print(f"  {tier}: {n_done + 1}/{args.n}")
-
-    df = pd.DataFrame(rows)
+def summarise(df, plaus):
+    df = df.copy()
     for col in ("improves", "robust", "plausible"):
         df[col] = df[col].astype("boolean")
 
@@ -257,10 +254,102 @@ def main():
                 "cost_gap": round(max(cost) - min(cost), 4) if cost else None,
             }
     summary["recourse_burden_by_group"] = burden
+    return summary
 
-    df.to_csv("reports/recourse_evaluation_per_applicant.csv", index=False)
-    with open("reports/recourse_evaluation.json", "w") as f:
+
+def save(rows, methods, plaus):
+    """Writes this run's rows, keeping rows of methods that were not run this time."""
+    new = pd.DataFrame(rows)
+    if PER_APPLICANT.exists():
+        old = pd.read_csv(PER_APPLICANT)
+        new = pd.concat([old[~old["method"].isin(methods)], new], ignore_index=True)
+    new.to_csv(PER_APPLICANT, index=False)
+    summary = summarise(new, plaus)
+    with open(SUMMARY, "w") as f:
         json.dump(summary, f, indent=2)
+    return summary
+
+
+def main():
+    ap = argparse.ArgumentParser()
+    ap.add_argument("--n", type=int, default=300, help="applicants per tier")
+    ap.add_argument("--dice", type=int, default=20, help="applicants per tier for DiCE")
+    ap.add_argument("--methods", default=",".join(METHODS),
+                    help=f"comma-separated subset of {METHODS}")
+    ap.add_argument("--threads", type=int, default=2, help="CPU threads for the model")
+    args = ap.parse_args()
+    methods = [m.strip() for m in args.methods.split(",") if m.strip()]
+    unknown = set(methods) - set(METHODS)
+    if unknown:
+        raise SystemExit(f"unknown methods: {sorted(unknown)}")
+
+    try:
+        os.nice(10)   # keep the machine responsive
+    except OSError:
+        pass
+
+    sc = Scorer()
+    plaus = default_plausibility()
+    if plaus is None:
+        raise SystemExit("Run python3 -m src.build_recourse_reference first")
+
+    raw_test = pd.read_csv("data/processed/X_test.csv")
+    fe = pd.read_csv("data/processed/X_test_fe_v2.csv")
+    bands = decide(sc.model.predict(fe[sc.features]), sc.approve_below, sc.reject_from)
+    background = raw_test.sample(DICE_BACKGROUND, random_state=0)
+
+    # separate generators: the applicants picked never depend on which methods run
+    pick_rng = np.random.default_rng(42)
+    search_rng = np.random.default_rng(7)
+    picks = {band: pick_rng.choice(np.where(bands == band)[0], args.n, replace=False)
+             for band in ("reject", "review")}
+
+    rows = []
+    limit = threadpool_limits(limits=args.threads)
+    try:
+        for tier, band in (("reject_to_review", "reject"), ("review_to_approve", "review")):
+            for n_done, i in enumerate(picks[band]):
+                raw = raw_test.iloc[i].to_dict()
+                base_band = BAND[band]
+                meta = {"tier": tier, "row": int(i),
+                        "age_band": age_band(pd.Series([raw["DAYS_BIRTH"]]))[0],
+                        "has_children": "yes" if raw.get("CNT_CHILDREN", 0) > 0 else "no"}
+
+                runs = {
+                    "previous": lambda: from_engine(sc, raw, find_recourse(sc, raw, margin=0.0,
+                                                                           plausibility=None, refine=False)),
+                    "proposed": lambda: from_engine(sc, raw, find_recourse(sc, raw)),
+                    "ablation_no_margin": lambda: from_engine(sc, raw, find_recourse(sc, raw, margin=0.0)),
+                    "ablation_no_plausibility": lambda: from_engine(sc, raw, find_recourse(sc, raw, plausibility=None)),
+                    "random": lambda: random_search(sc, raw, plaus, search_rng),
+                    "dice": lambda: dice_search(sc, raw, plaus, base_band, background),
+                }
+                for method in methods:
+                    if method == "dice" and n_done >= args.dice:
+                        continue
+                    t = time.perf_counter()
+                    opt = runs[method]()
+                    ms = 1000 * (time.perf_counter() - t)
+                    extra = {}
+                    if opt is not None and "outside" in opt:
+                        extra["outside"] = opt.pop("outside")
+                        opt = opt if "raw" in opt else None
+                    rows.append({**meta, "method": method, "latency_ms": ms, **extra,
+                                 **summarise_option(sc, opt, plaus, base_band)})
+
+                done = n_done + 1
+                if done % 10 == 0:
+                    save(rows, methods, plaus)
+                if done % 50 == 0 or ("dice" in methods and done <= args.dice):
+                    print(f"  {tier}: {done}/{args.n}", flush=True)
+                if methods == ["dice"] and done >= args.dice:
+                    break
+    except KeyboardInterrupt:
+        print("stopped early; saving what has finished")
+    finally:
+        limit.restore_original_limits()
+
+    summary = save(rows, methods, plaus)
     print(json.dumps(summary["methods"], indent=2))
 
 

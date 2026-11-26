@@ -12,8 +12,8 @@
         "mean_levers": 1.479,
         "plausible_share": 1.0,
         "robust_share": 0.1753,
-        "latency_ms_mean": 23.9,
-        "latency_ms_p95": 30.3
+        "latency_ms_mean": 24.0,
+        "latency_ms_p95": 30.0
       },
       "ablation_no_plausibility": {
         "applicants": 300,
@@ -24,8 +24,21 @@
         "mean_levers": 1.498,
         "plausible_share": 0.6414,
         "robust_share": 1.0,
-        "latency_ms_mean": 25.5,
-        "latency_ms_p95": 29.0
+        "latency_ms_mean": 25.6,
+        "latency_ms_p95": 28.9
+      },
+      "dice": {
+        "applicants": 20,
+        "coverage": 0.4,
+        "improves_share": 1.0,
+        "mean_cost": 0.5419,
+        "median_cost": 0.5355,
+        "mean_levers": 1.875,
+        "plausible_share": 0.125,
+        "robust_share": 1.0,
+        "latency_ms_mean": 142.4,
+        "latency_ms_p95": 162.8,
+        "suggestions_outside_lever_space": 37
       },
       "previous": {
         "applicants": 300,
@@ -36,8 +49,8 @@
         "mean_levers": 1.395,
         "plausible_share": 0.635,
         "robust_share": 0.3726,
-        "latency_ms_mean": 14.5,
-        "latency_ms_p95": 15.2
+        "latency_ms_mean": 14.7,
+        "latency_ms_p95": 15.1
       },
       "proposed": {
         "applicants": 300,
@@ -48,82 +61,95 @@
         "mean_levers": 1.565,
         "plausible_share": 1.0,
         "robust_share": 1.0,
-        "latency_ms_mean": 23.0,
-        "latency_ms_p95": 29.8
+        "latency_ms_mean": 23.2,
+        "latency_ms_p95": 30.1
       },
       "random": {
         "applicants": 300,
-        "coverage": 0.6,
+        "coverage": 0.6133,
         "improves_share": 1.0,
-        "mean_cost": 0.2762,
-        "median_cost": 0.2407,
+        "mean_cost": 0.2856,
+        "median_cost": 0.2422,
         "mean_levers": 3.0,
         "plausible_share": 1.0,
         "robust_share": 1.0,
-        "latency_ms_mean": 17.9,
-        "latency_ms_p95": 18.8
+        "latency_ms_mean": 18.5,
+        "latency_ms_p95": 19.1
       }
     },
     "review_to_approve": {
       "ablation_no_margin": {
         "applicants": 300,
-        "coverage": 0.3733,
+        "coverage": 0.4567,
         "improves_share": 1.0,
-        "mean_cost": 0.1976,
-        "median_cost": 0.1462,
-        "mean_levers": 1.58,
+        "mean_cost": 0.1881,
+        "median_cost": 0.15,
+        "mean_levers": 1.606,
         "plausible_share": 1.0,
-        "robust_share": 0.0893,
-        "latency_ms_mean": 20.6,
-        "latency_ms_p95": 30.0
+        "robust_share": 0.1314,
+        "latency_ms_mean": 21.1,
+        "latency_ms_p95": 29.1
       },
       "ablation_no_plausibility": {
         "applicants": 300,
-        "coverage": 0.49,
+        "coverage": 0.54,
         "improves_share": 1.0,
-        "mean_cost": 0.3314,
-        "median_cost": 0.27,
-        "mean_levers": 1.599,
-        "plausible_share": 0.5238,
+        "mean_cost": 0.3198,
+        "median_cost": 0.285,
+        "mean_levers": 1.704,
+        "plausible_share": 0.5926,
         "robust_share": 1.0,
-        "latency_ms_mean": 21.3,
-        "latency_ms_p95": 29.3
+        "latency_ms_mean": 21.4,
+        "latency_ms_p95": 28.1
+      },
+      "dice": {
+        "applicants": 20,
+        "coverage": 0.45,
+        "improves_share": 1.0,
+        "mean_cost": 0.4213,
+        "median_cost": 0.4707,
+        "mean_levers": 1.778,
+        "plausible_share": 0.4444,
+        "robust_share": 1.0,
+        "latency_ms_mean": 132.8,
+        "latency_ms_p95": 147.6,
+        "suggestions_outside_lever_space": 30
       },
       "previous": {
         "applicants": 300,
-        "coverage": 0.6,
+        "coverage": 0.64,
         "improves_share": 1.0,
-        "mean_cost": 0.3272,
-        "median_cost": 0.275,
-        "mean_levers": 1.567,
-        "plausible_share": 0.5111,
-        "robust_share": 0.2111,
-        "latency_ms_mean": 14.8,
-        "latency_ms_p95": 15.4
+        "mean_cost": 0.3182,
+        "median_cost": 0.3,
+        "mean_levers": 1.635,
+        "plausible_share": 0.6406,
+        "robust_share": 0.224,
+        "latency_ms_mean": 14.5,
+        "latency_ms_p95": 15.0
       },
       "proposed": {
         "applicants": 300,
-        "coverage": 0.2733,
+        "coverage": 0.34,
         "improves_share": 1.0,
-        "mean_cost": 0.1897,
-        "median_cost": 0.15,
-        "mean_levers": 1.488,
+        "mean_cost": 0.2267,
+        "median_cost": 0.18,
+        "mean_levers": 1.647,
         "plausible_share": 1.0,
         "robust_share": 1.0,
-        "latency_ms_mean": 19.3,
-        "latency_ms_p95": 30.1
+        "latency_ms_mean": 19.6,
+        "latency_ms_p95": 29.0
       },
       "random": {
         "applicants": 300,
-        "coverage": 0.3,
+        "coverage": 0.37,
         "improves_share": 1.0,
-        "mean_cost": 0.3065,
-        "median_cost": 0.271,
+        "mean_cost": 0.3178,
+        "median_cost": 0.2887,
         "mean_levers": 3.0,
         "plausible_share": 1.0,
         "robust_share": 1.0,
-        "latency_ms_mean": 18.2,
-        "latency_ms_p95": 19.1
+        "latency_ms_mean": 18.3,
+        "latency_ms_p95": 18.9
       }
     }
   },
@@ -181,49 +207,49 @@
       "age_band": {
         "groups": {
           "25-35": {
-            "applicants": 68,
-            "coverage": 0.2206,
-            "mean_cost": 0.2392
+            "applicants": 60,
+            "coverage": 0.4,
+            "mean_cost": 0.2249
           },
           "35-45": {
-            "applicants": 76,
-            "coverage": 0.3816,
-            "mean_cost": 0.1891
+            "applicants": 88,
+            "coverage": 0.375,
+            "mean_cost": 0.1917
           },
           "45-55": {
-            "applicants": 77,
-            "coverage": 0.2857,
-            "mean_cost": 0.1727
+            "applicants": 71,
+            "coverage": 0.3099,
+            "mean_cost": 0.1945
           },
           "55+": {
-            "applicants": 70,
-            "coverage": 0.2143,
-            "mean_cost": 0.1617
+            "applicants": 68,
+            "coverage": 0.2794,
+            "mean_cost": 0.3279
           },
           "<25": {
-            "applicants": 9,
-            "coverage": 0.1111,
-            "mean_cost": 0.255
+            "applicants": 13,
+            "coverage": 0.3077,
+            "mean_cost": 0.2225
           }
         },
-        "coverage_gap": 0.2705,
-        "cost_gap": 0.0933
+        "coverage_gap": 0.1206,
+        "cost_gap": 0.1362
       },
       "has_children": {
         "groups": {
           "no": {
-            "applicants": 215,
-            "coverage": 0.2558,
-            "mean_cost": 0.1881
+            "applicants": 206,
+            "coverage": 0.3447,
+            "mean_cost": 0.2267
           },
           "yes": {
-            "applicants": 85,
-            "coverage": 0.3176,
-            "mean_cost": 0.1928
+            "applicants": 94,
+            "coverage": 0.3298,
+            "mean_cost": 0.2266
           }
         },
-        "coverage_gap": 0.0618,
-        "cost_gap": 0.0047
+        "coverage_gap": 0.0149,
+        "cost_gap": 0.0001
       }
     }
   }

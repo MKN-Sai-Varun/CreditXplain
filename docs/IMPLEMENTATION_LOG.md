@@ -1720,6 +1720,8 @@ Same public interface; existing tests unchanged and passing.
 - **Drivers:** `explain_change` gives the top-3 SHAP contribution changes per option; added in `backend/services/counterfactual_service.py`. New optional schema fields: `robust_margin`, `plausible`, `plausibility_distance`, `drivers`.
 
 ### 4.7.4: Recourse Evaluation (`src/recourse_eval.py`, new; replaces `src/recourse_validity.py`)
+
+> **Superseded by the Phase 4.7b final results** (same Reject → Review sample, new Review → Approve sample, DiCE included). The tables below are kept as the Phase 4.7 record.
 300 rejected and 300 Review applicants from the held-out test set (seed 42). Each method's best option is re-scored from scratch. Output: `reports/recourse_evaluation.json` and `reports/recourse_evaluation_per_applicant.csv`.
 
 **"Usable"** means an option was found **and** it is plausible **and** it clears the 0.1 log-odds margin.
@@ -1835,6 +1837,77 @@ Full run (Nov 26, 2026): **182 passed** (142 before + 40 new). The Pydantic, pan
 
 ---
 
+## Phase 4.7b: Faster DiCE Baseline (Nov 26, 2026)
+
+### Overview
+The DiCE comparison took 40–120 s per applicant at full CPU. `src/recourse_eval.py` was changed so it runs with much less time and load. No other file changed except docs.
+
+### Changes (`src/recourse_eval.py`)
+- **Main cause removed:** DiCE's post-hoc sparsity step now uses DiCE's binary search instead of its linear search (up to 10,000 single-row model calls).
+- **Cheaper model calls:** the DiCE wrapper builds candidate rows in one vectorised step, caches repeated single-row calls, and uses 200 background rows instead of 1,000.
+- **Bug fixed:** the wrapper now recomputes `CREDIT_TO_GOODS_RATIO` and `CREDIT_INCOME_RATIO` after changing the loan amounts, as `src/recourse.py` does.
+- **Fairer scoring of DiCE:** DiCE varies loan amount and installment independently, while the levers tie them (installment = amount × tenure factor, factor 0.7–1.0). DiCE suggestions outside that space were previously clipped into it, which could undo them. They are now scored as DiCE produced them; out-of-space suggestions are not used and are counted (`suggestions_outside_lever_space` in the summary).
+- **Measured speed-up (2-applicant trial):** DiCE 127–207 ms per applicant, against 40–120 s before; whole trial 2.6 s.
+- **Lower load:** 2 CPU threads by default (`--threads`, applied only during the run via `threadpoolctl`) and low process priority.
+- **No lost work:** rows are saved every 10 applicants and on Ctrl+C.
+- **`--methods`:** runs a subset and merges its rows into `reports/recourse_evaluation_per_applicant.csv`; the summary is rebuilt from the merged file.
+- **Stable selection:** applicants are picked with their own random generator, so the Review-tier sample no longer depends on how many random-search draws ran before it. The Review-tier sample therefore differs from Phase 4.7's.
+
+### Consequence
+The Phase 4.7 recourse tables were produced with the old Review-tier sample, so the full run below replaces them.
+
+### Final results (full run, Nov 26, 2026)
+`python3 -m src.recourse_eval --n 300 --dice 20`: 1 min 30 s at about one core (111% CPU). Phase 4.7's attempt ran over 30 minutes and did not finish. These tables replace the Phase 4.7 recourse tables. The Reject → Review sample is unchanged; the Review → Approve sample is new (see above).
+
+**"Usable"** = an option was found, it is plausible, and it clears the 0.1 log-odds margin.
+
+**Reject → Review (300 applicants; DiCE on 20)**
+
+| Method | Found | Usable | Mean cost | Levers | ms |
+|---|---|---|---|---|---|
+| previous (pre-4.7) | 87.7% | 21.3% | 0.254 | 1.40 | 14.7 |
+| **proposed** | 59.0% | **59.0%** | **0.193** | 1.57 | 23.2 |
+| random search | 61.3% | 61.3% | 0.286 | 3.00 | 18.5 |
+| ablation: no margin | 64.7% | 11.3% | 0.156 | 1.48 | 24.0 |
+| ablation: no plausibility | 83.7% | 53.7% | 0.255 | 1.50 | 25.6 |
+| DiCE (20) | 40.0% | 5.0% | 0.542 | 1.88 | 142.4 |
+
+**Review → Approve (300 applicants; DiCE on 20)**
+
+| Method | Found | Usable | Mean cost | Levers | ms |
+|---|---|---|---|---|---|
+| previous (pre-4.7) | 64.0% | 11.0% | 0.318 | 1.64 | 14.5 |
+| **proposed** | 34.0% | **34.0%** | **0.227** | 1.65 | 19.6 |
+| random search | 37.0% | 37.0% | 0.318 | 3.00 | 18.3 |
+| ablation: no margin | 45.7% | 6.0% | 0.188 | 1.61 | 21.1 |
+| ablation: no plausibility | 54.0% | 32.0% | 0.320 | 1.70 | 21.4 |
+| DiCE (20) | 45.0% | 20.0% | 0.421 | 1.78 | 132.8 |
+
+**Head-to-head on the same 20 applicants per tier**
+
+| Tier | Method | Found | Usable | Mean cost | Levers | ms |
+|---|---|---|---|---|---|---|
+| Reject → Review | proposed | 60% | 60% | 0.196 | 1.67 | 23.8 |
+| | random | 60% | 60% | 0.290 | 3.00 | 18.5 |
+| | DiCE | 40% | 5% | 0.542 | 1.88 | 142.4 |
+| Review → Approve | proposed | 50% | 50% | 0.214 | 1.40 | 22.0 |
+| | random | 55% | 55% | 0.304 | 3.00 | 18.3 |
+| | DiCE | 45% | 20% | 0.421 | 1.78 | 132.8 |
+
+DiCE produced **67 suggestions outside the lever space** (37 in Reject → Review, 30 in Review → Approve). In those, the installment does not follow from the loan amount and a tenure factor of 0.7–1.0.
+
+**Reading:**
+- The proposed engine gives a usable option to 2.8 times as many rejected applicants as the previous engine (59.0% against 21.3%), and to 34.0% of Review applicants for automatic approval.
+- Random search with the same rules reaches 2–3 points more applicants. It always changes all three levers, and asks for 32% (Reject → Review) and 29% (Review → Approve) more change.
+- On the same applicants, DiCE gives a usable option to 5% and 20% of applicants, against 60% and 50% for the proposed engine. It asks for about 2–3 times as much change and is about 6 times slower. Most of its suggestions are either implausible or outside the lever space.
+
+**Recourse burden by group (proposed):**
+- Children: coverage gaps of 1.5 points (Reject → Review) and 1.5 points (Review → Approve); mean cost gaps of 0.01 or less.
+- Age, Reject → Review: coverage gap 0.28, cost gap 0.08 (small extreme groups: under-25 n=19, 55+ n=24).
+- Age, Review → Approve: coverage gap 0.12 (from 40.0% for 25–35 to 27.9% for 55+), cost gap 0.14; under-25 n=13.
+
+---
+
 ## Change Log (updated)
 
 | Date | Phase | Event | Files Changed |
@@ -1847,6 +1920,7 @@ Full run (Nov 26, 2026): **182 passed** (142 before + 40 new). The Pydantic, pan
 | 2026-11-25 | 4.6 | Cleanup, doc sync, test baseline | Deleted `backend/tests/recourse_validity.py`; 4 docs updated |
 | 2026-11-25 | 4.7 | Explanation and recourse upgrade | Local LIME, recourse margin/plausibility/refinement/two tiers/drivers, two evaluation scripts, 18 new tests |
 | 2026-11-26 | 4.8 | Backend completion | Documents router and model, officer queue/actions, tenure and loan amount, fairness fixes, warning cleanups, 40 new tests |
+| 2026-11-26 | 4.7b | Faster DiCE baseline | `src/recourse_eval.py`: binary sparsity search, cached wrapper, thread limit, incremental saving, `--methods`; wrapper ratio fix |
 
 ---
 

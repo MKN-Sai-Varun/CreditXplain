@@ -1412,7 +1412,14 @@ The old set-up had a higher R² because it fitted one global linear model, which
   - `proposed`.
   - Two ablations, each switching off one rule.
   - `random`: random search in the same box with a similar budget and the same rules.
-  - `dice`: DiCE random method on the same three levers through the same FE v2 path. About 40–120 s per applicant, so meant for 20 per tier. **Not completed in 4.7** (KNOWN_ISSUES #61).
+  - `dice`: DiCE random method on the same three levers through the same FE v2 path, run on 20 applicants per tier. Not completed in 4.7 (KNOWN_ISSUES #61).
+- **Run settings (Phase 4.7b):**
+  - DiCE uses its binary post-hoc sparsity search (`posthoc_sparsity_algorithm="binary"`) instead of the default linear search, which made up to 10,000 single-row model calls.
+  - The DiCE model wrapper is vectorised, caches repeated single-row calls and recomputes the derived ratios; DiCE gets 200 background rows.
+  - The run uses 2 CPU threads (`--threads`) and low priority, and saves rows every 10 applicants and on Ctrl+C.
+  - `--methods` runs a subset and merges its rows into the existing per-applicant file.
+  - DiCE suggestions are scored exactly as produced. Those outside the lever space (installment not equal to amount × a tenure factor of 0.7–1.0) are not used and are counted separately, because DiCE cannot express the coupling between amount and installment.
+  - Applicant selection uses its own random generator (seed 42), separate from random search (seed 7), so the same applicants are evaluated whichever methods run.
 - **Metrics:**
   - coverage;
   - cost, i.e. proximity: the sum of relative lever changes;

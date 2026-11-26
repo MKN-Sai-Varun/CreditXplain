@@ -996,7 +996,7 @@ Found on Nov 25, 2026 by running every existing test (`tests/`: 88 passed; `back
 ---
 
 ### #56: Recourse Never Reaches Approve
-**Status:** 🟡 Mitigated (Phase 4.7). Two-tier recourse added: 27.3% of Review applicants now get a robust, plausible path to Approve (D-47). Reject → Approve in one step remains out of reach (structural). For the paper: present recourse as a graduated path  
+**Status:** 🟡 Mitigated (Phase 4.7). Two-tier recourse: 34.0% of Review applicants get a robust, plausible path to Approve (Phase 4.7b run; D-47). Reject → Approve in one step remains out of reach (structural). For the paper: present recourse as a graduated path  
 **Phase:** 4.6  
 **Description:** 0 of 300 rejected test applicants reach Approve (`reaches_approve_rate: 0.0`). Recourse moves them only from Reject to Review.  
 **Why:** Approve needs a predicted default probability below 0.0349. Rejected applicants average 0.213 (`reports/final_model_bands.csv`). The strongest features are external bureau scores (`EXT_SOURCE_*`, `CREDIT_GOODS_EXT_RISK`), which the three levers (loan amount, income, tenure) cannot change.  
@@ -1040,10 +1040,13 @@ Found on Nov 25, 2026 by running every existing test (`tests/`: 88 passed; `back
 ## Phase 4.7: Explanation and Recourse Upgrade — New Issues
 
 ### #61: DiCE Baseline Not Completed
-**Status:** Open  
+**Status:** ✅ Resolved (Phase 4.7b). Full run in 1 min 30 s; DiCE results in `reports/recourse_evaluation.json` and IMPLEMENTATION_LOG 4.7b  
 **Phase:** 4.7  
 **Description:** DiCE (random method, same three levers) took about 40–120 s per applicant. The full run was stopped early; no DiCE numbers were saved.  
-**Action:** Run `python3 -m src.recourse_eval --n 300 --dice 20` (about 30–40 minutes) before the paper's results section.
+**Cause found (Phase 4.7b):** DiCE's default post-hoc sparsity step uses a linear search of up to 10,000 single-row model calls, each rebuilding the 300 engineered features.  
+**Fix:** DiCE's own binary search option, a cached and vectorised model wrapper, 200 background rows, 2 CPU threads and low process priority (D-49).  
+**Also fixed:** the DiCE wrapper did not recompute `CREDIT_TO_GOODS_RATIO` and `CREDIT_INCOME_RATIO` after changing the loan amounts, so DiCE was scored on stale ratios.  
+**Action:** Run the full evaluation once more (see PROJECT_STATE section 7).
 
 ---
 
@@ -1051,7 +1054,7 @@ Found on Nov 25, 2026 by running every existing test (`tests/`: 88 passed; `back
 **Status:** Open (trade-off, by design)  
 **Phase:** 4.7  
 **Description:** The margin and plausibility rules lower the share of applicants with any option. Reject → Review falls from 87.7% to 59.0%, but the share with a *usable* option rises from 21.3% to 59.0%. The margin causes most of the drop (D-44).  
-**Options:** A smaller margin (e.g. 0.05) or a finer grid could recover some coverage; random search reaches 60.0%, so a finer search may add about 1 point.  
+**Options:** A smaller margin (e.g. 0.05) or a finer grid could recover some coverage. Random search with the same rules reaches 61.3% (Reject → Review) and 37.0% (Review → Approve), 2–3 points more than the proposed engine, but always changes all three levers and asks for about 30% more change. Adding random candidates to the grid could close the gap.  
 **Action:** Report the trade-off and ablations in the paper. Revisit the margin if more coverage is needed.
 
 ---
@@ -1059,7 +1062,7 @@ Found on Nov 25, 2026 by running every existing test (`tests/`: 88 passed; `back
 ### #63: Age-Band Recourse Gaps on Small Groups
 **Status:** Open  
 **Phase:** 4.7  
-**Description:** Recourse coverage differs by about 0.28 between age bands, but the extreme groups are small (Reject → Review: under-25 n=19, 55+ n=24; Review → Approve: under-25 n=9).  
+**Description:** Recourse coverage differs between age bands by 0.28 (Reject → Review) and 0.12 (Review → Approve, Phase 4.7b sample), but the extreme groups are small (Reject → Review: under-25 n=19, 55+ n=24; Review → Approve: under-25 n=13).  
 **Action:** Re-run with a larger `--n`, or stratify by age, before reporting group gaps.
 
 ---
@@ -1140,6 +1143,8 @@ Found on Nov 25, 2026 by running every existing test (`tests/`: 88 passed; `back
 | Nov 25, 2026 | #61–#66 | Identified: DiCE not completed, coverage trade-off, small age groups, FastAPI on_event, SHAP notice, LIME subset |
 | Nov 26, 2026 | #27, #32, #33, #44, #46, #58, #64 | Resolved in Phase 4.8 |
 | Nov 26, 2026 | #67–#70 | Identified: no upload scanning/deletion, live EOD always zero, demographic rejected count, in-place DB upgrade |
+| Nov 26, 2026 | #61 | Resolved: DiCE speed-up, wrapper fixes and full run (Phase 4.7b) |
+| Nov 26, 2026 | #56, #62, #63 | Numbers updated from the Phase 4.7b run |
 
 ---
 

@@ -53,7 +53,7 @@
 |---|---|---|
 | SHAP (`src/explainability.py`) | ✅ | Additivity difference 0.0; repeat-run correlation 1.0. Top features: `CREDIT_GOODS_EXT_RISK`, `EXT_SOURCE_MEAN`, `CREDIT_ANNUITY_RATIO` |
 | LIME (`src/lime_local.py`) | ✅ | Local, sign-correct, seeded (D-43). On 150 applicants: Spearman with SHAP 0.64 (was 0.00), locality gap 0.49 (was 0.00), sign agreement 0.74, seed stability 0.83, 38 ms (`reports/explanation_consistency.json`). Covers 25 top-gain features (#66) |
-| Recourse (`src/recourse.py`) | ✅ | Bounded search over loan amount, income and tenure (D-38) with a safety margin, a plausibility check, refinement, two tiers and SHAP drivers (D-44 to D-48). Usable option: 59.0% of rejected applicants (previous engine 21.3%), 27.3% of Review applicants get a path to Approve; 24% smaller changes than before, 30% smaller than random search; about 20 ms (`reports/recourse_evaluation.json`). DiCE comparison not completed (#61) |
+| Recourse (`src/recourse.py`) | ✅ | Bounded search over loan amount, income and tenure (D-38) with a safety margin, a plausibility check, refinement, two tiers and SHAP drivers (D-44 to D-48). Usable option: 59.0% of rejected applicants (previous engine 21.3%, DiCE 5% on 20 applicants); 34.0% of Review applicants get a path to Approve. Changes are 24% smaller than the previous engine's and about 30% smaller than random search's; about 20 ms (`reports/recourse_evaluation.json`, IMPLEMENTATION_LOG 4.7b) |
 | Counterfactuals, Phase 3 version (`src/counterfactuals.py`, DiCE) | 🟡 | Offline Phase 3 script; DiCE now also runs as a baseline inside `src/recourse_eval.py` |
 | Fairness audit (`src/fairness_audit.py`) | ✅ / 🟡 | Age-band DPD 0.349 and EOD 0.350; has-children DPD 0.045. The age gap tracks real default rates (11.4% for under-25 vs 5.2% for 55+) even with age excluded, so it comes through proxies. Mitigation or a documented decision is still open (#16) |
 
@@ -99,7 +99,7 @@ The Pydantic (#27), pandas (#58) and FastAPI (#64) warnings are gone. Remaining 
 The model and the system are in place. Reviewers will look hardest at the claims around the novelty, so these come first:
 
 1. ~~LIME must explain individual applicants~~ ✅ done in 4.7.
-2. ~~Recourse needs standard evaluation~~ ✅ done in 4.7, except the DiCE baseline (#61), which needs a 30–40 minute run.
+2. ~~Recourse needs standard evaluation~~ ✅ done in 4.7 and 4.7b, including DiCE.
 3. **Recourse framing:** a graduated path (Reject → Review → Approve). State the coverage trade-off of the stricter rules (#62) and confirm the age-band gaps on a larger sample (#63).
 4. **Fairness:** report the age disparity with per-group default rates and AUC, and decide on mitigation or a documented justification (#16).
 5. **A working demo:** backend complete after 4.8; PDF export and the frontend remain.
@@ -120,7 +120,7 @@ Phases 4.7 onward (TECHNICAL_DECISIONS D-41) follow this order.
 
 ## 7. Next phase and open questions
 
-**Next phase (awaiting approval): 4.4, PDF reports** (applicant decision report and officer compliance report), then 4.9 and 4.10 (frontend). Still open from 4.7: the DiCE baseline run (#61).
+**Next phase (awaiting approval): 4.4, PDF reports** (applicant decision report and officer compliance report), then 4.9 and 4.10 (frontend).
 
 | # | Open question | Status |
 |---|---|---|

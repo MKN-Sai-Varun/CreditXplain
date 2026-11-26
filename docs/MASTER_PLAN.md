@@ -181,6 +181,6 @@ Full detail is in `PROJECT_STATE.md`. Legend: ✅ complete and verified by real 
 |---|---|
 | 1. Literature & dataset prep | ✅ cleaned dataset verified on real data. 🟡 No EDA report or `eda.py` output exists yet. The gap/novelty tables are in the plan itself |
 | 2. Baseline models & explainability | ✅ Final LightGBM (test AUC 0.7668, gender and age excluded). SHAP verified; local LIME with SHAP agreement measured on 150 applicants (Phase 4.7) |
-| 3. Counterfactual engine & fairness | ✅ Two-tier recourse with safety margin and plausibility check, evaluated against the previous engine, random search and ablations (DiCE run pending). Offline fairness audit done; age disparity documented |
+| 3. Counterfactual engine & fairness | ✅ Two-tier recourse with safety margin and plausibility check, evaluated against the previous engine, random search, DiCE and ablations. Offline fairness audit done; age disparity documented |
 | 4. Dashboard | 🟡 FastAPI backend complete (auth, applications, predictions, recourse, loan terms, documents, officer workflow, fairness monitoring; Phase 4.8). PDF reports and the Next.js frontend remain |
 | 5. Testing & documentation | 🟡 Automated tests for model and API; docs kept per phase. README rewrite, CI, latency and usability checks, and the manuscript remain |
