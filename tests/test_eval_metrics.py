@@ -56,3 +56,28 @@ def test_aggregate_hand_example():
     assert a["plausible_share"] == pytest.approx(2 / 3, abs=1e-4)
     assert a["robust_share"] == pytest.approx(2 / 3, abs=1e-4)
     assert a["latency_ms_mean"] == 25.0
+
+
+def test_aggregate_robustness_fields():
+    df = pd.DataFrame({
+        "found":     [True, True, True, False],
+        "improves":  [True, True, True, None],
+        "cost":      [0.1, 0.2, 0.3, None],
+        "levers":    [1, 1, 2, None],
+        "plausible": [True, True, False, None],
+        "robust":    [True, True, True, None],
+        "latency_ms": [1.0, 1.0, 1.0, 1.0],
+        "n_models":  [5, 5, 5, 5],
+        "holds_own": [5, 3, 5, None],
+        "holds_fixed": [5, 5, 4, None],
+        "base_holds_own": [0, 1, 0, 0],
+    })
+    for c in ("improves", "plausible", "robust"):
+        df[c] = df[c].astype("boolean")
+    a = aggregate(df)
+    assert a["retrained_models"] == 5
+    assert a["holds_on_all_retrained"] == pytest.approx(2 / 3, abs=1e-4)
+    assert a["holds_on_all_retrained_fixed_cutoffs"] == pytest.approx(2 / 3, abs=1e-4)
+    assert a["mean_retrained_models_held"] == pytest.approx(13 / 3, abs=1e-3)
+    assert a["usable_and_holds_on_all"] == pytest.approx(1 / 4)       # only the first row
+    assert a["unchanged_applicant_already_promised_on_any"] == pytest.approx(1 / 4)

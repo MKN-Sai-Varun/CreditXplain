@@ -22,7 +22,8 @@ STEPS=(
   "SHAP and LIME explanations and report|$PY src/explainability.py"
   "SHAP vs LIME agreement on 150 applicants|$PY -m src.explanation_eval"
   "Offline fairness audit|$PY src/fairness_audit.py"
-  "Recourse evaluation incl. baselines and DiCE|$PY -m src.recourse_eval --n 300 --dice 20"
+  "Five bootstrap-retrained models for the robustness check|$PY -m src.train_bootstrap_models --n 5"
+  "Recourse evaluation incl. baselines, DiCE and robustness|$PY -m src.recourse_eval --n 300 --dice 20 --robustness"
 )
 
 if [[ "${1:-}" == "--list" ]]; then

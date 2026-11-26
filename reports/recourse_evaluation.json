@@ -12,8 +12,14 @@
         "mean_levers": 1.479,
         "plausible_share": 1.0,
         "robust_share": 0.1753,
-        "latency_ms_mean": 24.0,
-        "latency_ms_p95": 29.8
+        "latency_ms_mean": 24.4,
+        "latency_ms_p95": 30.2,
+        "retrained_models": 5,
+        "holds_on_all_retrained": 0.1186,
+        "holds_on_all_retrained_fixed_cutoffs": 0.134,
+        "mean_retrained_models_held": 2.665,
+        "usable_and_holds_on_all": 0.0133,
+        "unchanged_applicant_already_promised_on_any": 0.2967
       },
       "ablation_no_plausibility": {
         "applicants": 300,
@@ -24,8 +30,14 @@
         "mean_levers": 1.498,
         "plausible_share": 0.6414,
         "robust_share": 1.0,
-        "latency_ms_mean": 25.7,
-        "latency_ms_p95": 28.6
+        "latency_ms_mean": 26.0,
+        "latency_ms_p95": 29.0,
+        "retrained_models": 5,
+        "holds_on_all_retrained": 0.2112,
+        "holds_on_all_retrained_fixed_cutoffs": 0.247,
+        "mean_retrained_models_held": 3.271,
+        "usable_and_holds_on_all": 0.12,
+        "unchanged_applicant_already_promised_on_any": 0.2967
       },
       "dice": {
         "applicants": 20,
@@ -36,9 +48,15 @@
         "mean_levers": 1.875,
         "plausible_share": 0.125,
         "robust_share": 1.0,
-        "latency_ms_mean": 143.3,
-        "latency_ms_p95": 153.5,
-        "suggestions_outside_lever_space": 37
+        "latency_ms_mean": 146.0,
+        "latency_ms_p95": 156.4,
+        "suggestions_outside_lever_space": 37,
+        "retrained_models": 5,
+        "holds_on_all_retrained": 0.375,
+        "holds_on_all_retrained_fixed_cutoffs": 0.5,
+        "mean_retrained_models_held": 3.375,
+        "usable_and_holds_on_all": 0.05,
+        "unchanged_applicant_already_promised_on_any": 0.2
       },
       "previous": {
         "applicants": 300,
@@ -49,8 +67,14 @@
         "mean_levers": 1.395,
         "plausible_share": 0.635,
         "robust_share": 0.3726,
-        "latency_ms_mean": 14.7,
-        "latency_ms_p95": 14.9
+        "latency_ms_mean": 14.9,
+        "latency_ms_p95": 15.5,
+        "retrained_models": 5,
+        "holds_on_all_retrained": 0.1787,
+        "holds_on_all_retrained_fixed_cutoffs": 0.2053,
+        "mean_retrained_models_held": 3.023,
+        "usable_and_holds_on_all": 0.08,
+        "unchanged_applicant_already_promised_on_any": 0.2967
       },
       "proposed": {
         "applicants": 300,
@@ -61,8 +85,32 @@
         "mean_levers": 1.565,
         "plausible_share": 1.0,
         "robust_share": 1.0,
-        "latency_ms_mean": 23.4,
-        "latency_ms_p95": 29.8
+        "latency_ms_mean": 23.6,
+        "latency_ms_p95": 30.1,
+        "retrained_models": 5,
+        "holds_on_all_retrained": 0.2316,
+        "holds_on_all_retrained_fixed_cutoffs": 0.2768,
+        "mean_retrained_models_held": 3.249,
+        "usable_and_holds_on_all": 0.1367,
+        "unchanged_applicant_already_promised_on_any": 0.2967
+      },
+      "proposed_margin_0p2": {
+        "applicants": 300,
+        "coverage": 0.4967,
+        "improves_share": 1.0,
+        "mean_cost": 0.2192,
+        "median_cost": 0.17,
+        "mean_levers": 1.644,
+        "plausible_share": 1.0,
+        "robust_share": 1.0,
+        "latency_ms_mean": 22.1,
+        "latency_ms_p95": 29.9,
+        "retrained_models": 5,
+        "holds_on_all_retrained": 0.4228,
+        "holds_on_all_retrained_fixed_cutoffs": 0.4564,
+        "mean_retrained_models_held": 3.893,
+        "usable_and_holds_on_all": 0.21,
+        "unchanged_applicant_already_promised_on_any": 0.2967
       },
       "proposed_with_wait": {
         "applicants": 300,
@@ -75,8 +123,14 @@
         "mean_wait_months": 1.22,
         "plausible_share": 1.0,
         "robust_share": 1.0,
-        "latency_ms_mean": 38.2,
-        "latency_ms_p95": 46.0
+        "latency_ms_mean": 38.7,
+        "latency_ms_p95": 46.5,
+        "retrained_models": 5,
+        "holds_on_all_retrained": 0.2139,
+        "holds_on_all_retrained_fixed_cutoffs": 0.2488,
+        "mean_retrained_models_held": 3.209,
+        "usable_and_holds_on_all": 0.1433,
+        "unchanged_applicant_already_promised_on_any": 0.2967
       },
       "random": {
         "applicants": 300,
@@ -87,8 +141,14 @@
         "mean_levers": 3.0,
         "plausible_share": 1.0,
         "robust_share": 1.0,
-        "latency_ms_mean": 18.6,
-        "latency_ms_p95": 18.9
+        "latency_ms_mean": 18.7,
+        "latency_ms_p95": 19.1,
+        "retrained_models": 5,
+        "holds_on_all_retrained": 0.3424,
+        "holds_on_all_retrained_fixed_cutoffs": 0.3804,
+        "mean_retrained_models_held": 3.625,
+        "usable_and_holds_on_all": 0.21,
+        "unchanged_applicant_already_promised_on_any": 0.2967
       }
     },
     "review_to_approve": {
@@ -101,8 +161,14 @@
         "mean_levers": 1.606,
         "plausible_share": 1.0,
         "robust_share": 0.1314,
-        "latency_ms_mean": 21.4,
-        "latency_ms_p95": 29.7
+        "latency_ms_mean": 21.5,
+        "latency_ms_p95": 29.8,
+        "retrained_models": 5,
+        "holds_on_all_retrained": 0.0584,
+        "holds_on_all_retrained_fixed_cutoffs": 0.0657,
+        "mean_retrained_models_held": 2.285,
+        "usable_and_holds_on_all": 0.0033,
+        "unchanged_applicant_already_promised_on_any": 0.1867
       },
       "ablation_no_plausibility": {
         "applicants": 300,
@@ -113,8 +179,14 @@
         "mean_levers": 1.704,
         "plausible_share": 0.5926,
         "robust_share": 1.0,
-        "latency_ms_mean": 21.5,
-        "latency_ms_p95": 28.4
+        "latency_ms_mean": 21.8,
+        "latency_ms_p95": 28.7,
+        "retrained_models": 5,
+        "holds_on_all_retrained": 0.1481,
+        "holds_on_all_retrained_fixed_cutoffs": 0.1667,
+        "mean_retrained_models_held": 2.846,
+        "usable_and_holds_on_all": 0.0533,
+        "unchanged_applicant_already_promised_on_any": 0.1867
       },
       "dice": {
         "applicants": 20,
@@ -125,9 +197,15 @@
         "mean_levers": 1.778,
         "plausible_share": 0.4444,
         "robust_share": 1.0,
-        "latency_ms_mean": 137.4,
-        "latency_ms_p95": 161.0,
-        "suggestions_outside_lever_space": 30
+        "latency_ms_mean": 139.7,
+        "latency_ms_p95": 162.3,
+        "suggestions_outside_lever_space": 30,
+        "retrained_models": 5,
+        "holds_on_all_retrained": 0.2222,
+        "holds_on_all_retrained_fixed_cutoffs": 0.2222,
+        "mean_retrained_models_held": 3.333,
+        "usable_and_holds_on_all": 0.05,
+        "unchanged_applicant_already_promised_on_any": 0.15
       },
       "previous": {
         "applicants": 300,
@@ -138,8 +216,14 @@
         "mean_levers": 1.635,
         "plausible_share": 0.6406,
         "robust_share": 0.224,
-        "latency_ms_mean": 14.7,
-        "latency_ms_p95": 14.9
+        "latency_ms_mean": 14.8,
+        "latency_ms_p95": 15.4,
+        "retrained_models": 5,
+        "holds_on_all_retrained": 0.099,
+        "holds_on_all_retrained_fixed_cutoffs": 0.0885,
+        "mean_retrained_models_held": 2.5,
+        "usable_and_holds_on_all": 0.0233,
+        "unchanged_applicant_already_promised_on_any": 0.1867
       },
       "proposed": {
         "applicants": 300,
@@ -150,8 +234,32 @@
         "mean_levers": 1.647,
         "plausible_share": 1.0,
         "robust_share": 1.0,
-        "latency_ms_mean": 19.7,
-        "latency_ms_p95": 29.3
+        "latency_ms_mean": 19.9,
+        "latency_ms_p95": 29.6,
+        "retrained_models": 5,
+        "holds_on_all_retrained": 0.1471,
+        "holds_on_all_retrained_fixed_cutoffs": 0.1765,
+        "mean_retrained_models_held": 2.892,
+        "usable_and_holds_on_all": 0.05,
+        "unchanged_applicant_already_promised_on_any": 0.1867
+      },
+      "proposed_margin_0p2": {
+        "applicants": 300,
+        "coverage": 0.24,
+        "improves_share": 1.0,
+        "mean_cost": 0.2525,
+        "median_cost": 0.2125,
+        "mean_levers": 1.722,
+        "plausible_share": 1.0,
+        "robust_share": 1.0,
+        "latency_ms_mean": 18.5,
+        "latency_ms_p95": 28.9,
+        "retrained_models": 5,
+        "holds_on_all_retrained": 0.2639,
+        "holds_on_all_retrained_fixed_cutoffs": 0.2639,
+        "mean_retrained_models_held": 3.472,
+        "usable_and_holds_on_all": 0.0633,
+        "unchanged_applicant_already_promised_on_any": 0.1867
       },
       "proposed_with_wait": {
         "applicants": 300,
@@ -164,8 +272,14 @@
         "mean_wait_months": 1.85,
         "plausible_share": 1.0,
         "robust_share": 1.0,
-        "latency_ms_mean": 34.3,
-        "latency_ms_p95": 45.1
+        "latency_ms_mean": 34.5,
+        "latency_ms_p95": 45.3,
+        "retrained_models": 5,
+        "holds_on_all_retrained": 0.1527,
+        "holds_on_all_retrained_fixed_cutoffs": 0.1679,
+        "mean_retrained_models_held": 2.832,
+        "usable_and_holds_on_all": 0.0667,
+        "unchanged_applicant_already_promised_on_any": 0.1867
       },
       "random": {
         "applicants": 300,
@@ -176,8 +290,14 @@
         "mean_levers": 3.0,
         "plausible_share": 1.0,
         "robust_share": 1.0,
-        "latency_ms_mean": 18.4,
-        "latency_ms_p95": 18.8
+        "latency_ms_mean": 18.7,
+        "latency_ms_p95": 19.0,
+        "retrained_models": 5,
+        "holds_on_all_retrained": 0.2072,
+        "holds_on_all_retrained_fixed_cutoffs": 0.1892,
+        "mean_retrained_models_held": 3.108,
+        "usable_and_holds_on_all": 0.0767,
+        "unchanged_applicant_already_promised_on_any": 0.1867
       }
     }
   },

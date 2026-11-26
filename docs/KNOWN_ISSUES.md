@@ -1,6 +1,6 @@
 # KNOWN_ISSUES — CreditXplain
 
-**Last Updated:** Nov 26, 2026 (Phase 5.1: reproducibility and CI)
+**Last Updated:** Nov 26, 2026 (Phase 5.2: recourse robustness)
 
 This document tracks bugs, gaps, technical debt, and unresolved questions. Items are numbered for reference.
 
@@ -1229,6 +1229,21 @@ Found on Nov 25, 2026 by running every existing test (`tests/`: 88 passed; `back
 
 ---
 
+## Phase 5.2: Recourse Robustness — New Issues
+
+### #83: Recourse Is Fragile Under Retraining
+**Status:** Open (finding; candidate fix in Phase 5.2b)  
+**Phase:** 5.2  
+**Description:** On 5 bootstrap-retrained models, 23.2% of the proposed engine's Reject → Review options and 14.7% of its Review → Approve options hold on all 5 models (margin 0.1). The refinement step aims for the smallest change, which places options just past the margin. Random search's larger changes hold more often (34.2%). A 0.2 margin raises robustness to 42.3%, but coverage falls to 49.7%.  
+**Options:**
+1. Larger margin: simple, but costs coverage.
+2. **Ensemble-robust search:** require an option to qualify on several retrained models during the search, and evaluate on a separate set of retrained models, so the evaluation is not circular.
+3. Report fragility as a limitation only.
+
+**For the paper:** report the robustness table and the margin trade-off whatever is chosen.
+
+---
+
 ## Change Log (Updated)
 
 | Date | Issue | Action |
@@ -1262,6 +1277,7 @@ Found on Nov 25, 2026 by running every existing test (`tests/`: 88 passed; `back
 | Nov 26, 2026 | #79, #80 | Identified: no officer list of all applications, officer accounts by seeding |
 | Nov 26, 2026 | #3, #5, #6, #7 | Resolved in Phase 5.1; #12 mitigated |
 | Nov 26, 2026 | #81, #82 | Identified: CI on Python 3.9, data-dependent tests skip in CI |
+| Nov 26, 2026 | #83 | Identified: recourse fragile under retraining (Phase 5.2 finding) |
 
 ---
 

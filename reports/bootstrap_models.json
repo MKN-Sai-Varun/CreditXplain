@@ -1,0 +1,66 @@
+{
+  "models": [
+    {
+      "k": 1,
+      "seed": 101,
+      "path": "models/bootstrap_lgbm_1.pkl",
+      "best_iteration": 411,
+      "validation_roc_auc": 0.7627088491872913,
+      "test_roc_auc": 0.7616391039943298,
+      "approve_threshold": 0.034665530732094864,
+      "reject_threshold": 0.11915695783876246,
+      "unique_rows_share": 0.6329431013282115
+    },
+    {
+      "k": 2,
+      "seed": 102,
+      "path": "models/bootstrap_lgbm_2.pkl",
+      "best_iteration": 462,
+      "validation_roc_auc": 0.7645656840866388,
+      "test_roc_auc": 0.7599061626225989,
+      "approve_threshold": 0.03426684683108655,
+      "reject_threshold": 0.117617260512758,
+      "unique_rows_share": 0.6337255977968151
+    },
+    {
+      "k": 3,
+      "seed": 103,
+      "path": "models/bootstrap_lgbm_3.pkl",
+      "best_iteration": 550,
+      "validation_roc_auc": 0.7647832917978358,
+      "test_roc_auc": 0.7608618887520577,
+      "approve_threshold": 0.033938518855149216,
+      "reject_threshold": 0.1148137515326135,
+      "unique_rows_share": 0.6314797313090048
+    },
+    {
+      "k": 4,
+      "seed": 104,
+      "path": "models/bootstrap_lgbm_4.pkl",
+      "best_iteration": 418,
+      "validation_roc_auc": 0.7653294819206478,
+      "test_roc_auc": 0.7614896514449354,
+      "approve_threshold": 0.035344450710388484,
+      "reject_threshold": 0.11818544178222397,
+      "unique_rows_share": 0.6310427527616028
+    },
+    {
+      "k": 5,
+      "seed": 105,
+      "path": "models/bootstrap_lgbm_5.pkl",
+      "best_iteration": 367,
+      "validation_roc_auc": 0.7654021996558265,
+      "test_roc_auc": 0.7623392435719604,
+      "approve_threshold": 0.03581174910738811,
+      "reject_threshold": 0.11731198180597599,
+      "unique_rows_share": 0.6314898936008049
+    }
+  ],
+  "final_model": {
+    "test_roc_auc": 0.7667974950907726,
+    "approve_threshold": 0.03493384664645254,
+    "reject_threshold": 0.11894556842634471
+  },
+  "test_roc_auc_mean": 0.7612472100771763,
+  "test_roc_auc_std": 0.0008187522961009292
+}

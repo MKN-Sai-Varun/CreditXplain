@@ -81,7 +81,7 @@ The pipeline reads `application_train.csv`, `bureau.csv` and `previous_applicati
 ```bash
 scripts/run_pipeline.sh          # all steps
 scripts/run_pipeline.sh --list   # show the steps
-scripts/run_pipeline.sh 7        # resume from a step
+scripts/run_pipeline.sh 7        # resume from a step (11 steps)
 ```
 
 | Step | Script | Produces |
@@ -95,7 +95,8 @@ scripts/run_pipeline.sh 7        # resume from a step
 | 7 | `src/explainability.py` | `reports/shap/`, `reports/lime/`, `reports/explainability_report.md` |
 | 8 | `src.explanation_eval` | `reports/explanation_consistency.json` |
 | 9 | `src/fairness_audit.py` | `reports/fairness/` |
-| 10 | `src.recourse_eval` | `reports/recourse_evaluation.json` |
+| 10 | `src.train_bootstrap_models` | 5 retrained models (`models/bootstrap_lgbm_*.pkl`), `reports/bootstrap_models.json` |
+| 11 | `src.recourse_eval --robustness` | `reports/recourse_evaluation.json` |
 
 Experiments behind the model choice (cross-validation, CatBoost, the blend, threshold strategies) are in `src/lgbm_fe_v2_cv.py`, `src/catboost_fe_v2_cv.py`, `src/ensemble_lgbm_catboost.py`, `src/evaluate_on_test.py`, `src/compare_lightgbm_strategies.py` and `src/scale_and_balance.py` (scaling and SMOTENC variants; the final model does not use their outputs).
 

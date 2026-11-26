@@ -20,7 +20,7 @@ from sklearn.model_selection import train_test_split
 from sklearn.metrics import roc_auc_score, average_precision_score, log_loss, precision_recall_curve
 
 from model_params import LGBM_PARAMS, EARLY_STOPPING_ROUNDS, EXCLUDED_FEATURES, GENDER_PATTERNS
-from decision import decide
+from decision import decide, select_cutoffs
 
 parser = argparse.ArgumentParser()
 parser.add_argument("--ablation", action="store_true", help="Run gender ablation study")
@@ -93,32 +93,8 @@ val_auc = roc_auc_score(y_val, val_probs)
 
 print(f"\nValidation ROC-AUC: {val_auc:.6f}")
 
-# Select thresholds on validation set
-# Strategy: Balanced three-band system - aim for ~40% approve, ~40% review, ~20% reject
-
-# Approve threshold: Bottom 40% with acceptable risk (≤3% default rate)
-for percentile in range(35, 50, 2):
-    threshold_candidate = np.percentile(val_probs, percentile)
-    mask = val_probs < threshold_candidate
-    if mask.sum() > 0:
-        default_rate = y_val[mask].mean()
-        if default_rate <= 0.03:  # Target max 3% default in approve band
-            approve_below = threshold_candidate
-            break
-else:
-    # Fallback: 40th percentile
-    approve_below = np.percentile(val_probs, 40)
-
-# Reject threshold: Top 20% highest risk (80th percentile)
-reject_from = np.percentile(val_probs, 80)
-
-# Verify reject band has meaningfully higher risk (at least 3x base rate)
-reject_mask = val_probs >= reject_from
-if reject_mask.sum() > 0:
-    reject_default_rate = y_val[reject_mask].mean()
-    # If reject band doesn't have at least 20% default rate, tighten
-    if reject_default_rate < 0.20:
-        reject_from = np.percentile(val_probs, 85)
+# Select thresholds on validation set (rule in decision.select_cutoffs)
+approve_below, reject_from = select_cutoffs(val_probs, y_val)
 
 print(f"\nSelected thresholds (from validation set):")
 print(f"  Approve below: {approve_below:.4f}")

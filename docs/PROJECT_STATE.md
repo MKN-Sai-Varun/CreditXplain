@@ -14,7 +14,7 @@
 
 ## 1. How to resume
 
-1. Read this file, then `KNOWN_ISSUES.md` #61–#82 (the newest findings).
+1. Read this file, then `KNOWN_ISSUES.md` #61–#83 (the newest findings).
 2. Check the repo: `git log --oneline -5`, `git status --short`.
 3. Follow the working agreement in section 6: propose the next phase and wait for approval.
 
@@ -75,7 +75,7 @@
 
 | Item | Status |
 |---|---|
-| CI | ✅ GitHub Actions: model/API tests and frontend checks (D-69) |
+| CI | ✅ GitHub Actions: model/API tests (Ubuntu 24.04, Python 3.9) and frontend checks, both passing since `3680046` (D-69) |
 | README | ✅ Rewritten with setup, pipeline and results (Phase 5.1) |
 | End-to-end latency, usability check | ⬜ |
 | Manuscript | ⬜ |
@@ -121,7 +121,9 @@ Phases 4.7 onward (TECHNICAL_DECISIONS D-41) follow this order.
 
 ## 7. Next phase and open questions
 
-**Next phase (awaiting approval): 5.2, recourse robustness across retrained models**, then 5.3 system measurements, 5.4 usability check, 5.5 manuscript.
+**Phase 5.2 finding:** recourse is fragile under retraining (KNOWN_ISSUES #83): 23.2% of Reject → Review options hold on all 5 retrained models at the current 0.1 margin.
+
+**Next phase (awaiting approval):** 5.2b, ensemble-robust recourse (recommended), or 5.3 system measurements; then 5.4 usability check, 5.5 manuscript.
 
 | # | Open question | Status |
 |---|---|---|

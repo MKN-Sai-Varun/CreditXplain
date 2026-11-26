@@ -1,6 +1,6 @@
 # TECHNICAL_DECISIONS — CreditXplain
 
-**Last Updated:** Phase 5.1 reproducibility and CI (Nov 26, 2026)
+**Last Updated:** Phase 5.2 recourse robustness (Nov 26, 2026)
 
 This document records all technical and architectural decisions made during the project, with rationale.
 
@@ -1654,6 +1654,35 @@ The old set-up had a higher R² because it fitted one global linear model, which
 
 ---
 
+## 25. Recourse Robustness (Phase 5.2)
+
+### D-70: Robustness Measured on Retrained Models
+**Decision:** Recourse robustness is measured against 5 bootstrap-retrained models (`src/train_bootstrap_models.py`). Each repeats `src/final_model.py` exactly, except that it is fitted on a resample with replacement of the fit split, with seed 100+k:
+- same features, parameters and early stopping on the same validation split;
+- cutoffs re-selected by the same rule.
+
+An option **holds** on a model if that model, with the option applied, puts the applicant in the promised band (Review or better from Reject; Approve from Review).
+
+**Reported per method** (`src/recourse_eval.py --robustness`, logic in `src/robustness.py`):
+- share of options holding on all 5 models, with each model's own cutoffs and with the final model's cutoffs;
+- mean number of models held;
+- share of applicants with an option that is usable and holds on all 5.
+
+**Reference:** how often the unchanged applicant already reaches the promised band on some retrained model.
+
+**Margin sensitivity:** proposed at margins 0, 0.1 and 0.2 (`ablation_no_margin`, `proposed`, `proposed_margin_0p2`).
+
+**Why:** The 0.1 log-odds margin was only a design choice. Retraining is how banks actually change models, so it is the realistic test of whether advice lasts.
+
+---
+
+### D-71: One Cutoff Rule, Shared
+**Decision:** The validation-set cutoff rule moved from inline code in `src/final_model.py` into `decision.select_cutoffs`, which `final_model.py` and the bootstrap script both call. The logic is unchanged; a test re-derives the model card's cutoffs from the saved model.
+
+**Date:** Nov 26, 2026
+
+---
+
 ## Change Log (Updated)
 
 | Date | Phase | Changes |
@@ -1670,6 +1699,7 @@ The old set-up had a higher R² because it fitted one global linear model, which
 | Nov 26, 2026 | Phase 4.9 | D-61 client-rendered frontend; D-62 token storage; D-63 labels from backend; D-64 application form |
 | Nov 26, 2026 | Phase 4.10 | D-65 officer workflow in the browser; D-66 fairness panel wording |
 | Nov 26, 2026 | Phase 5.1 | D-67 pinned requirements; D-68 pipeline script; D-69 CI without private data |
+| Nov 26, 2026 | Phase 5.2 | D-70 robustness on retrained models; D-71 shared cutoff rule |
 
 ---
 

@@ -11,6 +11,11 @@ Methods (all but proposed_with_wait limited to the same three loan levers and bo
               same FE v2 path, with DiCE's binary post-hoc sparsity search;
               run on a subset (--dice N)
   ablation_no_margin, ablation_no_plausibility - proposed with one rule switched off
+  proposed_margin_0p2 - proposed with a 0.2 log-odds margin (margin sensitivity)
+
+With --robustness, every best option is also re-scored on the bootstrap models
+from src/train_bootstrap_models.py (see src/robustness.py), and the unchanged
+applicant is scored too, as a reference for how much retraining alone moves bands.
 
 Tiers: reject -> review, and review -> approve.
 Reported per method and tier: coverage, cost (proximity), levers changed
@@ -18,7 +23,7 @@ Reported per method and tier: coverage, cost (proximity), levers changed
 Also reports recourse coverage and cost by age band and by children, for the
 proposed method (burden of recourse across groups).
 
-Run: python3 -m src.recourse_eval [--n 300] [--dice 20] [--methods dice]
+Run: python3 -m src.recourse_eval [--n 300] [--dice 20] [--methods dice] [--robustness]
 
 --methods runs only the listed methods and merges their rows into the existing
 per-applicant file, so DiCE can be added without re-running the rest.
@@ -38,6 +43,7 @@ from threadpoolctl import threadpool_limits
 
 from src.decision import decide
 from src.inference import Scorer
+from src.robustness import Ensemble
 from src.recourse import (BAND, DEFAULT_MARGIN, INCOME_SCALES, CREDIT_SCALES, INSTALMENT_SCALES,
                           _Evaluator, _cost, _levers, _logit, _qualifies, apply_changes,
                           default_plausibility, find_recourse)
@@ -47,7 +53,7 @@ warnings.filterwarnings("ignore")
 RANDOM_BUDGET = 300
 DICE_BACKGROUND = 200
 METHODS = ["previous", "proposed", "proposed_with_wait", "ablation_no_margin", "ablation_no_plausibility",
-           "random", "dice"]
+           "proposed_margin_0p2", "random", "dice"]
 LOAN_ONLY = ("wait",)
 PER_APPLICANT = Path("reports/recourse_evaluation_per_applicant.csv")
 SUMMARY = Path("reports/recourse_evaluation.json")
@@ -233,6 +239,22 @@ def aggregate(df):
         "latency_ms_p95": round(float(df["latency_ms"].quantile(0.95)), 1),
         **({"suggestions_outside_lever_space": int(df["outside"].fillna(0).sum())}
            if "outside" in df and df["outside"].notna().any() else {}),
+        **(_robustness(df, f) if "holds_own" in df and df["holds_own"].notna().any() else {}),
+    }
+
+
+def _robustness(df, f):
+    """Shares of found options that still hold on every retrained model."""
+    n = int(df["n_models"].max())
+    held = f.dropna(subset=["holds_own"])
+    return {
+        "retrained_models": n,
+        "holds_on_all_retrained": round(float((held["holds_own"] == n).mean()), 4) if len(held) else None,
+        "holds_on_all_retrained_fixed_cutoffs": round(float((held["holds_fixed"] == n).mean()), 4) if len(held) else None,
+        "mean_retrained_models_held": round(float(held["holds_own"].mean()), 3) if len(held) else None,
+        "usable_and_holds_on_all": round(float((df["found"] & (df["plausible"] == True) & (df["robust"] == True)
+                                                & (df["holds_own"] == n)).mean()), 4),
+        "unchanged_applicant_already_promised_on_any": round(float((df["base_holds_own"] > 0).mean()), 4),
     }
 
 
@@ -284,6 +306,8 @@ def main():
     ap.add_argument("--methods", default=",".join(METHODS),
                     help=f"comma-separated subset of {METHODS}")
     ap.add_argument("--threads", type=int, default=2, help="CPU threads for the model")
+    ap.add_argument("--robustness", action="store_true",
+                    help="also check options on the bootstrap models (python3 -m src.train_bootstrap_models)")
     args = ap.parse_args()
     methods = [m.strip() for m in args.methods.split(",") if m.strip()]
     unknown = set(methods) - set(METHODS)
@@ -296,6 +320,12 @@ def main():
         pass
 
     sc = Scorer()
+    ensemble = None
+    if args.robustness:
+        ensemble = Ensemble.load()
+        if ensemble is None:
+            raise SystemExit("Run python3 -m src.train_bootstrap_models first")
+        print(f"robustness check on {len(ensemble)} retrained models")
     plaus = default_plausibility()
     if plaus is None:
         raise SystemExit("Run python3 -m src.build_recourse_reference first")
@@ -321,6 +351,10 @@ def main():
                 meta = {"tier": tier, "row": int(i),
                         "age_band": age_band(pd.Series([raw["DAYS_BIRTH"]]))[0],
                         "has_children": "yes" if raw.get("CNT_CHILDREN", 0) > 0 else "no"}
+                promised = base_band - 1   # Review for a rejected applicant, Approve for one in Review
+                if ensemble is not None:
+                    meta["n_models"] = len(ensemble)
+                    meta["base_holds_own"], meta["base_holds_fixed"] = ensemble.holds(sc.frame(raw), promised)
 
                 runs = {
                     "previous": lambda: from_engine(sc, raw, find_recourse(sc, raw, margin=0.0, plausibility=None,
@@ -331,6 +365,8 @@ def main():
                                                                                      locked=LOAN_ONLY)),
                     "ablation_no_plausibility": lambda: from_engine(sc, raw, find_recourse(sc, raw, plausibility=None,
                                                                                            locked=LOAN_ONLY)),
+                    "proposed_margin_0p2": lambda: from_engine(sc, raw, find_recourse(sc, raw, margin=0.2,
+                                                                                      locked=LOAN_ONLY)),
                     "random": lambda: random_search(sc, raw, plaus, search_rng),
                     "dice": lambda: dice_search(sc, raw, plaus, base_band, background),
                 }
@@ -344,6 +380,9 @@ def main():
                     if opt is not None and "outside" in opt:
                         extra["outside"] = opt.pop("outside")
                         opt = opt if "raw" in opt else None
+                    if ensemble is not None and opt is not None:
+                        X = sc.frame(apply_changes(opt["raw"], opt["changes"]))
+                        extra["holds_own"], extra["holds_fixed"] = ensemble.holds(X, promised)
                     rows.append({**meta, "method": method, "latency_ms": ms, **extra,
                                  **summarise_option(sc, opt, plaus, base_band)})
 

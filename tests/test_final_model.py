@@ -117,3 +117,18 @@ def test_audit_data_created():
     
     for col in required_cols:
         assert col in audit.columns, f"Missing column: {col}"
+
+
+@pytest.mark.needs("data/processed/X_train_fe_v2.csv", "data/processed/y_train.csv")
+def test_cutoff_rule_reproduces_model_card(model, model_card):
+    """decision.select_cutoffs on the final model's validation split gives the card's cutoffs."""
+    from sklearn.model_selection import train_test_split
+    from decision import select_cutoffs
+
+    X = pd.read_csv("data/processed/X_train_fe_v2.csv")[model_card["features_used"]]
+    y = pd.read_csv("data/processed/y_train.csv").squeeze()
+    _, X_val, _, y_val = train_test_split(X, y, test_size=0.2, stratify=y, random_state=42)
+    approve_below, reject_from = select_cutoffs(model.predict(X_val), y_val)
+    assert approve_below == pytest.approx(model_card["approve_threshold"], rel=1e-9)
+    assert reject_from == pytest.approx(model_card["reject_threshold"], rel=1e-9)
+

@@ -2097,9 +2097,71 @@ Makes the project reproducible from a fresh clone and checked on every push. Dec
 ### Checks
 - Workflow YAML parses; `scripts/run_pipeline.sh --list` works.
 - Local test run: **212 passed, none skipped** (all model and data files present).
-- First CI run: the Python job failed at setup, because `ubuntu-latest` (Ubuntu 26.04) has no Python 3.9 build. Fixed by pinning that job to `ubuntu-24.04`. Second run: result to be recorded.
+- First CI run: the Python job failed at setup, because `ubuntu-latest` (Ubuntu 26.04) has no Python 3.9 build. Fixed by pinning that job to `ubuntu-24.04`. Second run (commit `3680046`): **both jobs passed**.
 
 **Next Phase:** 5.2, recourse robustness across retrained models.
+
+---
+
+## Phase 5.2: Recourse Robustness Across Retrained Models (Nov 26, 2026)
+
+### Overview
+Tests whether recourse suggestions still hold after the model is retrained, and whether the safety margin is the right size. These results are for the paper's evaluation. Decisions: TECHNICAL_DECISIONS D-70, D-71.
+
+### Changes
+- `src/decision.py`: `select_cutoffs`, the validation cutoff rule (moved out of `final_model.py`, logic unchanged).
+- `src/final_model.py`: calls `select_cutoffs`.
+- `src/train_bootstrap_models.py` (new): 5 bootstrap-retrained models with their own cutoffs. Writes `models/bootstrap_lgbm_<k>.pkl` (gitignored) and `reports/bootstrap_models.json`; resumable; 2 threads and low priority by default.
+- `src/robustness.py` (new): `count_holds`, `band_index` and `Ensemble` (own and fixed cutoff policies).
+- `src/recourse_eval.py`: `--robustness`, a new method `proposed_margin_0p2`, robustness fields in the summary.
+- `scripts/run_pipeline.sh`, `README.md`: two new steps (bootstrap models; recourse evaluation with robustness), 11 steps in all.
+
+### Tests (7 new)
+- `tests/test_robustness.py` (new, 5): band boundaries, counting against the promised band, own vs fixed cutoffs, missing models, cutoff rule on synthetic data.
+- `tests/test_eval_metrics.py` (1): robustness summary fields checked by hand.
+- `tests/test_final_model.py` (1): the shared rule reproduces the model card's cutoffs from the saved model.
+
+Full run: 219 passed.
+
+### Results (Nov 26, 2026)
+**Bootstrap models** (`reports/bootstrap_models.json`): 5 models, about 10 s each.
+- Test ROC-AUC 0.7612 ± 0.0008, against 0.7668 for the final model. A bootstrap resample holds about 63% unique rows, so each model sees less distinct data.
+- Re-selected cutoffs: approve below 0.0339–0.0358 (final 0.0349); reject from 0.1148–0.1192 (final 0.1189).
+
+**Robustness of the best option** (`reports/recourse_evaluation.json`; full run 2 min 53 s). Each model's own cutoffs; the final model's cutoffs give similar figures (within about 4 points).
+
+Reject → Review (300 applicants):
+
+| Method | Usable | Holds on all 5 | Mean models held | Usable and holds on all 5 |
+|---|---|---|---|---|
+| proposed, margin 0 | 64.7% | 11.9% | 2.67 | 1.3% |
+| proposed, margin 0.1 (current) | 59.0% | 23.2% | 3.25 | 13.7% |
+| proposed, margin 0.2 | 49.7% | 42.3% | 3.89 | 21.0% |
+| proposed with waiting | 67.0% | 21.4% | 3.21 | 14.3% |
+| random search | 61.3% | 34.2% | 3.63 | 21.0% |
+| previous engine | 87.7% | 17.9% | 3.02 | 8.0% |
+| DiCE (20) | 5.0% | 37.5% of 8 found | 3.38 | 5.0% |
+
+Review → Approve (300 applicants):
+
+| Method | Usable | Holds on all 5 | Mean models held | Usable and holds on all 5 |
+|---|---|---|---|---|
+| proposed, margin 0 | 45.7% | 5.8% | 2.29 | 0.3% |
+| proposed, margin 0.1 (current) | 34.0% | 14.7% | 2.89 | 5.0% |
+| proposed, margin 0.2 | 24.0% | 26.4% | 3.47 | 6.3% |
+| proposed with waiting | 43.7% | 15.3% | 2.83 | 6.7% |
+| random search | 37.0% | 20.7% | 3.11 | 7.7% |
+| previous engine | 64.0% | 9.9% | 2.50 | 2.3% |
+
+**Reference:** the unchanged applicant already reaches the promised band on at least one retrained model for 29.7% (Reject) and 18.7% (Review) of applicants.
+
+**Findings:**
+1. Under retraining, most current recourse options are fragile: about 1 in 4 (Reject → Review) and 1 in 7 (Review → Approve) hold on all 5 models.
+2. Minimal change works against robustness. The refinement step places options just past the margin, while random search, which asks for about 50% more change, lands deeper in the band and holds more often.
+3. The margin trades coverage for robustness: margin 0 → 0.1 → 0.2 gives holds-on-all of 11.9% → 23.2% → 42.3%, with coverage of 64.7% → 59.0% → 49.7% (Reject → Review).
+4. The models disagree near the cutoffs (finding on the reference applicant), which bounds how robust any minimal recourse can be.
+
+Full test run: **219 passed**.
 
 ---
 
@@ -2121,7 +2183,8 @@ Makes the project reproducible from a fresh clone and checked on every push. Dec
 | 2026-11-26 | 4.9 | Frontend and applicant portal | Typed API client, auth, applicant pages, decision page with recourse and documents; labels from backend |
 | 2026-11-26 | 4.10 | Officer dashboard | Review queue, review page with actions and audit trail, analytics, fairness panel |
 | 2026-11-26 | 5.1 | Reproducibility and CI | README rewrite, pipeline script, pinned requirements, GitHub Actions, needs marker |
+| 2026-11-26 | 5.2 | Recourse robustness | Bootstrap models, robustness check, margin 0.2 variant, shared cutoff rule |
 
 ---
 
-**Last Updated:** Nov 26, 2026 (Phase 5.1 complete)
+**Last Updated:** Nov 26, 2026 (Phase 5.2 complete)
