@@ -2467,6 +2467,65 @@ The paper needs a dataset section, and the Phase 1 EDA deliverable was missing (
 
 ---
 
+## Phase 5.6b: Cleaning Fitted on Training Rows Only, All Results Rebuilt (Nov 27, 2026)
+
+### Overview
+Fixes KNOWN_ISSUES #86. `src/data_prep.py` used all 307,511 rows to learn its fill-in values and clipping limits, including the rows later held out for testing. It now learns them from the training rows only. Every model and report was then rebuilt, except the age experiment, which the project lead chose not to repeat (D-78).
+
+### Changes
+- **`src/data_prep.py`:**
+  - The rows are ordered first (simulated timestamps), and `split_mask` reproduces the stratified 80/20 split of `src/train_baseline.py` (`test_size=0.2`, `random_state=42`).
+  - `fit_cleaning` learns medians, most common categories and the mean ± 3 standard deviation clipping bounds from the 246,008 training rows.
+  - `clean_data` applies them to every row. The two ratio gaps in `engineer_features` use training medians too.
+  - Checked against the previous output: the row order, the split and the column layout are identical. 75 of 116 numeric columns changed slightly.
+- **`backend/config.py`:** the band cutoffs used to price loans within a band now match the new model card (0.0351 / 0.1190). Comments in `loan_calculator.py` now name the setting instead of old values.
+- **Tests (5 new, CI-safe, `tests/test_data_prep.py`):**
+  - the split matches `train_baseline.py`;
+  - extreme values in test rows do not move any statistic;
+  - gaps take training values and binary columns are not clipped;
+  - the employment placeholder becomes the flag;
+  - ratio gaps use the training median.
+- **Rebuilt:**
+  - pipeline steps 1–11: data, split, baselines, features, final model, defaults, plausibility reference, SHAP/LIME, explanation agreement, fairness audit, 10 retrained models, recourse evaluation;
+  - then latency, time-cost sensitivity and understandability.
+  - The EDA describes the raw data and is unaffected.
+
+Full test run: **275 passed** (on the rebuilt models and data).
+
+### Results, before → after (Nov 27, 2026)
+
+| Measure | Before | After |
+|---|---|---|
+| Final model test AUC / PR-AUC | 0.7668 / 0.2553 | **0.7668 / 0.2549** |
+| Cutoffs (approve below / reject from) | 0.0349 / 0.1189 | 0.0351 / 0.1190 |
+| Bands: approve / review / reject (actual default) | 34.8% (2.1%) / 45.0% (6.7%) / 20.1% (21.6%) | 34.9% (2.1%) / 44.9% (6.7%) / 20.2% (21.4%) |
+| Gender exclusion cost | 0.0017 AUC | 0.0015 AUC |
+| Retrained models, test AUC | 0.7611 ± 0.0008 | 0.7609 ± 0.0009 |
+| LIME vs SHAP: Spearman / sign agreement / locality gap | 0.64 / 0.74 / 0.49 | 0.64 / 0.73 / 0.51 |
+| Age-band DPD / has-children DPD | 0.349 / 0.045 | 0.356 / 0.049 |
+| Reject → Review, hybrid: usable / usable and survives retraining | 67.0% / 26.3% | **62.0% / 23.7%** |
+| Reject → Review, standard search with waiting | 67.0% / 16.3% | 62.0% / 14.3% |
+| Reject → Review, random search | 61.3% / 21.3% | 59.7% / 17.7% |
+| Reject → Review, previous engine | 21.3% / 6.3% | 22.7% / 8.7% |
+| Survives retraining: standard → ensemble search | 27.7% → 52.4% | 24.4% → 53.3% |
+| Review → Approve, hybrid: usable / survives retraining | 43.7% / 11.0% | 45.3% / 11.0% |
+| DiCE usable on 20 applicants (Reject / Review) | 5% / 20% | 20% / 5% |
+| Applicant's full path, mean / p95 | 160 / 257 ms | 158 / 259 ms |
+| Time cost doubled: first suggestion unchanged | 98–99% | 96–99% |
+| Applicant text: Flesch / grade / plain names | 60.0 / 7.8 / 100% | 60.0 / 7.8 / 100% (officer view 99.9%) |
+
+**Reading:**
+- The leak had no effect on the model's accuracy (test AUC identical to four decimals), so the headline results stand. The cleaning is now defensible as fitted on training data only.
+- Every conclusion holds:
+  - the hybrid gives the most rejected applicants a usable option that survives retraining (23.7%; next best random search, 17.7%);
+  - requiring agreement of the retrained models still about doubles robustness;
+  - the previous engine stays far behind.
+- Recourse percentages moved by 1–5 points. Two things explain it: the cutoffs moved slightly, and the 10 retrained models are new draws. Robustness figures therefore carry this much run-to-run noise, and the paper should say so.
+- DiCE results are based on 20 applicants per tier, and their reversal (5%/20% → 20%/5%) shows they are indicative only.
+- The age experiment (`reports/age_fairness_experiment.json`) was run before this fix and not repeated (D-78). Its current-model row shows DPD 0.349, while the rebuilt audit gives 0.356. Its comparison between variants is internally consistent.
+
+---
+
 ## Change Log (updated)
 
 | Date | Phase | Event | Files Changed |
@@ -2492,7 +2551,8 @@ The paper needs a dataset section, and the Phase 1 EDA deliverable was missing (
 | 2026-11-27 | 5.4 | Understandability | Readability, information amount, plain-name coverage and jargon measured; 29 plain names added; expert review and accessibility audit materials |
 | 2026-11-27 | 5.5a | Age as eligibility | Eligibility rules (minor with guardian, no income) in API, PDFs and form; age experiment: removing age widens the gap, model calibrated by age band |
 | 2026-11-27 | 5.6 | EDA and age decision | `src/eda.py` and `reports/eda/`; Q5 confirmed (age kept, policy as eligibility rules) |
+| 2026-11-27 | 5.6b | Leak-free cleaning | Cleaning statistics from training rows only (#86); pipeline, recourse evaluation and measurements rebuilt; age experiment not repeated |
 
 ---
 
-**Last Updated:** Nov 27, 2026 (Phase 5.6 complete)
+**Last Updated:** Nov 27, 2026 (Phase 5.6b complete)

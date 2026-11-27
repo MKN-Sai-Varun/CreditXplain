@@ -7,36 +7,36 @@
   },
   "readability": {
     "all_applicant_text": {
-      "sentences": 2226,
-      "words": 26531,
-      "words_per_sentence": 11.92,
-      "syllables_per_word": 1.592,
+      "sentences": 2151,
+      "words": 25570,
+      "words_per_sentence": 11.89,
+      "syllables_per_word": 1.593,
       "flesch_reading_ease": 60.0,
       "fk_grade": 7.8
     },
     "by_decision": {
       "APPROVE": {
         "sentences": 450,
-        "words": 4461,
-        "words_per_sentence": 9.91,
-        "syllables_per_word": 1.616,
-        "flesch_reading_ease": 60.1,
-        "fk_grade": 7.3
+        "words": 4457,
+        "words_per_sentence": 9.9,
+        "syllables_per_word": 1.625,
+        "flesch_reading_ease": 59.3,
+        "fk_grade": 7.4
       },
       "REVIEW": {
-        "sentences": 742,
-        "words": 9200,
-        "words_per_sentence": 12.4,
-        "syllables_per_word": 1.609,
-        "flesch_reading_ease": 58.1,
+        "sentences": 762,
+        "words": 9478,
+        "words_per_sentence": 12.44,
+        "syllables_per_word": 1.606,
+        "flesch_reading_ease": 58.4,
         "fk_grade": 8.2
       },
       "REJECT": {
-        "sentences": 1034,
-        "words": 12870,
-        "words_per_sentence": 12.45,
-        "syllables_per_word": 1.572,
-        "flesch_reading_ease": 61.2,
+        "sentences": 939,
+        "words": 11635,
+        "words_per_sentence": 12.39,
+        "syllables_per_word": 1.57,
+        "flesch_reading_ease": 61.4,
         "fk_grade": 7.8
       }
     }
@@ -44,38 +44,49 @@
   "amount_of_information": {
     "reasons_shown": 5,
     "options_per_review_or_reject_applicant": {
-      "mean": 1.44,
+      "mean": 1.29,
       "median": 1.0,
       "max": 3.0
     },
     "changes_per_option": {
-      "mean": 2.39,
+      "mean": 2.43,
       "median": 2.0,
       "max": 4.0
     },
     "levers_per_option": {
-      "mean": 2.05,
+      "mean": 2.13,
       "median": 2.0,
       "max": 4.0
     },
     "words_per_applicant": {
-      "mean": 171.23,
-      "median": 115.0,
-      "max": 382.0
+      "mean": 165.01,
+      "median": 114.5,
+      "max": 391.0
     }
   },
   "plain_names": {
     "applicant_view": {
-      "factors_shown": 1182,
-      "distinct_factors": 74,
+      "factors_shown": 1137,
+      "distinct_factors": 69,
       "with_written_plain_name": 1.0,
       "most_frequent_fallback_names": []
     },
     "officer_view": {
       "factors_shown": 3000,
       "distinct_factors": 89,
-      "with_written_plain_name": 1.0,
-      "most_frequent_fallback_names": []
+      "with_written_plain_name": 0.999,
+      "most_frequent_fallback_names": [
+        {
+          "feature": "AGE_SQUARED",
+          "shown_as": "Age squared",
+          "times": 2
+        },
+        {
+          "feature": "COMMONAREA_MODE",
+          "shown_as": "Commonarea mode",
+          "times": 1
+        }
+      ]
     }
   },
   "jargon_in_applicant_text": {},

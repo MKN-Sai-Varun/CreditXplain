@@ -29,19 +29,19 @@ class LoanCalculator:
         
         # Additional adjustment within band based on exact probability
         if decision == "APPROVE":
-            # APPROVE: prob < 0.0349
+            # APPROVE: prob < APPROVE_THRESHOLD
             # Scale from 0% to +2% within band
             prob_normalized = probability / settings.APPROVE_THRESHOLD
             prob_adjustment = prob_normalized * 0.02  # 0-2% additional
         elif decision == "REVIEW":
-            # REVIEW: 0.0349 <= prob < 0.1189
+            # REVIEW: APPROVE_THRESHOLD <= prob < REJECT_THRESHOLD
             # Scale from 0% to +3% within band
             band_size = settings.REJECT_THRESHOLD - settings.APPROVE_THRESHOLD
             prob_in_band = probability - settings.APPROVE_THRESHOLD
             prob_normalized = prob_in_band / band_size
             prob_adjustment = prob_normalized * 0.03  # 0-3% additional
         else:  # REJECT
-            # REJECT: prob >= 0.1189
+            # REJECT: prob >= REJECT_THRESHOLD
             # Higher rate for manual override cases
             prob_adjustment = 0.03  # Fixed +3% additional
         

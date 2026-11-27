@@ -4,54 +4,54 @@
   "tiers": {
     "reject_to_review": {
       "0.02": {
-        "coverage": 0.67,
-        "first_option_waits": 0.2139,
-        "first_option_mean_wait_months": 1.67,
-        "first_option_mean_levers": 1.801,
-        "same_first_option_as_baseline": 0.9154,
-        "same_options_shown_as_baseline": 0.8557
+        "coverage": 0.62,
+        "first_option_waits": 0.1505,
+        "first_option_mean_wait_months": 0.9,
+        "first_option_mean_levers": 1.624,
+        "same_first_option_as_baseline": 0.9409,
+        "same_options_shown_as_baseline": 0.8925
       },
       "0.04": {
-        "coverage": 0.67,
-        "first_option_waits": 0.1443,
-        "first_option_mean_wait_months": 1.22,
-        "first_option_mean_levers": 1.766,
+        "coverage": 0.62,
+        "first_option_waits": 0.0968,
+        "first_option_mean_wait_months": 0.68,
+        "first_option_mean_levers": 1.575,
         "same_first_option_as_baseline": 1.0,
         "same_options_shown_as_baseline": 1.0
       },
       "0.08": {
-        "coverage": 0.67,
-        "first_option_waits": 0.1343,
-        "first_option_mean_wait_months": 1.19,
-        "first_option_mean_levers": 1.751,
-        "same_first_option_as_baseline": 0.99,
-        "same_options_shown_as_baseline": 0.8955
+        "coverage": 0.62,
+        "first_option_waits": 0.0914,
+        "first_option_mean_wait_months": 0.66,
+        "first_option_mean_levers": 1.57,
+        "same_first_option_as_baseline": 0.9946,
+        "same_options_shown_as_baseline": 0.9409
       }
     },
     "review_to_approve": {
       "0.02": {
-        "coverage": 0.4367,
-        "first_option_waits": 0.313,
-        "first_option_mean_wait_months": 2.34,
-        "first_option_mean_levers": 1.969,
-        "same_first_option_as_baseline": 0.9313,
-        "same_options_shown_as_baseline": 0.8855
+        "coverage": 0.4533,
+        "first_option_waits": 0.3309,
+        "first_option_mean_wait_months": 2.71,
+        "first_option_mean_levers": 1.801,
+        "same_first_option_as_baseline": 0.8971,
+        "same_options_shown_as_baseline": 0.8676
       },
       "0.04": {
-        "coverage": 0.4367,
-        "first_option_waits": 0.2748,
-        "first_option_mean_wait_months": 1.85,
-        "first_option_mean_levers": 2.008,
+        "coverage": 0.4533,
+        "first_option_waits": 0.2353,
+        "first_option_mean_wait_months": 2.01,
+        "first_option_mean_levers": 1.765,
         "same_first_option_as_baseline": 1.0,
         "same_options_shown_as_baseline": 1.0
       },
       "0.08": {
-        "coverage": 0.4367,
-        "first_option_waits": 0.2519,
-        "first_option_mean_wait_months": 1.76,
-        "first_option_mean_levers": 2.008,
-        "same_first_option_as_baseline": 0.9771,
-        "same_options_shown_as_baseline": 0.9542
+        "coverage": 0.4533,
+        "first_option_waits": 0.1912,
+        "first_option_mean_wait_months": 1.81,
+        "first_option_mean_levers": 1.75,
+        "same_first_option_as_baseline": 0.9559,
+        "same_options_shown_as_baseline": 0.9191
       }
     }
   }

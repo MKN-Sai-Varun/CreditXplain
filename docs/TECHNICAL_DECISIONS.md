@@ -1767,6 +1767,17 @@ Accessibility is checked with Lighthouse (`docs/usability/accessibility_audit.md
 
 ---
 
+### D-78: Cleaning Statistics Learned From Training Rows Only
+**Decision:** `src/data_prep.py` reproduces the stratified 80/20 split before cleaning, and learns its medians, most common categories, clipping bounds and ratio medians from the training rows. Every model and report was rebuilt, except the age experiment: the project lead decided not to repeat it, because its conclusion (keep age, D-77) was already settled. Its numbers are reported as computed before this fix.
+
+**Why:** Statistics computed on all rows let the test rows shape the training data, which reviewers treat as leakage, however small. The fix keeps the same applicants in each part, so all results stay comparable.
+
+**Effect:** Test AUC unchanged (0.7668); recourse percentages moved by 1–5 points (IMPLEMENTATION_LOG 5.6b).
+
+**Date:** Nov 27, 2026
+
+---
+
 ## Change Log (Updated)
 
 | Date | Phase | Changes |
@@ -1788,6 +1799,7 @@ Accessibility is checked with Lighthouse (`docs/usability/accessibility_audit.md
 | Nov 27, 2026 | Phase 5.2c | D-74 hybrid recourse in the application |
 | Nov 27, 2026 | Phase 5.4 | D-75 understandability measured from the system's text, plus an expert review |
 | Nov 27, 2026 | Phase 5.5a | D-76 age as an eligibility rule (guardian for minors, no automatic approval without income); D-77 age stays in the model; age-free model tested and rejected (confirmed, Q5) |
+| Nov 27, 2026 | Phase 5.6b | D-78 cleaning statistics from training rows only; age experiment not repeated |
 
 ---
 

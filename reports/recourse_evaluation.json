@@ -1,455 +1,455 @@
 {
   "margin_logodds": 0.1,
-  "plausibility_threshold": 0.23461853426368814,
+  "plausibility_threshold": 0.23142636108353326,
   "methods": {
     "reject_to_review": {
       "ablation_no_margin": {
         "applicants": 300,
-        "coverage": 0.6467,
+        "coverage": 0.6267,
         "improves_share": 1.0,
-        "mean_cost": 0.1556,
-        "median_cost": 0.1112,
-        "mean_levers": 1.479,
+        "mean_cost": 0.1478,
+        "median_cost": 0.1,
+        "mean_levers": 1.404,
         "plausible_share": 1.0,
-        "robust_share": 0.1753,
-        "latency_ms_mean": 24.2,
-        "latency_ms_p95": 30.0,
+        "robust_share": 0.1596,
+        "latency_ms_mean": 23.9,
+        "latency_ms_p95": 30.2,
         "retrained_models": 5,
-        "holds_on_all_retrained": 0.134,
-        "holds_on_all_retrained_fixed_cutoffs": 0.1495,
-        "mean_retrained_models_held": 2.706,
-        "usable_and_holds_on_all": 0.0267,
-        "unchanged_applicant_already_promised_on_any": 0.3033
+        "holds_on_all_retrained": 0.133,
+        "holds_on_all_retrained_fixed_cutoffs": 0.1489,
+        "mean_retrained_models_held": 2.665,
+        "usable_and_holds_on_all": 0.0433,
+        "unchanged_applicant_already_promised_on_any": 0.2667
       },
       "ablation_no_plausibility": {
         "applicants": 300,
-        "coverage": 0.8367,
+        "coverage": 0.8433,
         "improves_share": 1.0,
-        "mean_cost": 0.2554,
-        "median_cost": 0.18,
-        "mean_levers": 1.498,
-        "plausible_share": 0.6414,
+        "mean_cost": 0.2488,
+        "median_cost": 0.2,
+        "mean_levers": 1.423,
+        "plausible_share": 0.6324,
         "robust_share": 1.0,
-        "latency_ms_mean": 25.8,
-        "latency_ms_p95": 28.8,
+        "latency_ms_mean": 25.9,
+        "latency_ms_p95": 29.1,
         "retrained_models": 5,
-        "holds_on_all_retrained": 0.2351,
-        "holds_on_all_retrained_fixed_cutoffs": 0.251,
-        "mean_retrained_models_held": 3.367,
-        "usable_and_holds_on_all": 0.14,
-        "unchanged_applicant_already_promised_on_any": 0.3033
+        "holds_on_all_retrained": 0.2055,
+        "holds_on_all_retrained_fixed_cutoffs": 0.2411,
+        "mean_retrained_models_held": 3.289,
+        "usable_and_holds_on_all": 0.13,
+        "unchanged_applicant_already_promised_on_any": 0.2667
       },
       "dice": {
         "applicants": 20,
-        "coverage": 0.4,
+        "coverage": 0.5,
         "improves_share": 1.0,
-        "mean_cost": 0.5419,
-        "median_cost": 0.5355,
-        "mean_levers": 1.875,
-        "plausible_share": 0.125,
+        "mean_cost": 0.3861,
+        "median_cost": 0.3542,
+        "mean_levers": 1.8,
+        "plausible_share": 0.4,
         "robust_share": 1.0,
-        "latency_ms_mean": 145.9,
-        "latency_ms_p95": 157.6,
-        "suggestions_outside_lever_space": 37,
+        "latency_ms_mean": 216.2,
+        "latency_ms_p95": 766.3,
+        "suggestions_outside_lever_space": 30,
         "retrained_models": 5,
-        "holds_on_all_retrained": 0.375,
-        "holds_on_all_retrained_fixed_cutoffs": 0.375,
-        "mean_retrained_models_held": 3.75,
-        "usable_and_holds_on_all": 0.05,
-        "unchanged_applicant_already_promised_on_any": 0.2
+        "holds_on_all_retrained": 0.5,
+        "holds_on_all_retrained_fixed_cutoffs": 0.5,
+        "mean_retrained_models_held": 4.2,
+        "usable_and_holds_on_all": 0.15,
+        "unchanged_applicant_already_promised_on_any": 0.3
       },
       "hybrid": {
         "applicants": 300,
-        "coverage": 0.67,
+        "coverage": 0.62,
         "improves_share": 1.0,
-        "mean_cost": 0.3408,
-        "median_cost": 0.255,
-        "mean_levers": 1.99,
-        "uses_wait_share": 0.2239,
-        "mean_wait_months": 1.79,
+        "mean_cost": 0.3071,
+        "median_cost": 0.21,
+        "mean_levers": 1.909,
+        "uses_wait_share": 0.2043,
+        "mean_wait_months": 1.61,
         "plausible_share": 1.0,
         "robust_share": 1.0,
-        "latency_ms_mean": 96.3,
-        "latency_ms_p95": 120.5,
+        "latency_ms_mean": 94.8,
+        "latency_ms_p95": 120.0,
         "retrained_models": 5,
-        "holds_on_all_retrained": 0.393,
-        "holds_on_all_retrained_fixed_cutoffs": 0.4229,
-        "mean_retrained_models_held": 3.796,
-        "usable_and_holds_on_all": 0.2633,
-        "unchanged_applicant_already_promised_on_any": 0.3033
+        "holds_on_all_retrained": 0.3817,
+        "holds_on_all_retrained_fixed_cutoffs": 0.3925,
+        "mean_retrained_models_held": 3.78,
+        "usable_and_holds_on_all": 0.2367,
+        "unchanged_applicant_already_promised_on_any": 0.2667
       },
       "previous": {
         "applicants": 300,
-        "coverage": 0.8767,
+        "coverage": 0.88,
         "improves_share": 1.0,
-        "mean_cost": 0.2536,
+        "mean_cost": 0.2545,
         "median_cost": 0.2,
-        "mean_levers": 1.395,
-        "plausible_share": 0.635,
-        "robust_share": 0.3726,
-        "latency_ms_mean": 14.9,
-        "latency_ms_p95": 15.4,
+        "mean_levers": 1.375,
+        "plausible_share": 0.6326,
+        "robust_share": 0.3939,
+        "latency_ms_mean": 14.8,
+        "latency_ms_p95": 15.3,
         "retrained_models": 5,
-        "holds_on_all_retrained": 0.1711,
-        "holds_on_all_retrained_fixed_cutoffs": 0.1939,
-        "mean_retrained_models_held": 3.038,
-        "usable_and_holds_on_all": 0.0633,
-        "unchanged_applicant_already_promised_on_any": 0.3033
+        "holds_on_all_retrained": 0.2008,
+        "holds_on_all_retrained_fixed_cutoffs": 0.2159,
+        "mean_retrained_models_held": 3.019,
+        "usable_and_holds_on_all": 0.0867,
+        "unchanged_applicant_already_promised_on_any": 0.2667
       },
       "proposed": {
         "applicants": 300,
-        "coverage": 0.59,
+        "coverage": 0.5733,
         "improves_share": 1.0,
-        "mean_cost": 0.1934,
-        "median_cost": 0.1425,
-        "mean_levers": 1.565,
+        "mean_cost": 0.1852,
+        "median_cost": 0.1412,
+        "mean_levers": 1.477,
         "plausible_share": 1.0,
         "robust_share": 1.0,
-        "latency_ms_mean": 23.3,
+        "latency_ms_mean": 23.1,
         "latency_ms_p95": 30.0,
         "retrained_models": 5,
-        "holds_on_all_retrained": 0.2768,
-        "holds_on_all_retrained_fixed_cutoffs": 0.2938,
-        "mean_retrained_models_held": 3.39,
-        "usable_and_holds_on_all": 0.1633,
-        "unchanged_applicant_already_promised_on_any": 0.3033
+        "holds_on_all_retrained": 0.2442,
+        "holds_on_all_retrained_fixed_cutoffs": 0.2733,
+        "mean_retrained_models_held": 3.395,
+        "usable_and_holds_on_all": 0.14,
+        "unchanged_applicant_already_promised_on_any": 0.2667
       },
       "proposed_ensemble": {
         "applicants": 300,
-        "coverage": 0.42,
+        "coverage": 0.4,
         "improves_share": 1.0,
-        "mean_cost": 0.2347,
-        "median_cost": 0.1875,
-        "mean_levers": 1.619,
+        "mean_cost": 0.2103,
+        "median_cost": 0.1725,
+        "mean_levers": 1.65,
         "plausible_share": 1.0,
         "robust_share": 1.0,
-        "latency_ms_mean": 29.2,
-        "latency_ms_p95": 41.5,
+        "latency_ms_mean": 28.8,
+        "latency_ms_p95": 41.1,
         "retrained_models": 5,
-        "holds_on_all_retrained": 0.5238,
-        "holds_on_all_retrained_fixed_cutoffs": 0.5556,
-        "mean_retrained_models_held": 4.286,
-        "usable_and_holds_on_all": 0.22,
-        "unchanged_applicant_already_promised_on_any": 0.3033
+        "holds_on_all_retrained": 0.5333,
+        "holds_on_all_retrained_fixed_cutoffs": 0.55,
+        "mean_retrained_models_held": 4.292,
+        "usable_and_holds_on_all": 0.2133,
+        "unchanged_applicant_already_promised_on_any": 0.2667
       },
       "proposed_ensemble_4of5": {
         "applicants": 300,
-        "coverage": 0.51,
+        "coverage": 0.4867,
         "improves_share": 1.0,
-        "mean_cost": 0.2056,
+        "mean_cost": 0.1885,
         "median_cost": 0.15,
-        "mean_levers": 1.627,
+        "mean_levers": 1.534,
         "plausible_share": 1.0,
         "robust_share": 1.0,
-        "latency_ms_mean": 30.7,
+        "latency_ms_mean": 30.6,
         "latency_ms_p95": 41.6,
         "retrained_models": 5,
-        "holds_on_all_retrained": 0.4118,
-        "holds_on_all_retrained_fixed_cutoffs": 0.4183,
-        "mean_retrained_models_held": 3.98,
-        "usable_and_holds_on_all": 0.21,
-        "unchanged_applicant_already_promised_on_any": 0.3033
+        "holds_on_all_retrained": 0.3562,
+        "holds_on_all_retrained_fixed_cutoffs": 0.3973,
+        "mean_retrained_models_held": 3.89,
+        "usable_and_holds_on_all": 0.1733,
+        "unchanged_applicant_already_promised_on_any": 0.2667
       },
       "proposed_ensemble_with_wait": {
         "applicants": 300,
-        "coverage": 0.4867,
+        "coverage": 0.4667,
         "improves_share": 1.0,
-        "mean_cost": 0.2826,
-        "median_cost": 0.2375,
-        "mean_levers": 1.836,
-        "uses_wait_share": 0.1712,
-        "mean_wait_months": 1.03,
+        "mean_cost": 0.2843,
+        "median_cost": 0.19,
+        "mean_levers": 1.857,
+        "uses_wait_share": 0.1643,
+        "mean_wait_months": 1.33,
         "plausible_share": 1.0,
         "robust_share": 1.0,
-        "latency_ms_mean": 57.4,
-        "latency_ms_p95": 73.6,
+        "latency_ms_mean": 57.5,
+        "latency_ms_p95": 73.2,
         "retrained_models": 5,
-        "holds_on_all_retrained": 0.5137,
-        "holds_on_all_retrained_fixed_cutoffs": 0.5548,
-        "mean_retrained_models_held": 4.247,
-        "usable_and_holds_on_all": 0.25,
-        "unchanged_applicant_already_promised_on_any": 0.3033
+        "holds_on_all_retrained": 0.4714,
+        "holds_on_all_retrained_fixed_cutoffs": 0.4857,
+        "mean_retrained_models_held": 4.186,
+        "usable_and_holds_on_all": 0.22,
+        "unchanged_applicant_already_promised_on_any": 0.2667
       },
       "proposed_margin_0p2": {
         "applicants": 300,
-        "coverage": 0.4967,
+        "coverage": 0.4833,
         "improves_share": 1.0,
-        "mean_cost": 0.2192,
+        "mean_cost": 0.2061,
         "median_cost": 0.17,
-        "mean_levers": 1.644,
+        "mean_levers": 1.683,
         "plausible_share": 1.0,
         "robust_share": 1.0,
-        "latency_ms_mean": 22.0,
-        "latency_ms_p95": 29.8,
+        "latency_ms_mean": 21.7,
+        "latency_ms_p95": 29.7,
         "retrained_models": 5,
-        "holds_on_all_retrained": 0.443,
-        "holds_on_all_retrained_fixed_cutoffs": 0.5034,
-        "mean_retrained_models_held": 4.02,
-        "usable_and_holds_on_all": 0.22,
-        "unchanged_applicant_already_promised_on_any": 0.3033
+        "holds_on_all_retrained": 0.3448,
+        "holds_on_all_retrained_fixed_cutoffs": 0.4,
+        "mean_retrained_models_held": 3.793,
+        "usable_and_holds_on_all": 0.1667,
+        "unchanged_applicant_already_promised_on_any": 0.2667
       },
       "proposed_with_wait": {
         "applicants": 300,
-        "coverage": 0.67,
+        "coverage": 0.62,
         "improves_share": 1.0,
-        "mean_cost": 0.2554,
-        "median_cost": 0.165,
-        "mean_levers": 1.766,
-        "uses_wait_share": 0.1443,
-        "mean_wait_months": 1.22,
+        "mean_cost": 0.2169,
+        "median_cost": 0.155,
+        "mean_levers": 1.575,
+        "uses_wait_share": 0.0968,
+        "mean_wait_months": 0.68,
         "plausible_share": 1.0,
         "robust_share": 1.0,
-        "latency_ms_mean": 38.5,
+        "latency_ms_mean": 37.5,
         "latency_ms_p95": 46.4,
         "retrained_models": 5,
-        "holds_on_all_retrained": 0.2438,
-        "holds_on_all_retrained_fixed_cutoffs": 0.2637,
-        "mean_retrained_models_held": 3.303,
-        "usable_and_holds_on_all": 0.1633,
-        "unchanged_applicant_already_promised_on_any": 0.3033
+        "holds_on_all_retrained": 0.2312,
+        "holds_on_all_retrained_fixed_cutoffs": 0.2581,
+        "mean_retrained_models_held": 3.339,
+        "usable_and_holds_on_all": 0.1433,
+        "unchanged_applicant_already_promised_on_any": 0.2667
       },
       "random": {
         "applicants": 300,
-        "coverage": 0.6133,
+        "coverage": 0.5967,
         "improves_share": 1.0,
-        "mean_cost": 0.2856,
-        "median_cost": 0.2422,
+        "mean_cost": 0.2692,
+        "median_cost": 0.2347,
         "mean_levers": 3.0,
         "plausible_share": 1.0,
         "robust_share": 1.0,
         "latency_ms_mean": 18.8,
-        "latency_ms_p95": 19.2,
+        "latency_ms_p95": 19.6,
         "retrained_models": 5,
-        "holds_on_all_retrained": 0.3478,
-        "holds_on_all_retrained_fixed_cutoffs": 0.3804,
-        "mean_retrained_models_held": 3.717,
-        "usable_and_holds_on_all": 0.2133,
-        "unchanged_applicant_already_promised_on_any": 0.3033
+        "holds_on_all_retrained": 0.2961,
+        "holds_on_all_retrained_fixed_cutoffs": 0.324,
+        "mean_retrained_models_held": 3.659,
+        "usable_and_holds_on_all": 0.1767,
+        "unchanged_applicant_already_promised_on_any": 0.2667
       }
     },
     "review_to_approve": {
       "ablation_no_margin": {
         "applicants": 300,
-        "coverage": 0.4567,
+        "coverage": 0.4667,
         "improves_share": 1.0,
-        "mean_cost": 0.1881,
-        "median_cost": 0.15,
-        "mean_levers": 1.606,
+        "mean_cost": 0.1823,
+        "median_cost": 0.1388,
+        "mean_levers": 1.557,
         "plausible_share": 1.0,
-        "robust_share": 0.1314,
-        "latency_ms_mean": 21.4,
+        "robust_share": 0.1714,
+        "latency_ms_mean": 21.6,
         "latency_ms_p95": 29.6,
         "retrained_models": 5,
-        "holds_on_all_retrained": 0.0511,
-        "holds_on_all_retrained_fixed_cutoffs": 0.0511,
-        "mean_retrained_models_held": 2.146,
+        "holds_on_all_retrained": 0.0786,
+        "holds_on_all_retrained_fixed_cutoffs": 0.05,
+        "mean_retrained_models_held": 2.3,
         "usable_and_holds_on_all": 0.0067,
-        "unchanged_applicant_already_promised_on_any": 0.18
+        "unchanged_applicant_already_promised_on_any": 0.2067
       },
       "ablation_no_plausibility": {
         "applicants": 300,
-        "coverage": 0.54,
+        "coverage": 0.55,
         "improves_share": 1.0,
-        "mean_cost": 0.3198,
-        "median_cost": 0.285,
-        "mean_levers": 1.704,
-        "plausible_share": 0.5926,
+        "mean_cost": 0.2869,
+        "median_cost": 0.225,
+        "mean_levers": 1.564,
+        "plausible_share": 0.6545,
         "robust_share": 1.0,
         "latency_ms_mean": 21.7,
-        "latency_ms_p95": 28.6,
+        "latency_ms_p95": 28.5,
         "retrained_models": 5,
-        "holds_on_all_retrained": 0.1358,
-        "holds_on_all_retrained_fixed_cutoffs": 0.1358,
-        "mean_retrained_models_held": 2.617,
-        "usable_and_holds_on_all": 0.0667,
-        "unchanged_applicant_already_promised_on_any": 0.18
+        "holds_on_all_retrained": 0.0788,
+        "holds_on_all_retrained_fixed_cutoffs": 0.0727,
+        "mean_retrained_models_held": 2.624,
+        "usable_and_holds_on_all": 0.04,
+        "unchanged_applicant_already_promised_on_any": 0.2067
       },
       "dice": {
         "applicants": 20,
-        "coverage": 0.45,
+        "coverage": 0.25,
         "improves_share": 1.0,
-        "mean_cost": 0.4213,
-        "median_cost": 0.4707,
-        "mean_levers": 1.778,
-        "plausible_share": 0.4444,
+        "mean_cost": 0.512,
+        "median_cost": 0.3965,
+        "mean_levers": 2.0,
+        "plausible_share": 0.2,
         "robust_share": 1.0,
-        "latency_ms_mean": 133.8,
-        "latency_ms_p95": 148.0,
-        "suggestions_outside_lever_space": 30,
+        "latency_ms_mean": 126.5,
+        "latency_ms_p95": 149.5,
+        "suggestions_outside_lever_space": 20,
         "retrained_models": 5,
-        "holds_on_all_retrained": 0.5556,
-        "holds_on_all_retrained_fixed_cutoffs": 0.5556,
-        "mean_retrained_models_held": 3.556,
-        "usable_and_holds_on_all": 0.15,
-        "unchanged_applicant_already_promised_on_any": 0.2
+        "holds_on_all_retrained": 0.2,
+        "holds_on_all_retrained_fixed_cutoffs": 0.2,
+        "mean_retrained_models_held": 3.0,
+        "usable_and_holds_on_all": 0.0,
+        "unchanged_applicant_already_promised_on_any": 0.25
       },
       "hybrid": {
         "applicants": 300,
-        "coverage": 0.4367,
+        "coverage": 0.4533,
         "improves_share": 1.0,
-        "mean_cost": 0.396,
-        "median_cost": 0.38,
-        "mean_levers": 2.26,
-        "uses_wait_share": 0.3664,
-        "mean_wait_months": 2.7,
+        "mean_cost": 0.3793,
+        "median_cost": 0.2925,
+        "mean_levers": 2.066,
+        "uses_wait_share": 0.3529,
+        "mean_wait_months": 3.13,
         "plausible_share": 1.0,
         "robust_share": 1.0,
-        "latency_ms_mean": 86.2,
-        "latency_ms_p95": 113.7,
+        "latency_ms_mean": 85.9,
+        "latency_ms_p95": 113.2,
         "retrained_models": 5,
-        "holds_on_all_retrained": 0.2519,
-        "holds_on_all_retrained_fixed_cutoffs": 0.2519,
-        "mean_retrained_models_held": 3.176,
+        "holds_on_all_retrained": 0.2426,
+        "holds_on_all_retrained_fixed_cutoffs": 0.2279,
+        "mean_retrained_models_held": 3.228,
         "usable_and_holds_on_all": 0.11,
-        "unchanged_applicant_already_promised_on_any": 0.18
+        "unchanged_applicant_already_promised_on_any": 0.2067
       },
       "previous": {
         "applicants": 300,
-        "coverage": 0.64,
+        "coverage": 0.63,
         "improves_share": 1.0,
-        "mean_cost": 0.3182,
-        "median_cost": 0.3,
-        "mean_levers": 1.635,
-        "plausible_share": 0.6406,
-        "robust_share": 0.224,
+        "mean_cost": 0.277,
+        "median_cost": 0.2,
+        "mean_levers": 1.545,
+        "plausible_share": 0.6455,
+        "robust_share": 0.2275,
         "latency_ms_mean": 14.8,
         "latency_ms_p95": 15.2,
         "retrained_models": 5,
-        "holds_on_all_retrained": 0.0833,
-        "holds_on_all_retrained_fixed_cutoffs": 0.0833,
-        "mean_retrained_models_held": 2.229,
-        "usable_and_holds_on_all": 0.03,
-        "unchanged_applicant_already_promised_on_any": 0.18
+        "holds_on_all_retrained": 0.0794,
+        "holds_on_all_retrained_fixed_cutoffs": 0.0741,
+        "mean_retrained_models_held": 2.333,
+        "usable_and_holds_on_all": 0.0167,
+        "unchanged_applicant_already_promised_on_any": 0.2067
       },
       "proposed": {
         "applicants": 300,
-        "coverage": 0.34,
+        "coverage": 0.37,
         "improves_share": 1.0,
-        "mean_cost": 0.2267,
+        "mean_cost": 0.2068,
         "median_cost": 0.18,
-        "mean_levers": 1.647,
+        "mean_levers": 1.532,
         "plausible_share": 1.0,
         "robust_share": 1.0,
-        "latency_ms_mean": 19.8,
-        "latency_ms_p95": 29.4,
+        "latency_ms_mean": 20.1,
+        "latency_ms_p95": 29.2,
         "retrained_models": 5,
-        "holds_on_all_retrained": 0.1667,
-        "holds_on_all_retrained_fixed_cutoffs": 0.1667,
-        "mean_retrained_models_held": 2.814,
-        "usable_and_holds_on_all": 0.0567,
-        "unchanged_applicant_already_promised_on_any": 0.18
+        "holds_on_all_retrained": 0.1171,
+        "holds_on_all_retrained_fixed_cutoffs": 0.1081,
+        "mean_retrained_models_held": 2.712,
+        "usable_and_holds_on_all": 0.0433,
+        "unchanged_applicant_already_promised_on_any": 0.2067
       },
       "proposed_ensemble": {
         "applicants": 300,
-        "coverage": 0.1867,
+        "coverage": 0.1767,
         "improves_share": 1.0,
-        "mean_cost": 0.2893,
-        "median_cost": 0.2437,
-        "mean_levers": 1.821,
+        "mean_cost": 0.2487,
+        "median_cost": 0.2,
+        "mean_levers": 1.717,
         "plausible_share": 1.0,
         "robust_share": 1.0,
-        "latency_ms_mean": 24.7,
-        "latency_ms_p95": 39.2,
+        "latency_ms_mean": 24.5,
+        "latency_ms_p95": 38.9,
         "retrained_models": 5,
-        "holds_on_all_retrained": 0.4107,
-        "holds_on_all_retrained_fixed_cutoffs": 0.4107,
-        "mean_retrained_models_held": 3.929,
+        "holds_on_all_retrained": 0.434,
+        "holds_on_all_retrained_fixed_cutoffs": 0.3962,
+        "mean_retrained_models_held": 4.17,
         "usable_and_holds_on_all": 0.0767,
-        "unchanged_applicant_already_promised_on_any": 0.18
+        "unchanged_applicant_already_promised_on_any": 0.2067
       },
       "proposed_ensemble_4of5": {
         "applicants": 300,
-        "coverage": 0.2467,
+        "coverage": 0.27,
         "improves_share": 1.0,
-        "mean_cost": 0.2369,
-        "median_cost": 0.195,
-        "mean_levers": 1.676,
+        "mean_cost": 0.2263,
+        "median_cost": 0.19,
+        "mean_levers": 1.617,
         "plausible_share": 1.0,
         "robust_share": 1.0,
-        "latency_ms_mean": 25.8,
-        "latency_ms_p95": 39.6,
+        "latency_ms_mean": 26.1,
+        "latency_ms_p95": 39.7,
         "retrained_models": 5,
-        "holds_on_all_retrained": 0.2297,
-        "holds_on_all_retrained_fixed_cutoffs": 0.2297,
-        "mean_retrained_models_held": 3.514,
-        "usable_and_holds_on_all": 0.0567,
-        "unchanged_applicant_already_promised_on_any": 0.18
+        "holds_on_all_retrained": 0.2469,
+        "holds_on_all_retrained_fixed_cutoffs": 0.2346,
+        "mean_retrained_models_held": 3.593,
+        "usable_and_holds_on_all": 0.0667,
+        "unchanged_applicant_already_promised_on_any": 0.2067
       },
       "proposed_ensemble_with_wait": {
         "applicants": 300,
-        "coverage": 0.25,
+        "coverage": 0.2567,
         "improves_share": 1.0,
-        "mean_cost": 0.376,
+        "mean_cost": 0.4005,
         "median_cost": 0.3,
-        "mean_levers": 2.147,
-        "uses_wait_share": 0.32,
-        "mean_wait_months": 2.36,
+        "mean_levers": 2.143,
+        "uses_wait_share": 0.3506,
+        "mean_wait_months": 3.16,
         "plausible_share": 1.0,
         "robust_share": 1.0,
-        "latency_ms_mean": 51.5,
-        "latency_ms_p95": 68.5,
+        "latency_ms_mean": 51.8,
+        "latency_ms_p95": 69.5,
         "retrained_models": 5,
-        "holds_on_all_retrained": 0.4133,
-        "holds_on_all_retrained_fixed_cutoffs": 0.4133,
-        "mean_retrained_models_held": 3.96,
-        "usable_and_holds_on_all": 0.1033,
-        "unchanged_applicant_already_promised_on_any": 0.18
+        "holds_on_all_retrained": 0.3896,
+        "holds_on_all_retrained_fixed_cutoffs": 0.3636,
+        "mean_retrained_models_held": 3.974,
+        "usable_and_holds_on_all": 0.1,
+        "unchanged_applicant_already_promised_on_any": 0.2067
       },
       "proposed_margin_0p2": {
         "applicants": 300,
-        "coverage": 0.24,
+        "coverage": 0.2467,
         "improves_share": 1.0,
-        "mean_cost": 0.2525,
-        "median_cost": 0.2125,
-        "mean_levers": 1.722,
+        "mean_cost": 0.2335,
+        "median_cost": 0.2,
+        "mean_levers": 1.77,
         "plausible_share": 1.0,
         "robust_share": 1.0,
-        "latency_ms_mean": 18.4,
-        "latency_ms_p95": 28.7,
+        "latency_ms_mean": 18.3,
+        "latency_ms_p95": 28.6,
         "retrained_models": 5,
-        "holds_on_all_retrained": 0.2639,
-        "holds_on_all_retrained_fixed_cutoffs": 0.2778,
-        "mean_retrained_models_held": 3.403,
-        "usable_and_holds_on_all": 0.0633,
-        "unchanged_applicant_already_promised_on_any": 0.18
+        "holds_on_all_retrained": 0.3378,
+        "holds_on_all_retrained_fixed_cutoffs": 0.3243,
+        "mean_retrained_models_held": 3.689,
+        "usable_and_holds_on_all": 0.0833,
+        "unchanged_applicant_already_promised_on_any": 0.2067
       },
       "proposed_with_wait": {
         "applicants": 300,
-        "coverage": 0.4367,
+        "coverage": 0.4533,
         "improves_share": 1.0,
-        "mean_cost": 0.3094,
-        "median_cost": 0.255,
-        "mean_levers": 2.008,
-        "uses_wait_share": 0.2748,
-        "mean_wait_months": 1.85,
+        "mean_cost": 0.2857,
+        "median_cost": 0.19,
+        "mean_levers": 1.765,
+        "uses_wait_share": 0.2353,
+        "mean_wait_months": 2.01,
         "plausible_share": 1.0,
         "robust_share": 1.0,
-        "latency_ms_mean": 34.5,
-        "latency_ms_p95": 45.3,
+        "latency_ms_mean": 34.3,
+        "latency_ms_p95": 44.8,
         "retrained_models": 5,
-        "holds_on_all_retrained": 0.1527,
-        "holds_on_all_retrained_fixed_cutoffs": 0.1527,
-        "mean_retrained_models_held": 2.794,
-        "usable_and_holds_on_all": 0.0667,
-        "unchanged_applicant_already_promised_on_any": 0.18
+        "holds_on_all_retrained": 0.1103,
+        "holds_on_all_retrained_fixed_cutoffs": 0.1029,
+        "mean_retrained_models_held": 2.75,
+        "usable_and_holds_on_all": 0.05,
+        "unchanged_applicant_already_promised_on_any": 0.2067
       },
       "random": {
         "applicants": 300,
-        "coverage": 0.37,
+        "coverage": 0.3767,
         "improves_share": 1.0,
-        "mean_cost": 0.3178,
-        "median_cost": 0.2887,
+        "mean_cost": 0.3086,
+        "median_cost": 0.2831,
         "mean_levers": 3.0,
         "plausible_share": 1.0,
         "robust_share": 1.0,
-        "latency_ms_mean": 18.8,
-        "latency_ms_p95": 19.1,
+        "latency_ms_mean": 18.6,
+        "latency_ms_p95": 19.4,
         "retrained_models": 5,
-        "holds_on_all_retrained": 0.2072,
-        "holds_on_all_retrained_fixed_cutoffs": 0.1982,
-        "mean_retrained_models_held": 3.054,
-        "usable_and_holds_on_all": 0.0767,
-        "unchanged_applicant_already_promised_on_any": 0.18
+        "holds_on_all_retrained": 0.2301,
+        "holds_on_all_retrained_fixed_cutoffs": 0.1947,
+        "mean_retrained_models_held": 3.239,
+        "usable_and_holds_on_all": 0.0867,
+        "unchanged_applicant_already_promised_on_any": 0.2067
       }
     }
   },
@@ -459,98 +459,98 @@
         "age_band": {
           "groups": {
             "25-35": {
-              "applicants": 119,
-              "coverage": 0.5798,
-              "mean_cost": 0.2213
+              "applicants": 116,
+              "coverage": 0.5,
+              "mean_cost": 0.2109
             },
             "35-45": {
-              "applicants": 80,
-              "coverage": 0.5625,
-              "mean_cost": 0.1988
+              "applicants": 82,
+              "coverage": 0.5366,
+              "mean_cost": 0.196
             },
             "45-55": {
               "applicants": 58,
-              "coverage": 0.6552,
-              "mean_cost": 0.1666
+              "coverage": 0.7241,
+              "mean_cost": 0.1406
             },
             "55+": {
-              "applicants": 24,
-              "coverage": 0.4583,
-              "mean_cost": 0.1552
+              "applicants": 19,
+              "coverage": 0.6842,
+              "mean_cost": 0.1435
             },
             "<25": {
-              "applicants": 19,
-              "coverage": 0.7368,
-              "mean_cost": 0.1411
+              "applicants": 25,
+              "coverage": 0.6,
+              "mean_cost": 0.215
             }
           },
-          "coverage_gap": 0.2785,
-          "cost_gap": 0.0802
+          "coverage_gap": 0.2241,
+          "cost_gap": 0.0744
         },
         "has_children": {
           "groups": {
             "no": {
-              "applicants": 200,
-              "coverage": 0.585,
-              "mean_cost": 0.1964
+              "applicants": 193,
+              "coverage": 0.513,
+              "mean_cost": 0.1932
             },
             "yes": {
-              "applicants": 100,
-              "coverage": 0.6,
-              "mean_cost": 0.1876
+              "applicants": 107,
+              "coverage": 0.6822,
+              "mean_cost": 0.1743
             }
           },
-          "coverage_gap": 0.015,
-          "cost_gap": 0.0088
+          "coverage_gap": 0.1692,
+          "cost_gap": 0.0189
         }
       },
       "review_to_approve": {
         "age_band": {
           "groups": {
             "25-35": {
-              "applicants": 60,
-              "coverage": 0.4,
-              "mean_cost": 0.2249
+              "applicants": 74,
+              "coverage": 0.2703,
+              "mean_cost": 0.2224
             },
             "35-45": {
-              "applicants": 88,
-              "coverage": 0.375,
-              "mean_cost": 0.1917
+              "applicants": 69,
+              "coverage": 0.5507,
+              "mean_cost": 0.1856
             },
             "45-55": {
-              "applicants": 71,
-              "coverage": 0.3099,
-              "mean_cost": 0.1945
+              "applicants": 68,
+              "coverage": 0.3971,
+              "mean_cost": 0.2083
             },
             "55+": {
-              "applicants": 68,
-              "coverage": 0.2794,
-              "mean_cost": 0.3279
+              "applicants": 77,
+              "coverage": 0.3117,
+              "mean_cost": 0.2341
             },
             "<25": {
-              "applicants": 13,
-              "coverage": 0.3077,
-              "mean_cost": 0.2225
+              "applicants": 12,
+              "coverage": 0.1667,
+              "mean_cost": 0.1038
             }
           },
-          "coverage_gap": 0.1206,
-          "cost_gap": 0.1362
+          "coverage_gap": 0.384,
+          "cost_gap": 0.1303
         },
         "has_children": {
           "groups": {
             "no": {
-              "applicants": 206,
-              "coverage": 0.3447,
-              "mean_cost": 0.2267
+              "applicants": 232,
+              "coverage": 0.3621,
+              "mean_cost": 0.2089
             },
             "yes": {
-              "applicants": 94,
-              "coverage": 0.3298,
-              "mean_cost": 0.2266
+              "applicants": 68,
+              "coverage": 0.3971,
+              "mean_cost": 0.2
             }
           },
-          "coverage_gap": 0.0149,
-          "cost_gap": 0.0001
+          "coverage_gap": 0.035,
+          "cost_gap": 0.0089
         }
       }
     },
@@ -559,98 +559,98 @@
         "age_band": {
           "groups": {
             "25-35": {
-              "applicants": 119,
-              "coverage": 0.6303,
-              "mean_cost": 0.2738
+              "applicants": 116,
+              "coverage": 0.5603,
+              "mean_cost": 0.2655
             },
             "35-45": {
-              "applicants": 80,
-              "coverage": 0.6625,
-              "mean_cost": 0.2877
+              "applicants": 82,
+              "coverage": 0.6098,
+              "mean_cost": 0.2303
             },
             "45-55": {
               "applicants": 58,
-              "coverage": 0.7069,
-              "mean_cost": 0.1922
+              "coverage": 0.7414,
+              "mean_cost": 0.1537
             },
             "55+": {
-              "applicants": 24,
-              "coverage": 0.7083,
-              "mean_cost": 0.3
+              "applicants": 19,
+              "coverage": 0.6842,
+              "mean_cost": 0.1435
             },
             "<25": {
-              "applicants": 19,
-              "coverage": 0.7895,
-              "mean_cost": 0.171
+              "applicants": 25,
+              "coverage": 0.6,
+              "mean_cost": 0.2063
             }
           },
-          "coverage_gap": 0.1592,
-          "cost_gap": 0.129
+          "coverage_gap": 0.1811,
+          "cost_gap": 0.122
         },
         "has_children": {
           "groups": {
             "no": {
-              "applicants": 200,
-              "coverage": 0.665,
-              "mean_cost": 0.2578
+              "applicants": 193,
+              "coverage": 0.5596,
+              "mean_cost": 0.2247
             },
             "yes": {
-              "applicants": 100,
-              "coverage": 0.68,
-              "mean_cost": 0.2506
+              "applicants": 107,
+              "coverage": 0.729,
+              "mean_cost": 0.2061
             }
           },
-          "coverage_gap": 0.015,
-          "cost_gap": 0.0072
+          "coverage_gap": 0.1694,
+          "cost_gap": 0.0186
         }
       },
       "review_to_approve": {
         "age_band": {
           "groups": {
             "25-35": {
-              "applicants": 60,
-              "coverage": 0.5,
-              "mean_cost": 0.3149
+              "applicants": 74,
+              "coverage": 0.3784,
+              "mean_cost": 0.3518
             },
             "35-45": {
-              "applicants": 88,
-              "coverage": 0.4886,
-              "mean_cost": 0.2694
+              "applicants": 69,
+              "coverage": 0.5942,
+              "mean_cost": 0.232
             },
             "45-55": {
-              "applicants": 71,
-              "coverage": 0.3803,
-              "mean_cost": 0.2765
+              "applicants": 68,
+              "coverage": 0.4853,
+              "mean_cost": 0.2483
             },
             "55+": {
-              "applicants": 68,
-              "coverage": 0.3971,
-              "mean_cost": 0.4208
+              "applicants": 77,
+              "coverage": 0.4156,
+              "mean_cost": 0.3465
             },
             "<25": {
-              "applicants": 13,
-              "coverage": 0.3077,
-              "mean_cost": 0.17
+              "applicants": 12,
+              "coverage": 0.1667,
+              "mean_cost": 0.1038
             }
           },
-          "coverage_gap": 0.1923,
-          "cost_gap": 0.2508
+          "coverage_gap": 0.4275,
+          "cost_gap": 0.248
         },
         "has_children": {
           "groups": {
             "no": {
-              "applicants": 206,
-              "coverage": 0.4515,
-              "mean_cost": 0.3187
+              "applicants": 232,
+              "coverage": 0.444,
+              "mean_cost": 0.2861
             },
             "yes": {
-              "applicants": 94,
-              "coverage": 0.4043,
-              "mean_cost": 0.2867
+              "applicants": 68,
+              "coverage": 0.4853,
+              "mean_cost": 0.2842
             }
           },
-          "coverage_gap": 0.0472,
-          "cost_gap": 0.032
+          "coverage_gap": 0.0413,
+          "cost_gap": 0.0019
         }
       }
     }

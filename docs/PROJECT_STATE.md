@@ -41,9 +41,9 @@
 | Data prep (`src/data_prep.py`) | ✅ | Shape (307511, 133), target rate 0.0807 |
 | Baselines LR/RF/XGB/LGBM | ✅ | `reports/baseline_model_comparison.csv` |
 | Feature engineering v2 (`src/feature_engineering_v2.py`) | ✅ | Importable; `tests/test_fe_v2.py` |
-| Final model (`src/final_model.py`) | ✅ | Single LightGBM fit on 196,806 rows, early stopping on 49,202 validation rows (best iteration 624). Validation AUC 0.7711; **test AUC 0.7668**, PR-AUC 0.2553 (`models/final_model_card.json`) |
-| Gender excluded; age kept and audited | ✅ | `CODE_GENDER_M`, `CODE_GENDER_XNA` and the raw `DAYS_BIRTH` excluded; age stays in as `AGE_YEARS`, `AGE_SQUARED` and `AGE_CUBED` (D-3: keep age and audit it); 300 features. Gender ablation: with gender 0.7685, without 0.7668 (cost 0.0017 AUC; `reports/gender_ablation.csv`) |
-| Three-band router (`src/decision.py`) | ✅ | Approve below 0.0349, reject from 0.1189. Test bands: approve 34.8% (actual default 2.1%), review 45.0% (6.7%), reject 20.1% (21.6%) (`reports/final_model_bands.csv`) |
+| Final model (`src/final_model.py`) | ✅ | Single LightGBM fit on 196,806 rows, early stopping on 49,202 validation rows (best iteration 599). Validation AUC 0.7705; **test AUC 0.7668**, PR-AUC 0.2549; cleaning statistics from training rows only (#86) (`models/final_model_card.json`) |
+| Gender excluded; age kept and audited | ✅ | `CODE_GENDER_M`, `CODE_GENDER_XNA` and the raw `DAYS_BIRTH` excluded; age stays in as `AGE_YEARS`, `AGE_SQUARED` and `AGE_CUBED` (D-3: keep age and audit it); 300 features. Gender ablation: with gender 0.7683, without 0.7668 (cost 0.0015 AUC; `reports/gender_ablation.csv`) |
+| Three-band router (`src/decision.py`) | ✅ | Approve below 0.0351, reject from 0.1190. Test bands: approve 34.9% (actual default 2.1%), review 44.9% (6.7%), reject 20.2% (21.4%) (`reports/final_model_bands.csv`) |
 | Shared inference (`src/inference.py`) | ✅ | Same feature path for training, evaluation and API (D-39) |
 | EDA report | ✅ | `src/eda.py`, `reports/eda/` (Phase 5.6) |
 
@@ -52,10 +52,10 @@
 | Component | Status | Evidence / gap |
 |---|---|---|
 | SHAP (`src/explainability.py`) | ✅ | Additivity difference 0.0; repeat-run correlation 1.0. Top features: `CREDIT_GOODS_EXT_RISK`, `EXT_SOURCE_MEAN`, `CREDIT_ANNUITY_RATIO` |
-| LIME (`src/lime_local.py`) | ✅ | Local, sign-correct, seeded (D-43). On 150 applicants: Spearman with SHAP 0.64 (was 0.00), locality gap 0.49 (was 0.00), sign agreement 0.74, seed stability 0.83, 38 ms (`reports/explanation_consistency.json`). Covers 25 top-gain features (#66) |
-| Recourse (`src/recourse.py`) | ✅ | Bounded search over loan amount, income, tenure and waiting (3–12 months, age held fixed; D-38, D-56) with a safety margin, a plausibility check, refinement, two tiers, SHAP drivers (D-44 to D-48) and applicant preferences (D-57). Usable option with waiting: 67.0% of rejected applicants and 43.7% of Review applicants (loan levers only: 59.0% and 34.0%; previous engine 21.3%; DiCE 5% on 20 applicants). Changes are 24% smaller than the previous engine's and about 30% smaller than random search's; about 20 ms (`reports/recourse_evaluation.json`, IMPLEMENTATION_LOG 4.7b) |
+| LIME (`src/lime_local.py`) | ✅ | Local, sign-correct, seeded (D-43). On 150 applicants: Spearman with SHAP 0.64 (was 0.00), locality gap 0.51 (was 0.00), sign agreement 0.73, seed stability 0.83, 37 ms (`reports/explanation_consistency.json`). Covers 25 top-gain features (#66) |
+| Recourse (`src/recourse.py`) | ✅ | Bounded search over loan amount, income, tenure and waiting (3–12 months, age held fixed; D-38, D-56) with a safety margin, a plausibility check, refinement, two tiers, SHAP drivers (D-44 to D-48) and applicant preferences (D-57). Usable option with waiting: 62.0% of rejected applicants and 45.3% of Review applicants (loan levers only: 57.3% and 37.0%; previous engine 22.7%; DiCE 20% on 20 applicants). Changes are 27% smaller than the previous engine's and 31% smaller than random search's; about 23 ms (`reports/recourse_evaluation.json`, IMPLEMENTATION_LOG 4.7b) |
 | Counterfactuals, Phase 3 version (`src/counterfactuals.py`, DiCE) | 🟡 | Offline Phase 3 script; DiCE now also runs as a baseline inside `src/recourse_eval.py` |
-| Fairness audit (`src/fairness_audit.py`) | ✅ / 🟡 | Age-band DPD 0.349 and EOD 0.350; has-children DPD 0.045. The age gap tracks real default rates (11.4% for under-25 vs 5.2% for 55+) and the model uses age directly (`AGE_YEARS` and its square and cube); only the raw `DAYS_BIRTH` column is dropped. Mitigation or a documented decision is still open (#16) |
+| Fairness audit (`src/fairness_audit.py`) | ✅ / 🟡 | Age-band DPD 0.356 and EOD 0.357; has-children DPD 0.049. The age gap tracks real default rates (11.4% for under-25 vs 5.2% for 55+) and the model uses age directly (`AGE_YEARS` and its square and cube); only the raw `DAYS_BIRTH` column is dropped. Decided: age kept and audited, age policy as eligibility rules (D-76, D-77, #16) |
 
 ### Application (original Phase 4)
 
@@ -83,11 +83,11 @@
 
 ---
 
-## 4. Test baseline (Nov 27, 2026, after Phase 5.6)
+## 4. Test baseline (Nov 27, 2026, after Phase 5.6b)
 
 | Suite | Result |
 |---|---|
-| `python3 -m pytest tests backend/tests -q` | ✅ 270 passed |
+| `python3 -m pytest tests backend/tests -q` | ✅ 275 passed |
 | `npx tsc --noEmit` (frontend) | ✅ |
 | `npm run build` (frontend) | ✅ 12 routes |
 | `npm run lint` (frontend) | ✅ clean |
@@ -132,7 +132,9 @@ Phases 4.7 onward (TECHNICAL_DECISIONS D-41) follow this order.
 
 **Phase 5.5a:** eligibility rules before the model: applicants under 18 apply with a guardian, who is assessed, and the officer needs the guardian's documents; no automatic approval without income (D-76). Age experiment: removing age does not narrow the age gap and makes under-25s look riskier than they are (D-77).
 
-**Phase 5.6:** EDA report for the dataset section (#1 resolved). It found that preprocessing statistics are computed before the split (#86, low).
+**Phase 5.6:** EDA report for the dataset section (#1 resolved). It found that preprocessing statistics are computed before the split (#86).
+
+**Phase 5.6b:** #86 fixed: cleaning is learned from training rows only, and everything was rebuilt except the age experiment (D-78). Test AUC unchanged (0.7668). Recourse percentages moved by 1–5 points; every conclusion holds (IMPLEMENTATION_LOG 5.6b).
 
 **Remaining phases (each awaiting approval):** optional #79 (officer list of all applications), 5.7 figures and tables from the report files, 5.8 manuscript, 5.9 code release and submission (Q3; venue and fees still to be decided with the project guide).
 

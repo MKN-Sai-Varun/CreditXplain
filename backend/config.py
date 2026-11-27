@@ -30,9 +30,9 @@ class Settings(BaseSettings):
     SCALER_PATH: Path = MODELS_DIR / "scaler.pkl"
     CONTINUOUS_COLS_PATH: Path = MODELS_DIR / "continuous_cols.pkl"
     
-    # Decision thresholds (from Phase 3)
-    APPROVE_THRESHOLD: float = 0.0349
-    REJECT_THRESHOLD: float = 0.1189
+    # Band cutoffs from models/final_model_card.json, used to price loans within a band
+    APPROVE_THRESHOLD: float = 0.0351
+    REJECT_THRESHOLD: float = 0.1190
     
     # Eligibility rules checked before the model (illustrative policy, see eligibility_service)
     MIN_ADULT_AGE: int = 18

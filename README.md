@@ -131,22 +131,23 @@ Tests that need the trained model or processed data skip when those files are ab
 **Data** (`reports/eda/`): 307,511 Home Credit applicants with 122 columns and an 8.07% default rate. 41 columns are missing for more than half of the applicants. The credit-bureau scores are the strongest single signals, and the default rate falls with age, from 12.3% under 25 to 5.2% over 55.
 
 **Model.**
-- LightGBM on 300 engineered features, with gender excluded: test ROC-AUC 0.7668, PR-AUC 0.2553.
-- Excluding gender costs 0.0017 AUC.
-- Bands: Approve 34.8% of applicants (actual default rate 2.1%), Review 45.0% (6.7%), Reject 20.1% (21.6%).
+- LightGBM on 300 engineered features, with gender excluded: test ROC-AUC 0.7668, PR-AUC 0.2549.
+- Excluding gender costs 0.0015 AUC.
+- Bands: Approve 34.9% of applicants (actual default rate 2.1%), Review 44.9% (6.7%), Reject 20.2% (21.4%).
+- Every fill-in value and clipping limit used in cleaning is learned from the training rows only (`src/data_prep.py`).
 
 **Baselines** (80/20 split, SMOTE on training data as in the base paper; precision, recall and F1 at each model's F1-optimal threshold):
 
 | Model | ROC-AUC | Precision | Recall | F1 |
 |---|---|---|---|---|
-| Logistic Regression | 0.722 | 0.217 | 0.407 | 0.283 |
-| Random Forest | 0.703 | 0.185 | 0.401 | 0.253 |
-| XGBoost | 0.747 | 0.225 | 0.435 | 0.296 |
-| LightGBM | 0.748 | 0.237 | 0.404 | 0.299 |
+| Logistic Regression | 0.722 | 0.220 | 0.395 | 0.283 |
+| Random Forest | 0.701 | 0.184 | 0.394 | 0.251 |
+| XGBoost | 0.748 | 0.225 | 0.428 | 0.295 |
+| LightGBM | 0.747 | 0.229 | 0.424 | 0.297 |
 
 **Explanations** (150 applicants, `reports/explanation_consistency.json`). SHAP additivity is exact. Local LIME against SHAP:
 - rank correlation 0.64;
-- sign agreement on SHAP's top 5 is 74%;
+- sign agreement on SHAP's top 5 is 73%;
 - seed stability 0.83.
 
 The previous whole-model LIME set-up scored 0.00 on rank correlation and gave nearly the same explanation for everyone.
@@ -155,21 +156,21 @@ The previous whole-model LIME set-up scored 0.00 on rank correlation and gave ne
 
 | Rejected → Review | Usable option | Usable and survives retraining | Mean change | Levers changed |
 |---|---|---|---|---|
-| **Hybrid (what the application shows)** | **67.0%** | **26.3%** | 0.341 | 1.99 |
-| Proposed with waiting, no retraining check | 67.0% | 16.3% | 0.255 | 1.77 |
-| Proposed, loan levers only | 59.0% | 16.3% | 0.193 | 1.57 |
-| Random search | 61.3% | 21.3% | 0.286 | 3.00 |
-| Previous engine | 21.3% | 6.3% | 0.254 | 1.40 |
+| **Hybrid (what the application shows)** | **62.0%** | **23.7%** | 0.307 | 1.91 |
+| Proposed with waiting, no retraining check | 62.0% | 14.3% | 0.217 | 1.58 |
+| Proposed, loan levers only | 57.3% | 14.0% | 0.185 | 1.48 |
+| Random search | 59.7% | 17.7% | 0.269 | 3.00 |
+| Previous engine | 22.7% | 8.7% | 0.255 | 1.38 |
 
-For Review → Approve, the hybrid gives 43.7% of applicants a usable option, and 11.0% one that survives retraining. On the same 20 applicants per tier, DiCE produced a usable option for 5% (Reject) and 20% (Review), against 60% and 50% for the proposed engine.
+For Review → Approve, the hybrid gives 45.3% of applicants a usable option, and 11.0% one that survives retraining. On the same 20 applicants per tier, DiCE produced a usable option for 20% (Reject) and 5% (Review), against 60% and 40% for the hybrid.
 
-The hybrid lists first the options that all 5 retrained search models agree on, and labels each option as likely or not to hold if the model is updated. Requiring that agreement roughly doubles how often an option survives retraining (27.7% → 52.4%), at some cost in coverage. The hybrid keeps full coverage by falling back to the standard options.
+The hybrid lists first the options that all 5 retrained search models agree on, and labels each option as likely or not to hold if the model is updated. Requiring that agreement roughly doubles how often an option survives retraining (24.4% → 53.3%), at some cost in coverage. The hybrid keeps full coverage by falling back to the standard options.
 
 **System performance** (`reports/system_latency.json`, 100 applicants, laptop):
-- An applicant's full path (submit, decision with SHAP, LIME and recourse, PDF report) takes 160 ms on average and 257 ms at the 95th percentile.
-- Recourse is the largest stage (98 ms on average, Review and Reject only), then LIME (39 ms).
+- An applicant's full path (submit, decision with SHAP, LIME and recourse, PDF report) takes 158 ms on average and 259 ms at the 95th percentile.
+- Recourse is the largest stage (95 ms on average, Review and Reject only), then LIME (38 ms).
 - Start-up takes 1.6 s.
-- The advice is insensitive to the price put on waiting: doubling it changes the first suggestion for 1–2% of applicants.
+- The advice is insensitive to the price put on waiting: doubling it changes the first suggestion for at most 4% of applicants, halving it for 6–10%.
 
 **Understandability** (`reports/understandability.json`, 150 applicants, 50 per decision):
 - The text an applicant reads scores 60.0 on Flesch reading ease (plain English) and is at about an 8th-grade level.
@@ -177,9 +178,9 @@ The hybrid lists first the options that all 5 retrained search models agree on, 
 - An applicant sees five reasons and, if not approved, usually one or two options of about two changes each (median 115 words in all).
 - No user study with applicants was run. An expert review is prepared in `docs/usability/`.
 
-**Fairness** (offline audit). Age-band demographic parity difference 0.349; children / no children 0.045.
+**Fairness** (offline audit). Age-band demographic parity difference 0.356; children / no children 0.049.
 - Age policy is applied as **eligibility rules before the model**: applicants under 18 apply with a guardian, who is assessed, and an officer decides once the guardian's documents are uploaded. Without an income, no application is approved automatically.
-- Removing age from the model was tested (`reports/age_fairness_experiment.json`) and **widens** the gap to 0.377, with AUC 0.7646. Age is recoverable from other features (R² 0.735), and the age-free model over-predicts risk for under-25s.
+- Removing age from the model was tested (`reports/age_fairness_experiment.json`, run before the cleaning fix of #86, with the model then at DPD 0.349) and **widens** the gap to 0.377, with AUC 0.7646. Age is recoverable from other features (R² 0.735), and the age-free model over-predicts risk for under-25s.
 - The current model is calibrated within 0.8 points in every age band. The approval gap follows actual default rates (11.4% for under-25s, 5.3% for over-55s).
 
 ## Roadmap

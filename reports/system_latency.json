@@ -1,114 +1,114 @@
 {
   "applicants": 100,
   "decisions": {
-    "APPROVE": 28,
+    "APPROVE": 30,
     "REVIEW": 48,
-    "REJECT": 24
+    "REJECT": 22
   },
-  "cold_start_ms": 1623.2,
+  "cold_start_ms": 1641.6,
   "robust_recourse": true,
   "api": {
     "submit": {
       "n": 100,
-      "mean_ms": 2.5,
-      "median_ms": 2.5,
-      "p95_ms": 2.6,
+      "mean_ms": 2.6,
+      "median_ms": 2.6,
+      "p95_ms": 2.9,
       "max_ms": 3.0
     },
     "decide": {
       "n": 100,
-      "mean_ms": 150.1,
-      "median_ms": 139.2,
-      "p95_ms": 247.2,
-      "max_ms": 250.8
+      "mean_ms": 147.3,
+      "median_ms": 140.5,
+      "p95_ms": 247.6,
+      "max_ms": 250.5
     },
     "read_decision": {
       "n": 100,
-      "mean_ms": 2.6,
-      "median_ms": 2.6,
-      "p95_ms": 2.8,
-      "max_ms": 2.8
+      "mean_ms": 2.7,
+      "median_ms": 2.7,
+      "p95_ms": 3.0,
+      "max_ms": 3.1
     },
     "applicant_pdf": {
       "n": 100,
-      "mean_ms": 4.5,
-      "median_ms": 4.6,
-      "p95_ms": 5.3,
-      "max_ms": 5.3
+      "mean_ms": 5.0,
+      "median_ms": 4.7,
+      "p95_ms": 5.5,
+      "max_ms": 34.5
     },
     "what_if": {
-      "n": 72,
-      "mean_ms": 64.5,
-      "median_ms": 35.6,
-      "p95_ms": 139.1,
-      "max_ms": 140.4
+      "n": 70,
+      "mean_ms": 64.8,
+      "median_ms": 37.1,
+      "p95_ms": 138.7,
+      "max_ms": 141.7
     },
     "compliance_pdf": {
       "n": 100,
-      "mean_ms": 10.2,
-      "median_ms": 9.9,
-      "p95_ms": 11.2,
-      "max_ms": 23.5
+      "mean_ms": 10.4,
+      "median_ms": 10.3,
+      "p95_ms": 11.6,
+      "max_ms": 12.2
     },
     "total": {
       "n": 100,
-      "mean_ms": 159.8,
-      "median_ms": 148.3,
-      "p95_ms": 257.4,
-      "max_ms": 261.3
+      "mean_ms": 157.7,
+      "median_ms": 150.1,
+      "p95_ms": 258.5,
+      "max_ms": 261.1
     }
   },
   "stages": {
     "score": {
       "n": 100,
-      "mean_ms": 12.5,
-      "median_ms": 11.8,
-      "p95_ms": 13.2,
-      "max_ms": 39.8
+      "mean_ms": 12.1,
+      "median_ms": 12.0,
+      "p95_ms": 13.0,
+      "max_ms": 14.3
     },
     "shap": {
       "n": 100,
-      "mean_ms": 26.7,
-      "median_ms": 26.0,
-      "p95_ms": 27.4,
-      "max_ms": 56.2
+      "mean_ms": 26.0,
+      "median_ms": 25.9,
+      "p95_ms": 26.8,
+      "max_ms": 32.2
     },
     "lime": {
       "n": 100,
-      "mean_ms": 38.6,
+      "mean_ms": 38.4,
       "median_ms": 38.2,
-      "p95_ms": 40.7,
-      "max_ms": 49.0
+      "p95_ms": 40.2,
+      "max_ms": 45.9
     },
     "recourse": {
-      "n": 72,
-      "mean_ms": 97.9,
-      "median_ms": 61.0,
-      "p95_ms": 169.2,
-      "max_ms": 171.1
+      "n": 70,
+      "mean_ms": 95.3,
+      "median_ms": 62.2,
+      "p95_ms": 166.6,
+      "max_ms": 171.7
     },
     "applicant_pdf": {
       "n": 100,
-      "mean_ms": 2.9,
-      "median_ms": 3.0,
+      "mean_ms": 3.0,
+      "median_ms": 3.1,
       "p95_ms": 3.7,
-      "max_ms": 3.9
+      "max_ms": 4.0
     }
   },
   "recourse_by_band": {
     "REVIEW": {
       "n": 48,
-      "mean_ms": 84.6,
-      "median_ms": 60.3,
-      "p95_ms": 162.1,
-      "max_ms": 170.1
+      "mean_ms": 86.2,
+      "median_ms": 61.6,
+      "p95_ms": 164.0,
+      "max_ms": 171.4
     },
     "REJECT": {
-      "n": 24,
-      "mean_ms": 124.6,
-      "median_ms": 142.7,
-      "p95_ms": 170.1,
-      "max_ms": 171.1
+      "n": 22,
+      "mean_ms": 115.2,
+      "median_ms": 118.0,
+      "p95_ms": 169.5,
+      "max_ms": 171.7
     }
   },
   "notes": {

@@ -1,10 +1,15 @@
 """
 Phase 1: Data loading, cleaning, feature engineering
+
+Fill values (median, most common value) and clipping bounds are learned from
+the training rows only, using the same stratified 80/20 split that
+src/train_baseline.py makes afterwards, so the test rows never shape them.
 Run: python src/data_prep.py --data-path data/home_credit/ --out data/processed/app_train_clean.csv
 """
 import argparse
 import numpy as np
 import pandas as pd
+from sklearn.model_selection import train_test_split
 
 
 def load_data(path="data/home_credit/"):
@@ -40,43 +45,66 @@ def aggregate_secondary_tables(app_df, bureau, prev_app):
 
 
 NO_CLIP_COLUMNS = {"SK_ID_CURR", "TARGET", "IS_EMPLOYED_ANOMALY"}
+EMPLOYED_PLACEHOLDER = 365243   # DAYS_EMPLOYED code for unemployed/pensioner, not a real value
+TEST_SIZE, SPLIT_SEED = 0.2, 42  # the split of src/train_baseline.py
 
 
-def clean_data(df):
+def split_mask(y, test_size=TEST_SIZE, seed=SPLIT_SEED):
+    """True for training rows: the same stratified split src/train_baseline.py makes on this row order."""
+    idx = np.arange(len(y))
+    train_idx, _ = train_test_split(idx, test_size=test_size, stratify=y, random_state=seed)
+    mask = np.zeros(len(y), dtype=bool)
+    mask[train_idx] = True
+    return mask
+
+
+def _flag_employment(df):
     df = df.copy()
-    # 365243 = placeholder for unemployed/pensioner, not a real value
-    df["IS_EMPLOYED_ANOMALY"] = (df["DAYS_EMPLOYED"] == 365243).astype(int)
-    df.loc[df["DAYS_EMPLOYED"] == 365243, "DAYS_EMPLOYED"] = np.nan
-
-    num_cols = df.select_dtypes(include=[np.number]).columns
-    cat_cols = df.select_dtypes(exclude=[np.number]).columns
-
-    df[num_cols] = df[num_cols].fillna(df[num_cols].median())
-    if len(cat_cols) > 0:
-        modes = df[cat_cols].mode().iloc[0]
-        df[cat_cols] = df[cat_cols].fillna(modes)
-
-    # skip ID/label/binary cols so clipping doesn't corrupt them
-    clip_cols = [
-        c for c in num_cols
-        if c not in NO_CLIP_COLUMNS and not set(df[c].dropna().unique()).issubset({0, 1})
-    ]
-    for col in clip_cols:
-        std = df[col].std()
-        if std and std > 0:
-            mean = df[col].mean()
-            df[col] = df[col].clip(mean - 3 * std, mean + 3 * std)
-
+    df["IS_EMPLOYED_ANOMALY"] = (df["DAYS_EMPLOYED"] == EMPLOYED_PLACEHOLDER).astype(int)
+    df.loc[df["DAYS_EMPLOYED"] == EMPLOYED_PLACEHOLDER, "DAYS_EMPLOYED"] = np.nan
     return df
 
 
-def engineer_features(df):
+def fit_cleaning(train_df):
+    """Fill values and clipping bounds, learned from the training rows only."""
+    df = _flag_employment(train_df)
+    num_cols = df.select_dtypes(include=[np.number]).columns
+    cat_cols = df.select_dtypes(include=["object"]).columns   # text categories; the timestamp is left alone
+    medians = df[num_cols].median()
+    filled = df[num_cols].fillna(medians)
+    # skip ID/label/binary cols so clipping doesn't corrupt them
+    clip_cols = [c for c in num_cols
+                 if c not in NO_CLIP_COLUMNS and not set(filled[c].dropna().unique()).issubset({0, 1})]
+    bounds = {}
+    for col in clip_cols:
+        std = filled[col].std()
+        if std and std > 0:
+            mean = filled[col].mean()
+            bounds[col] = (mean - 3 * std, mean + 3 * std)
+    modes = df[cat_cols].mode().iloc[0] if len(cat_cols) else pd.Series(dtype=object)
+    return {"medians": medians, "modes": modes, "bounds": bounds}
+
+
+def clean_data(df, stats):
+    """Flags the employment placeholder, fills gaps and clips outliers with statistics from fit_cleaning."""
+    df = _flag_employment(df)
+    num_cols = [c for c in stats["medians"].index if c in df.columns]
+    df[num_cols] = df[num_cols].fillna(stats["medians"][num_cols])
+    if len(stats["modes"]):
+        cat_cols = [c for c in stats["modes"].index if c in df.columns]
+        df[cat_cols] = df[cat_cols].fillna(stats["modes"][cat_cols])
+    for col, (lo, hi) in stats["bounds"].items():
+        df[col] = df[col].clip(lo, hi)
+    return df
+
+
+def engineer_features(df, train_mask):
     df = df.copy()
     df["CREDIT_TO_GOODS_RATIO"] = df["AMT_CREDIT"] / df["AMT_GOODS_PRICE"].replace(0, np.nan)
     df["AGE_YEARS"] = (-df["DAYS_BIRTH"] / 365).astype(int)
     df["CREDIT_INCOME_RATIO"] = df["AMT_CREDIT"] / df["AMT_INCOME_TOTAL"].replace(0, np.nan)
-    df["CREDIT_TO_GOODS_RATIO"] = df["CREDIT_TO_GOODS_RATIO"].fillna(df["CREDIT_TO_GOODS_RATIO"].median())
-    df["CREDIT_INCOME_RATIO"] = df["CREDIT_INCOME_RATIO"].fillna(df["CREDIT_INCOME_RATIO"].median())
+    for col in ("CREDIT_TO_GOODS_RATIO", "CREDIT_INCOME_RATIO"):
+        df[col] = df[col].fillna(df.loc[train_mask, col].median())
     return df
 
 
@@ -92,11 +120,15 @@ def simulate_application_timestamps(df, start_date="2025-01-01", end_date="2025-
 def run_pipeline(data_path, out_path):
     tables = load_data(data_path)
     df = aggregate_secondary_tables(tables["app_train"], tables["bureau"], tables["prev_app"])
-    df = clean_data(df)
-    df = engineer_features(df)
+    # order the rows first: the train/test split depends on it, and cleaning only uses the training rows
     df = simulate_application_timestamps(df)
+    train = split_mask(df["TARGET"].values)
+    df = clean_data(df, fit_cleaning(df[train]))
+    df = engineer_features(df, train)
+    df = df[[c for c in df.columns if c != "SIMULATED_SUBMITTED_AT"] + ["SIMULATED_SUBMITTED_AT"]]
     df.to_csv(out_path, index=False)
-    print(f"[data_prep] Wrote {len(df)} rows, {df.shape[1]} columns -> {out_path}")
+    print(f"[data_prep] Wrote {len(df)} rows, {df.shape[1]} columns -> {out_path} "
+          f"(cleaning statistics from {int(train.sum())} training rows)")
     return df
 
 

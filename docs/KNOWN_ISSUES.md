@@ -1275,7 +1275,7 @@ Found on Nov 25, 2026 by running every existing test (`tests/`: 88 passed; `back
 ## Phase 5.6: EDA — New Issues
 
 ### #86: Preprocessing Statistics Computed Before the Train/Test Split
-**Status:** Open (low; stated as a limitation)  
+**Status:** ✅ Resolved (Phase 5.6b): `src/data_prep.py` learns fill values and clipping bounds from the training rows only; all models and reports rebuilt. Test AUC unchanged (0.7668)  
 **Phase:** 1 (found in 5.6)  
 **Description:** `src/data_prep.py` fills numeric gaps with medians and clips to the mean ± 3 standard deviations using all 307,511 rows. The 80/20 split happens later, in `src/train_baseline.py`, so the test rows contribute to these statistics. The target is not used, and the statistics come from hundreds of thousands of rows, so the effect on reported scores is expected to be very small. It is still a form of leakage.  
 **Action:** Either compute the medians and clipping bounds on the training rows only and re-run the pipeline (every report would be rebuilt), or state it in the paper. Recommended: state it now, and fix it if time allows before submission.
@@ -1325,6 +1325,7 @@ Found on Nov 25, 2026 by running every existing test (`tests/`: 88 passed; `back
 | Nov 27, 2026 | #16 | Resolved by decision: age kept and audited (Q5 confirmed) |
 | Nov 27, 2026 | #1 | Resolved: EDA report (Phase 5.6) |
 | Nov 27, 2026 | #86 | Identified: preprocessing statistics computed before the split |
+| Nov 27, 2026 | #86 | Resolved: cleaning fitted on training rows only, results rebuilt (Phase 5.6b) |
 
 ---
 

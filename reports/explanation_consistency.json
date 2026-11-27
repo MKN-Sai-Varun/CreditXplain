@@ -9,111 +9,111 @@
     "EXT_SOURCE_2_3_PRODUCT",
     "PREV_APP_REFUSAL_RATE",
     "BUREAU_AVG_CREDIT_AMT",
-    "EXT_SOURCE_MAX",
     "EXT_SOURCE_1",
     "AGE_YEARS",
+    "EXT_SOURCE_MAX",
     "DAYS_ID_PUBLISH",
     "EXT_SOURCE_MIN",
     "AGE_MINUS_EMPLOYMENT",
-    "ANNUITY_EXT_RISK",
-    "EXT_SOURCE_3",
-    "AMT_GOODS_PRICE",
     "DAYS_LAST_PHONE_CHANGE",
-    "EXT_SOURCE_MEDIAN",
+    "AMT_GOODS_PRICE",
     "DAYS_EMPLOYED",
+    "EXT_SOURCE_3",
+    "ANNUITY_EXT_RISK",
+    "EXT_SOURCE_MEDIAN",
+    "EXT_SOURCE_1_3_PRODUCT",
     "NAME_EDUCATION_TYPE_Higher_education",
     "BUREAU_CURRENT_CREDIT_RATIO",
-    "EXT_SOURCE_1_3_PRODUCT",
-    "PREV_CURRENT_CREDIT_RATIO",
     "EMPLOYMENT_AGE_RATIO",
-    "EMPLOYMENT_YEARS",
+    "PREV_CURRENT_CREDIT_RATIO",
+    "ANNUITY_INCOME_RATIO",
     "PREV_APP_AVG_CREDIT"
   ],
   "overall": {
     "lime_default": {
-      "top5_overlap": 0.3507,
-      "top10_overlap": 0.3567,
-      "spearman": 0.0016,
-      "sign_agreement_top5": 0.5213,
-      "surrogate_r2": 0.5448,
-      "locality_gap": -0.0001,
+      "top5_overlap": 0.356,
+      "top10_overlap": 0.3467,
+      "spearman": 0.0215,
+      "sign_agreement_top5": 0.5227,
+      "surrogate_r2": 0.554,
+      "locality_gap": 0.0021,
       "seed_stability_top5": null,
-      "latency_ms": 57.3487
+      "latency_ms": 55.569
     },
     "lime_local": {
-      "top5_overlap": 0.472,
-      "top10_overlap": 0.5487,
-      "spearman": 0.6427,
-      "sign_agreement_top5": 0.736,
-      "surrogate_r2": 0.3071,
-      "locality_gap": 0.4901,
-      "seed_stability_top5": 0.8283,
-      "latency_ms": 38.1204
+      "top5_overlap": 0.484,
+      "top10_overlap": 0.5493,
+      "spearman": 0.6366,
+      "sign_agreement_top5": 0.7293,
+      "surrogate_r2": 0.3209,
+      "locality_gap": 0.5096,
+      "seed_stability_top5": 0.8318,
+      "latency_ms": 37.1174
     }
   },
   "by_band": {
     "lime_default": {
       "approve": {
-        "top5_overlap": 0.36,
-        "top10_overlap": 0.36,
-        "spearman": 0.114,
-        "sign_agreement_top5": 0.58,
-        "surrogate_r2": 0.5474,
-        "locality_gap": 0.0192,
+        "top5_overlap": 0.372,
+        "top10_overlap": 0.352,
+        "spearman": 0.0856,
+        "sign_agreement_top5": 0.556,
+        "surrogate_r2": 0.5555,
+        "locality_gap": 0.02,
         "seed_stability_top5": null,
-        "latency_ms": 56.1243
+        "latency_ms": 55.345
       },
       "reject": {
-        "top5_overlap": 0.392,
-        "top10_overlap": 0.37,
-        "spearman": -0.1432,
-        "sign_agreement_top5": 0.396,
-        "surrogate_r2": 0.5432,
-        "locality_gap": -0.0081,
+        "top5_overlap": 0.388,
+        "top10_overlap": 0.354,
+        "spearman": -0.0727,
+        "sign_agreement_top5": 0.464,
+        "surrogate_r2": 0.5539,
+        "locality_gap": -0.0074,
         "seed_stability_top5": null,
-        "latency_ms": 58.661
+        "latency_ms": 55.4747
       },
       "review": {
-        "top5_overlap": 0.3,
-        "top10_overlap": 0.34,
-        "spearman": 0.0341,
-        "sign_agreement_top5": 0.588,
-        "surrogate_r2": 0.5437,
-        "locality_gap": -0.0114,
+        "top5_overlap": 0.308,
+        "top10_overlap": 0.334,
+        "spearman": 0.0517,
+        "sign_agreement_top5": 0.548,
+        "surrogate_r2": 0.5527,
+        "locality_gap": -0.0064,
         "seed_stability_top5": null,
-        "latency_ms": 57.2608
+        "latency_ms": 55.8875
       }
     },
     "lime_local": {
       "approve": {
-        "top5_overlap": 0.508,
-        "top10_overlap": 0.568,
-        "spearman": 0.6173,
-        "sign_agreement_top5": 0.712,
-        "surrogate_r2": 0.3122,
-        "locality_gap": 0.4211,
-        "seed_stability_top5": 0.8451,
-        "latency_ms": 37.359
+        "top5_overlap": 0.492,
+        "top10_overlap": 0.528,
+        "spearman": 0.6445,
+        "sign_agreement_top5": 0.676,
+        "surrogate_r2": 0.3325,
+        "locality_gap": 0.4983,
+        "seed_stability_top5": 0.8651,
+        "latency_ms": 36.7885
       },
       "reject": {
-        "top5_overlap": 0.484,
-        "top10_overlap": 0.556,
-        "spearman": 0.6748,
-        "sign_agreement_top5": 0.812,
-        "surrogate_r2": 0.3887,
-        "locality_gap": 0.4124,
-        "seed_stability_top5": 0.8443,
-        "latency_ms": 39.1226
+        "top5_overlap": 0.48,
+        "top10_overlap": 0.598,
+        "spearman": 0.6457,
+        "sign_agreement_top5": 0.784,
+        "surrogate_r2": 0.3895,
+        "locality_gap": 0.4074,
+        "seed_stability_top5": 0.8136,
+        "latency_ms": 37.252
       },
       "review": {
-        "top5_overlap": 0.424,
+        "top5_overlap": 0.48,
         "top10_overlap": 0.522,
-        "spearman": 0.6358,
-        "sign_agreement_top5": 0.684,
-        "surrogate_r2": 0.2203,
-        "locality_gap": 0.6367,
-        "seed_stability_top5": 0.7956,
-        "latency_ms": 37.8794
+        "spearman": 0.6195,
+        "sign_agreement_top5": 0.728,
+        "surrogate_r2": 0.2409,
+        "locality_gap": 0.6231,
+        "seed_stability_top5": 0.8167,
+        "latency_ms": 37.3117
       }
     }
   }
