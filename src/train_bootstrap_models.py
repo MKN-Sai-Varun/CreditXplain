@@ -6,7 +6,8 @@ Each model repeats src/final_model.py exactly (same features, parameters, early
 stopping on the same validation split, same cutoff rule), but is fitted on a
 resample, with replacement, of the fit split and uses its own seed.
 
-Run: python3 -m src.train_bootstrap_models [--n 5] [--threads 2]
+Run: python3 -m src.train_bootstrap_models [--n 10] [--threads 2]
+Models 1-5 serve the ensemble-robust recourse search; 6-10 are kept for evaluation only.
 Writes models/bootstrap_lgbm_<k>.pkl (gitignored) and reports/bootstrap_models.json.
 Already-trained models are kept, so an interrupted run can be resumed.
 """

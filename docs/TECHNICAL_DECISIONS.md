@@ -1,6 +1,6 @@
 # TECHNICAL_DECISIONS — CreditXplain
 
-**Last Updated:** Phase 5.2 recourse robustness (Nov 26, 2026)
+**Last Updated:** Phase 5.2b ensemble-robust recourse (Nov 27, 2026)
 
 This document records all technical and architectural decisions made during the project, with rationale.
 
@@ -1683,6 +1683,28 @@ An option **holds** on a model if that model, with the option applied, puts the 
 
 ---
 
+## 26. Ensemble-Robust Recourse (Phase 5.2b)
+
+### D-72: Options Must Survive Retrained Models
+**Decision:** `find_recourse(..., ensemble=..., min_agree=...)` accepts an option only if, besides the final model's check (margin and plausibility), it reaches the better band on at least `min_agree` of the given retrained models, each with its own cutoffs. The default requires all of them. Refinement uses the same rule, so pulling an option back cannot undo it. Options report `ensemble_agreement`, e.g. "5/5".
+
+**Why:** Phase 5.2 found that only 23.2% of Reject → Review options held on all 5 retrained models (#83). Requiring agreement during the search targets that directly, instead of only widening the margin.
+
+---
+
+### D-73: Separate Search and Evaluation Models
+**Decision:** 10 bootstrap models.
+- Models **1–5** are used by the search (`proposed_ensemble`, `proposed_ensemble_4of5`, `proposed_ensemble_with_wait`).
+- Models **6–10** are used only to measure robustness, for every method.
+
+**Why:** Measuring robustness on the same models the search used would be circular: those options hold on them by construction. Re-evaluating every method on 6–10 keeps the comparison fair. Phase 5.2's figures were measured on models 1–5, which no method used at the time; the Phase 5.2b run replaces them with figures on 6–10.
+
+**Not changed:** the live API still uses the non-ensemble search. Switching is a separate decision after the results.
+
+**Date:** Nov 27, 2026
+
+---
+
 ## Change Log (Updated)
 
 | Date | Phase | Changes |
@@ -1700,6 +1722,7 @@ An option **holds** on a model if that model, with the option applied, puts the 
 | Nov 26, 2026 | Phase 4.10 | D-65 officer workflow in the browser; D-66 fairness panel wording |
 | Nov 26, 2026 | Phase 5.1 | D-67 pinned requirements; D-68 pipeline script; D-69 CI without private data |
 | Nov 26, 2026 | Phase 5.2 | D-70 robustness on retrained models; D-71 shared cutoff rule |
+| Nov 27, 2026 | Phase 5.2b | D-72 ensemble-robust search; D-73 separate search and evaluation models |
 
 ---
 

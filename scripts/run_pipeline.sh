@@ -22,7 +22,7 @@ STEPS=(
   "SHAP and LIME explanations and report|$PY src/explainability.py"
   "SHAP vs LIME agreement on 150 applicants|$PY -m src.explanation_eval"
   "Offline fairness audit|$PY src/fairness_audit.py"
-  "Five bootstrap-retrained models for the robustness check|$PY -m src.train_bootstrap_models --n 5"
+  "Ten bootstrap-retrained models (1-5 for robust search, 6-10 for evaluation)|$PY -m src.train_bootstrap_models --n 10"
   "Recourse evaluation incl. baselines, DiCE and robustness|$PY -m src.recourse_eval --n 300 --dice 20 --robustness"
 )
 

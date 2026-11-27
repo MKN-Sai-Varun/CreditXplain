@@ -240,3 +240,37 @@ def test_drivers_only_name_features_that_change(scorer, solved):
             for d in explain_change(scorer, explainer, raw, cf):
                 assert not np.isclose(before[d["feature"]], after[d["feature"]], equal_nan=True)
                 assert not d["feature"].startswith("AGE")
+
+
+# --- Phase 5.2b: ensemble-robust search ---
+
+class _ConstantModel:
+    def __init__(self, p):
+        self.p = p
+
+    def predict(self, X):
+        return np.full(len(X), self.p)
+
+
+def _ensemble(p, n=5):
+    from src.robustness import Ensemble
+    return Ensemble([_ConstantModel(p) for _ in range(n)], [(0.0349, 0.1189)] * n, (0.0349, 0.1189))
+
+
+def test_agreeable_ensemble_changes_nothing(scorer, solved):
+    """Retrained models that approve everything never block an option."""
+    for raw, res in solved[:5]:
+        with_ens = find_recourse(scorer, raw, ensemble=_ensemble(0.0))
+        assert [o["changes"] for o in with_ens] == [o["changes"] for o in res]
+        assert all(o["ensemble_agreement"] == "5/5" for o in with_ens)
+
+
+def test_disagreeing_ensemble_blocks_everything(scorer, solved):
+    """Retrained models that reject everything leave no option."""
+    for raw, _ in solved[:5]:
+        assert find_recourse(scorer, raw, ensemble=_ensemble(0.9)) == []
+
+
+def test_min_agree_validated(scorer, solved):
+    with pytest.raises(ValueError):
+        find_recourse(scorer, solved[0][0], ensemble=_ensemble(0.0), min_agree=6)

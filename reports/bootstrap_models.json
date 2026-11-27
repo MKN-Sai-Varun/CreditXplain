@@ -54,6 +54,61 @@
       "approve_threshold": 0.03581174910738811,
       "reject_threshold": 0.11731198180597599,
       "unique_rows_share": 0.6314898936008049
+    },
+    {
+      "k": 6,
+      "seed": 106,
+      "path": "models/bootstrap_lgbm_6.pkl",
+      "best_iteration": 434,
+      "validation_roc_auc": 0.7650316253126295,
+      "test_roc_auc": 0.7611519769590929,
+      "approve_threshold": 0.03539773183644029,
+      "reject_threshold": 0.116573154621474,
+      "unique_rows_share": 0.6331768340396127
+    },
+    {
+      "k": 7,
+      "seed": 107,
+      "path": "models/bootstrap_lgbm_7.pkl",
+      "best_iteration": 454,
+      "validation_roc_auc": 0.7640364543847613,
+      "test_roc_auc": 0.7597532795007765,
+      "approve_threshold": 0.03466937639909749,
+      "reject_threshold": 0.11817042479244627,
+      "unique_rows_share": 0.6322063351727082
+    },
+    {
+      "k": 8,
+      "seed": 108,
+      "path": "models/bootstrap_lgbm_8.pkl",
+      "best_iteration": 473,
+      "validation_roc_auc": 0.7648049334508038,
+      "test_roc_auc": 0.7613649075667349,
+      "approve_threshold": 0.03495604969855316,
+      "reject_threshold": 0.11720846543847689,
+      "unique_rows_share": 0.6331311037265124
+    },
+    {
+      "k": 9,
+      "seed": 109,
+      "path": "models/bootstrap_lgbm_9.pkl",
+      "best_iteration": 446,
+      "validation_roc_auc": 0.7634389989266008,
+      "test_roc_auc": 0.7618635446533887,
+      "approve_threshold": 0.035280988443143736,
+      "reject_threshold": 0.11726005148855838,
+      "unique_rows_share": 0.6306718291109011
+    },
+    {
+      "k": 10,
+      "seed": 110,
+      "path": "models/bootstrap_lgbm_10.pkl",
+      "best_iteration": 475,
+      "validation_roc_auc": 0.7651133548369429,
+      "test_roc_auc": 0.7606930069793802,
+      "approve_threshold": 0.03481737300032143,
+      "reject_threshold": 0.11684293045529176,
+      "unique_rows_share": 0.6316524902696056
     }
   ],
   "final_model": {
@@ -61,6 +116,6 @@
     "approve_threshold": 0.03493384664645254,
     "reject_threshold": 0.11894556842634471
   },
-  "test_roc_auc_mean": 0.7612472100771763,
-  "test_roc_auc_std": 0.0008187522961009292
+  "test_roc_auc_mean": 0.7611062766045256,
+  "test_roc_auc_std": 0.0007806993128657645
 }

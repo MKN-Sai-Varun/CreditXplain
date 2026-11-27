@@ -17,7 +17,7 @@ class FixedModel:
         self.p = p
 
     def predict(self, X):
-        return np.array([self.p])
+        return np.full(1 if X is None else len(X), self.p)
 
 
 def test_band_index_uses_both_cutoffs():
@@ -62,3 +62,45 @@ def test_select_cutoffs_rule():
     assert approve_below < reject_from
     assert y[probs < approve_below].mean() <= 0.03 or approve_below == pytest.approx(np.percentile(probs, 40))
     assert reject_from in (pytest.approx(np.percentile(probs, 80)), pytest.approx(np.percentile(probs, 85)))
+
+
+def test_ensemble_band_matrix():
+    ens = Ensemble([FixedModel(0.02), FixedModel(0.08), FixedModel(0.2)],
+                   own_cutoffs=[(0.03, 0.12)] * 3, fixed_cutoffs=(0.03, 0.12))
+    bands = ens.bands(np.zeros((4, 2)))           # 4 candidate rows
+    assert bands.shape == (3, 4)
+    assert (bands[0] == BAND["approve"]).all()
+    assert (bands[1] == BAND["review"]).all()
+    assert (bands[2] == BAND["reject"]).all()
+
+
+def test_ensemble_load_selects_models_by_number(tmp_path):
+    import joblib
+    models = []
+    for k in range(1, 5):
+        path = tmp_path / f"m{k}.pkl"
+        joblib.dump(FixedModel(0.01 * k), path)
+        models.append({"k": k, "path": str(path), "approve_threshold": 0.03, "reject_threshold": 0.12})
+    report = tmp_path / "r.json"
+    report.write_text(json.dumps({"models": models,
+                                  "final_model": {"approve_threshold": 0.03, "reject_threshold": 0.12}}))
+    assert len(Ensemble.load(report)) == 4
+    search = Ensemble.load(report, ks=range(1, 3))
+    held_out = Ensemble.load(report, ks=range(3, 5))
+    assert len(search) == 2 and len(held_out) == 2
+    assert [m.p for m in held_out.models] == [0.03, 0.04]
+    assert Ensemble.load(report, ks=range(6, 11)) is None
+
+
+def test_qualification_needs_enough_agreeing_models():
+    from src.recourse import _agreeing, _qualifies
+    base = BAND["reject"]
+    robust = np.array([BAND["review"]] * 3)           # final model: all three candidates qualify
+    dist = np.zeros(3)
+    ens = np.array([[1, 2, 1],                        # model 1: candidates 0 and 2 reach review
+                    [1, 2, 2],                        # model 2: candidate 0 only
+                    [0, 1, 2]])                       # model 3: candidates 0 and 1
+    assert list(_agreeing(ens, base)) == [3, 1, 1]
+    assert list(_qualifies(robust, dist, base, None, ens, 3)) == [True, False, False]
+    assert list(_qualifies(robust, dist, base, None, ens, 1)) == [True, True, True]
+    assert list(_qualifies(robust, dist, base, None)) == [True, True, True]   # no ensemble: unchanged

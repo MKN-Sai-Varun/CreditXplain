@@ -2165,6 +2165,75 @@ Full test run: **219 passed**.
 
 ---
 
+## Phase 5.2b: Ensemble-Robust Recourse (Nov 27, 2026)
+
+### Overview
+Makes recourse survive retraining by requiring agreement from retrained models during the search, and measures it honestly on held-out retrained models. Decisions: TECHNICAL_DECISIONS D-72, D-73.
+
+### Changes
+- `src/recourse.py`:
+  - `find_recourse` takes `ensemble` and `min_agree`;
+  - the evaluator also scores candidates on the ensemble;
+  - `_agreeing` and `_qualifies` add the agreement rule;
+  - options carry `ensemble_agreement`.
+- `src/robustness.py`: `Ensemble.bands` (band of every candidate on every model, vectorised) and `Ensemble.load(ks=...)` to pick models by number.
+- `src/recourse_eval.py`:
+  - search models 1–5, evaluation models 6–10;
+  - three new methods (`proposed_ensemble`, `proposed_ensemble_4of5`, `proposed_ensemble_with_wait`);
+  - refuses to run the ensemble methods without the right models;
+  - random-search caller updated.
+- `src/train_bootstrap_models.py`, `scripts/run_pipeline.sh`, `README.md`: 10 models.
+
+### Tests (6 new)
+- `tests/test_robustness.py` (3, CI-safe): ensemble band matrix, model selection by number, agreement rule.
+- `tests/test_recourse.py` (3): an always-approving ensemble changes nothing; an always-rejecting ensemble leaves no option; `min_agree` is validated.
+
+Full run: 225 passed.
+
+### Results (Nov 27, 2026)
+**Models:** 10 bootstrap models, test ROC-AUC 0.7611 ± 0.0008. Models 6–10 (evaluation only): 0.7598–0.7619. Full evaluation run 4 min 14 s.
+
+All robustness figures are on the **held-out models 6–10**, which no method's search used. They replace the Phase 5.2 figures, which were measured on models 1–5.
+
+Reject → Review (300 applicants):
+
+| Method | Usable | Holds on all 5 held-out | Mean models held | Usable and holds on all 5 | Mean change |
+|---|---|---|---|---|---|
+| proposed (current app) | 59.0% | 27.7% | 3.39 | 16.3% | 0.193 |
+| proposed, margin 0.2 | 49.7% | 44.3% | 4.02 | 22.0% | 0.219 |
+| proposed_ensemble (5 of 5) | 42.0% | 52.4% | 4.29 | 22.0% | 0.235 |
+| proposed_ensemble_4of5 | 51.0% | 41.2% | 3.98 | 21.0% | 0.206 |
+| proposed_ensemble_with_wait | 48.7% | 51.4% | 4.25 | **25.0%** | 0.283 |
+| proposed_with_wait | 67.0% | 24.4% | 3.30 | 16.3% | 0.255 |
+| random search | 61.3% | 34.8% | 3.72 | 21.3% | 0.286 |
+| previous engine | 87.7% | 17.1% | 3.04 | 6.3% | 0.254 |
+
+Review → Approve (300 applicants):
+
+| Method | Usable | Holds on all 5 held-out | Usable and holds on all 5 |
+|---|---|---|---|
+| proposed (current app) | 34.0% | 16.7% | 5.7% |
+| proposed, margin 0.2 | 24.0% | 26.4% | 6.3% |
+| proposed_ensemble (5 of 5) | 18.7% | 41.1% | 7.7% |
+| proposed_ensemble_4of5 | 24.7% | 23.0% | 5.7% |
+| proposed_ensemble_with_wait | 25.0% | 41.3% | **10.3%** |
+| proposed_with_wait | 43.7% | 15.3% | 6.7% |
+| random search | 37.0% | 20.7% | 7.7% |
+| previous engine | 64.0% | 8.3% | 3.0% |
+
+**Reference:** the unchanged applicant already reaches the promised band on at least one held-out model for 30.3% (Reject) and 18.0% (Review) of applicants.
+
+**Findings:**
+1. Requiring all 5 search models to agree roughly doubles robustness on unseen retrained models: 27.7% → 52.4% (Reject → Review) and 16.7% → 41.1% (Review → Approve). The gain is measured on held-out models, so it is not circular.
+2. The cost is coverage (59.0% → 42.0%) and somewhat larger changes (0.193 → 0.235). Requiring only 4 of 5 recovers coverage but loses most of the robustness gain.
+3. Combined with waiting, ensemble-robust search gives the most applicants an option that is usable and survives retraining: 25.0% against 16.3% for the current app, 21.3% for random search and 22.0% for a 0.2 margin (Reject → Review); 10.3% against 5.7% (Review → Approve).
+4. Even the most robust methods hold on all 5 held-out models only about half the time, which is consistent with the models disagreeing near the cutoffs (reference row).
+5. The current app's figures on models 6–10 (27.7%, 16.7%) are close to Phase 5.2's on models 1–5 (23.2%, 14.7%), so the two halves of the ensemble behave alike.
+
+Full test run: **225 passed**.
+
+---
+
 ## Change Log (updated)
 
 | Date | Phase | Event | Files Changed |
@@ -2184,7 +2253,8 @@ Full test run: **219 passed**.
 | 2026-11-26 | 4.10 | Officer dashboard | Review queue, review page with actions and audit trail, analytics, fairness panel |
 | 2026-11-26 | 5.1 | Reproducibility and CI | README rewrite, pipeline script, pinned requirements, GitHub Actions, needs marker |
 | 2026-11-26 | 5.2 | Recourse robustness | Bootstrap models, robustness check, margin 0.2 variant, shared cutoff rule |
+| 2026-11-27 | 5.2b | Ensemble-robust recourse | Agreement rule in the search, models 1-5 for search and 6-10 for evaluation, 3 new methods |
 
 ---
 
-**Last Updated:** Nov 26, 2026 (Phase 5.2 complete)
+**Last Updated:** Nov 27, 2026 (Phase 5.2b complete)

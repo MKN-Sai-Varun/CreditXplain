@@ -13,7 +13,9 @@ Searches a bounded space over four levers the applicant controls:
 The applicant can lock levers and cap the loan reduction and the waiting time.
 
 A rejected applicant gets options that reach Review; an applicant in Review
-gets options that reach Approve. A suggestion is kept only if
+gets options that reach Approve. Optionally (ensemble=...), an option must also
+reach the better band on enough retrained models, so it is likely to survive a
+retrain of the model. A suggestion is kept only if
   - it reaches the better band even with a safety margin on the cutoff
     (so a small model change does not undo it), and
   - its loan/income profile looks like real applicants the model does not
@@ -170,8 +172,8 @@ def _cost(c, i, a, w=0):
 class _Evaluator:
     """Scores candidate scale tuples (credit, income, installment[, wait months]) for one applicant."""
 
-    def __init__(self, scorer, base, margin, plausibility):
-        self.scorer, self.base, self.plaus = scorer, base, plausibility
+    def __init__(self, scorer, base, margin, plausibility, ensemble=None):
+        self.scorer, self.base, self.plaus, self.ensemble = scorer, base, plausibility, ensemble
         self.strict = (_shift(scorer.approve_below, margin), _shift(scorer.reject_from, margin))
 
     def __call__(self, scales):
@@ -182,13 +184,22 @@ class _Evaluator:
         bands = np.array([BAND[b] for b in decide(probs, self.scorer.approve_below, self.scorer.reject_from)])
         robust = np.array([BAND[b] for b in decide(probs, *self.strict)])
         dist = self.plaus.distance(profile_matrix(frame)) if self.plaus else np.full(len(rows), np.nan)
-        return rows, probs, bands, robust, dist
+        # band of every candidate on every retrained model (models x candidates)
+        ens = self.ensemble.bands(X) if self.ensemble is not None else None
+        return rows, probs, bands, robust, dist, ens
 
 
-def _qualifies(robust, dist, base_band, plaus):
+def _agreeing(ens, base_band):
+    """How many retrained models put each candidate in a better band."""
+    return (ens < base_band).sum(axis=0)
+
+
+def _qualifies(robust, dist, base_band, plaus, ens=None, min_agree=None):
     ok = robust < base_band
     if plaus:
         ok &= dist <= plaus.threshold
+    if ens is not None:
+        ok &= _agreeing(ens, base_band) >= min_agree
     return ok
 
 
@@ -278,7 +289,7 @@ def _search_space(locked, max_loan_reduction, max_wait_months):
 
 
 def find_recourse(scorer, raw, n=3, margin=DEFAULT_MARGIN, plausibility="default", refine=True,
-                  locked=(), max_loan_reduction=0.5, max_wait_months=12):
+                  locked=(), max_loan_reduction=0.5, max_wait_months=12, ensemble=None, min_agree=None):
     """
     Returns up to n recourse options that move the applicant to a better band,
     cheapest first, at most one per distinct lever combination.
@@ -289,24 +300,31 @@ def find_recourse(scorer, raw, n=3, margin=DEFAULT_MARGIN, plausibility="default
     locked: levers the applicant cannot use, from ("credit", "income", "tenure", "wait").
     max_loan_reduction: largest share the loan may shrink by (0 to 0.5).
     max_wait_months: longest the applicant is willing to wait (0, 3, 6 or 12).
+    ensemble: retrained models (src.robustness.Ensemble); an option must then reach
+    the better band on at least min_agree of them (default: all).
     """
     grid = _search_space(locked, max_loan_reduction, max_wait_months)
     base = scorer.build_row(raw)
     plaus = default_plausibility() if plausibility == "default" else plausibility
-    evaluate = _Evaluator(scorer, base, margin, plaus)
+    evaluate = _Evaluator(scorer, base, margin, plaus, ensemble)
+    if ensemble is not None:
+        min_agree = len(ensemble) if min_agree is None else min_agree
+        if not 1 <= min_agree <= len(ensemble):
+            raise ValueError(f"min_agree must be between 1 and {len(ensemble)}")
 
-    rows, probs, bands, robust, dist = evaluate(grid)   # grid[0] is the unchanged applicant
+    rows, probs, bands, robust, dist, ens = evaluate(grid)   # grid[0] is the unchanged applicant
     base_band = bands[0]
     if base_band == BAND["approve"]:
         return []
 
-    ok = _qualifies(robust, dist, base_band, plaus)
+    ok = _qualifies(robust, dist, base_band, plaus, ens, min_agree)
+    agree = _agreeing(ens, base_band) if ens is not None else np.full(len(grid), -1)
     found = {}   # lever combination -> (scales, row, prob, band, distance) of its cheapest option
     for k in np.where(ok)[0]:
         s = grid[k]
         lv = _levers(*s)
         if lv and (lv not in found or _cost(*s) < _cost(*found[lv][0])):
-            found[lv] = (s, rows[k], probs[k], bands[k], dist[k])
+            found[lv] = (s, rows[k], probs[k], bands[k], dist[k], agree[k])
 
     if refine and found:
         # walk each winner back towards the applicant's own values
@@ -314,21 +332,24 @@ def find_recourse(scorer, raw, n=3, margin=DEFAULT_MARGIN, plausibility="default
         ts = np.linspace(1 / REFINE_STEPS, 1, REFINE_STEPS)
         ray = [(lv, tuple(1 - t * (1 - v) for v in f[0][:3]) + (f[0][3],))
                for lv, f in found.items() for t in ts]
-        r_rows, r_probs, r_bands, r_robust, r_dist = evaluate([s for _, s in ray])
-        r_ok = _qualifies(r_robust, r_dist, base_band, plaus)
+        r_rows, r_probs, r_bands, r_robust, r_dist, r_ens = evaluate([s for _, s in ray])
+        r_ok = _qualifies(r_robust, r_dist, base_band, plaus, r_ens, min_agree)
+        r_agree = _agreeing(r_ens, base_band) if r_ens is not None else np.full(len(ray), -1)
         for k in range(len(ray)):
             lv, s = ray[k]
             if r_ok[k] and _cost(*s) < _cost(*found[lv][0]):
-                found[lv] = (s, r_rows[k], r_probs[k], r_bands[k], r_dist[k])
+                found[lv] = (s, r_rows[k], r_probs[k], r_bands[k], r_dist[k], r_agree[k])
 
     cut = {BAND["review"]: scorer.reject_from, BAND["approve"]: scorer.approve_below}
     ranked = [v for v in sorted(found.values(), key=lambda v: _cost(*v[0]))
               if not any(_dominates(u[0], v[0]) for u in found.values() if u is not v)][:n]
-    return [
-        _describe(base, s, row, probs[0], p, b, _cost(*s),
-                  float(_logit(cut[b]) - _logit(p)), d, plaus)
-        for s, row, p, b, d in ranked
-    ]
+    options = []
+    for s, row, p, b, d, a in ranked:
+        opt = _describe(base, s, row, probs[0], p, b, _cost(*s), float(_logit(cut[b]) - _logit(p)), d, plaus)
+        if ensemble is not None:
+            opt["ensemble_agreement"] = f"{int(a)}/{len(ensemble)}"
+        options.append(opt)
+    return options
 
 
 def explain_change(scorer, shap_explainer, raw, option, top=3, only_changed=True):

@@ -12,10 +12,18 @@ Methods (all but proposed_with_wait limited to the same three loan levers and bo
               run on a subset (--dice N)
   ablation_no_margin, ablation_no_plausibility - proposed with one rule switched off
   proposed_margin_0p2 - proposed with a 0.2 log-odds margin (margin sensitivity)
+  proposed_ensemble, proposed_ensemble_4of5 - proposed (loan levers) whose options
+              must also reach the better band on all 5 / at least 4 of the
+              search models (bootstrap models 1-5)
+  proposed_ensemble_with_wait - proposed_ensemble plus the waiting lever
 
-With --robustness, every best option is also re-scored on the bootstrap models
-from src/train_bootstrap_models.py (see src/robustness.py), and the unchanged
-applicant is scored too, as a reference for how much retraining alone moves bands.
+Bootstrap models are split in two: 1-5 are used by the ensemble methods during
+the search, 6-10 only for evaluation, so robustness is never measured on a model
+the search has seen. With --robustness, every best option is re-scored on the
+evaluation models (see src/robustness.py), and the unchanged applicant is scored
+too, as a reference for how much retraining alone moves bands. If models 6-10
+have not been trained, the check falls back to models 1-5, which is only fair
+for the methods that do not use them.
 
 Tiers: reject -> review, and review -> approve.
 Reported per method and tier: coverage, cost (proximity), levers changed
@@ -53,7 +61,11 @@ warnings.filterwarnings("ignore")
 RANDOM_BUDGET = 300
 DICE_BACKGROUND = 200
 METHODS = ["previous", "proposed", "proposed_with_wait", "ablation_no_margin", "ablation_no_plausibility",
-           "proposed_margin_0p2", "random", "dice"]
+           "proposed_margin_0p2", "proposed_ensemble", "proposed_ensemble_4of5", "proposed_ensemble_with_wait",
+           "random", "dice"]
+ENSEMBLE_METHODS = {"proposed_ensemble", "proposed_ensemble_4of5", "proposed_ensemble_with_wait"}
+SEARCH_MODELS = range(1, 6)
+EVAL_MODELS = range(6, 11)
 LOAN_ONLY = ("wait",)
 PER_APPLICANT = Path("reports/recourse_evaluation_per_applicant.csv")
 SUMMARY = Path("reports/recourse_evaluation.json")
@@ -111,7 +123,7 @@ def random_search(sc, raw, plaus, rng):
     base = sc.build_row(raw)
     ev = _Evaluator(sc, base, DEFAULT_MARGIN, plaus)
     pts = [(1.0, 1.0, 1.0)] + [tuple(LO + rng.random(3) * (HI - LO)) for _ in range(RANDOM_BUDGET)]
-    rows, probs, bands, robust, dist = ev(pts)
+    rows, probs, bands, robust, dist, _ = ev(pts)
     ok = _qualifies(robust, dist, bands[0], plaus)
     ok[0] = False
     if not ok.any():
@@ -320,12 +332,22 @@ def main():
         pass
 
     sc = Scorer()
-    ensemble = None
+    search_models = None
+    if ENSEMBLE_METHODS & set(methods):
+        search_models = Ensemble.load(ks=SEARCH_MODELS)
+        if search_models is None or len(search_models) < len(SEARCH_MODELS):
+            raise SystemExit("The ensemble methods need bootstrap models 1-5: python3 -m src.train_bootstrap_models --n 10")
+    ensemble = None   # models used to measure robustness
     if args.robustness:
-        ensemble = Ensemble.load()
+        ensemble = Ensemble.load(ks=EVAL_MODELS)
         if ensemble is None:
-            raise SystemExit("Run python3 -m src.train_bootstrap_models first")
-        print(f"robustness check on {len(ensemble)} retrained models")
+            if search_models is not None:
+                raise SystemExit("Evaluation models 6-10 are missing: python3 -m src.train_bootstrap_models --n 10")
+            ensemble = Ensemble.load(ks=SEARCH_MODELS)
+            if ensemble is None:
+                raise SystemExit("Run python3 -m src.train_bootstrap_models first")
+            print("note: evaluating robustness on models 1-5 (models 6-10 not trained)")
+        print(f"robustness check on {len(ensemble)} held-out retrained models")
     plaus = default_plausibility()
     if plaus is None:
         raise SystemExit("Run python3 -m src.build_recourse_reference first")
@@ -367,6 +389,12 @@ def main():
                                                                                            locked=LOAN_ONLY)),
                     "proposed_margin_0p2": lambda: from_engine(sc, raw, find_recourse(sc, raw, margin=0.2,
                                                                                       locked=LOAN_ONLY)),
+                    "proposed_ensemble": lambda: from_engine(sc, raw, find_recourse(
+                        sc, raw, locked=LOAN_ONLY, ensemble=search_models)),
+                    "proposed_ensemble_4of5": lambda: from_engine(sc, raw, find_recourse(
+                        sc, raw, locked=LOAN_ONLY, ensemble=search_models, min_agree=4)),
+                    "proposed_ensemble_with_wait": lambda: from_engine(sc, raw, find_recourse(
+                        sc, raw, ensemble=search_models)),
                     "random": lambda: random_search(sc, raw, plaus, search_rng),
                     "dice": lambda: dice_search(sc, raw, plaus, base_band, background),
                 }

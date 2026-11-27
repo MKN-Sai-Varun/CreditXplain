@@ -121,9 +121,11 @@ Phases 4.7 onward (TECHNICAL_DECISIONS D-41) follow this order.
 
 ## 7. Next phase and open questions
 
-**Phase 5.2 finding:** recourse is fragile under retraining (KNOWN_ISSUES #83): 23.2% of Reject → Review options hold on all 5 retrained models at the current 0.1 margin.
+**Phase 5.2 / 5.2b:** recourse was fragile under retraining (27.7% of Reject → Review options hold on all 5 held-out retrained models). Ensemble-robust search raises that to 52.4%; with waiting, 25.0% of rejected applicants get a usable option that survives retraining, against 16.3% today (KNOWN_ISSUES #83, IMPLEMENTATION_LOG 5.2b).
 
-**Next phase (awaiting approval):** 5.2b, ensemble-robust recourse (recommended), or 5.3 system measurements; then 5.4 usability check, 5.5 manuscript.
+**Open decision:** whether the live API switches to ensemble-robust recourse.
+
+**Next phase (awaiting approval):** 5.3 system measurements, then 5.4 usability check, 5.5 manuscript.
 
 | # | Open question | Status |
 |---|---|---|
