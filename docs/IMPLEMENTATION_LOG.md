@@ -2374,6 +2374,72 @@ The plan asks for a small usability check (§6.4). With a sole developer, a ques
 
 ---
 
+## Phase 5.5a: Age as Eligibility, and the Age Experiment (Nov 27, 2026)
+
+### Overview
+Real lending treats age as an **eligibility rule**, not a risk factor. An adult who earns should not have their chances depend on age, and a minor needs a guardian. Phase 5.5a adds eligibility rules before the model, and tests whether removing age from the model reduces the age-band disparity (#16, Q5). The model itself is unchanged.
+
+### Changes
+- **`backend/services/eligibility_service.py` (new):** rules checked before the model (D-76).
+  - **minor** (under `MIN_ADULT_AGE` = 18): a guardian applies with the applicant. The model scores the application with the guardian's age, income, income type and employment, and drops the applicant's values and anything derived from them. Automatic approval is not possible, and an officer can approve only after the guardian's ID proof and income proof are uploaded.
+  - **no_income** (zero or missing income, or income type Student or Unemployed, for the person assessed): never approved automatically.
+  - A rule only turns Approve into Review; it never makes the model's band worse. When automatic approval is not possible, no Review → Approve options are generated.
+- **Settings (`backend/config.py`):** `MIN_ADULT_AGE`, `NO_INCOME_TYPES`, `GUARDIAN_RELATIONSHIPS`, `INCOME_TYPES`, labelled as illustrative policy.
+- **Database:** `applications.guardian` and `decisions.eligibility` (JSON), both added to existing databases by `upgrade_schema`.
+- **API:**
+  - `ApplicationCreate` takes `guardian`: name, relationship, age 18–100, yearly income, income type, optional years in job. It is required under 18 (422 otherwise) and dropped for adults.
+  - The decision returns `eligibility`: the rules with plain-language reasons, whose details were assessed, required documents and the model's own band.
+  - The recourse endpoint returns 400 for Review cases that cannot be approved automatically.
+  - Officer approval of a minor's application needs both guardian documents.
+  - Two document types were added: `guardian_id_proof` and `guardian_income_proof`.
+- **PDFs:** the applicant report shows each eligibility reason and a Guardian section with the status of the required documents. The compliance report adds the model's own band, whose details were assessed, and the guardian's age, income and employment.
+- **Frontend:**
+  - The form accepts ages 1–100 and yearly income 0, and shows a Guardian section for ages under 18.
+  - The decision summary (applicant and officer views) shows the eligibility reasons, the guardian and which documents are still needed.
+  - Recourse is hidden when it does not apply, and the document types include the two guardian documents.
+- **`src/age_fairness_experiment.py` (new):** compares four variants on the 61,503 test applicants. Variants B and C repeat `src/final_model.py` exactly: parameters, split, early stopping and cutoff rule. It writes `reports/age_fairness_experiment.json` and saves the age-free model to `models/age_free_lgbm.pkl` (gitignored) in case it is wanted later.
+  - **A, current:** the final model.
+  - **B, no age:** without `AGE_YEARS`, `AGE_SQUARED` and `AGE_CUBED`.
+  - **C, age-free:** B also without `EMPLOYMENT_AGE_RATIO`, `AGE_MINUS_EMPLOYMENT` and `REGISTRATION_AGE_RATIO`.
+  - **D, per-group cutoffs:** the current model with cutoffs per age band (reference only).
+  - **Proxy check:** how well age can be predicted from C's features.
+- **Tests:**
+  - `backend/tests/test_eligibility.py`, 18 tests: the rules, guardian substitution including one-hot and derived columns, the age boundary, guardian validation, the officer document check, and a real-model test for a student and a minor;
+  - `tests/test_age_experiment.py`, 3 tests: age bands matching the audit, group metrics on a hand-made example, and per-group cutoffs.
+
+**Fix found by the tests:** the form sends age as whole days, and 18 years arrives as 6,574 days, which is 17.9986 years, so an 18-year-old was treated as a minor. Age is now rounded to two decimals before the check, and a test covers the exact value the form sends.
+
+Full test run: **266 passed**.
+
+### Results (Nov 27, 2026; `reports/age_fairness_experiment.json`; 61,503 held-out applicants)
+
+| Variant | Test AUC | Approve rate | Default rate among approved | Age DPD | Equal-opportunity gap |
+|---|---|---|---|---|---|
+| A. Current (age kept) | **0.7668** | 34.8% | 2.09% | 0.349 | 0.349 |
+| B. No direct age | 0.7652 | 34.7% | 2.19% | 0.364 | 0.365 |
+| C. Age-free | 0.7646 | 34.9% | 2.20% | 0.377 | 0.380 |
+| D. Per-group cutoffs (uses age) | 0.7668 | 34.6% | 2.12% | **0.022** | 0.041 |
+
+By age band (A is the current model; C is the age-free one):
+
+| Age band | n | Actual default rate | Predicted risk, A | Predicted risk, C | Approve rate, A | Approve rate, C | Approve rate, D | Default rate among approved, A / D |
+|---|---|---|---|---|---|---|---|---|
+| <25 | 3,210 | 11.4% | 12.2% | 13.8% | 13.4% | 9.8% | 36.4% | 0.9% / 3.4% |
+| 25–35 | 15,244 | 10.8% | 10.3% | 10.3% | 24.7% | 24.5% | 34.8% | 2.2% / 2.5% |
+| 35–45 | 16,632 | 8.2% | 8.0% | 7.7% | 34.9% | 36.2% | 34.7% | 1.9% / 1.9% |
+| 45–55 | 13,933 | 6.8% | 7.0% | 6.9% | 38.8% | 39.1% | 34.4% | 2.4% / 2.2% |
+| 55+ | 12,484 | 5.3% | 5.1% | 5.3% | 48.3% | 47.5% | 34.2% | 2.0% / 1.5% |
+
+Proxy check: age is predicted from the age-free features with R² 0.735, with a mean error of 4.5 years.
+
+**Reading:**
+- **Removing age does not remove the disparity; it makes it slightly larger** (0.349 → 0.364 → 0.377) and costs 0.002 AUC. Age is largely recoverable from the other features (job tenure, registration and ID dates, car age, family). Without the explicit feature, the model over-predicts risk for under-25s (13.8% against an actual 11.4%) and approves fewer of them (13.4% → 9.8%). This is the known failure of fairness through unawareness.
+- **The current model is calibrated by age band:** predicted risk is within 0.8 points of the actual default rate in every band. The approval gap follows a real difference in repayment in this data: 11.4% of under-25s default against 5.3% of over-55s.
+- **Equal approval rates are possible only by using age at decision time** (D: DPD 0.022). The price falls on lending quality: approved under-25s then default at 3.4% instead of 0.9%.
+- **Decision needed (Q5):** the age-free model is not better on either accuracy or fairness, so switching (5.5b) is not recommended. The eligibility rules deliver the policy instead: minors apply through a guardian, and income, not age, decides whether automatic approval is possible.
+
+---
+
 ## Change Log (updated)
 
 | Date | Phase | Event | Files Changed |
@@ -2397,7 +2463,8 @@ The plan asks for a small usability check (§6.4). With a sole developer, a ques
 | 2026-11-27 | 5.2c | Hybrid recourse in the app | Robust options first with labels in UI and PDFs, standard fallback, hybrid evaluation method |
 | 2026-11-27 | 5.3 | System measurements | Latency through the API and per stage; time-cost sensitivity |
 | 2026-11-27 | 5.4 | Understandability | Readability, information amount, plain-name coverage and jargon measured; 29 plain names added; expert review and accessibility audit materials |
+| 2026-11-27 | 5.5a | Age as eligibility | Eligibility rules (minor with guardian, no income) in API, PDFs and form; age experiment: removing age widens the gap, model calibrated by age band |
 
 ---
 
-**Last Updated:** Nov 27, 2026 (Phase 5.4 complete)
+**Last Updated:** Nov 27, 2026 (Phase 5.5a complete)

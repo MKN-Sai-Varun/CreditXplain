@@ -7,12 +7,14 @@ import { documentAPI, errorMessage } from "@/lib/api";
 import { date } from "@/lib/format";
 import type { DocumentInfo, DocumentRequest } from "@/lib/types";
 
-const DOC_TYPES: Record<string, string> = {
+export const DOC_TYPES: Record<string, string> = {
   income_proof: "Income proof",
   id_proof: "ID proof",
   address_proof: "Address proof",
   bank_statement: "Bank statement",
   employment_proof: "Employment proof",
+  guardian_id_proof: "Guardian's ID proof",
+  guardian_income_proof: "Guardian's income proof",
   other: "Other",
 };
 const MAX_BYTES = 5 * 1024 * 1024;

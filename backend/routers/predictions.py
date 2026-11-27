@@ -10,6 +10,7 @@ from backend.services.prediction_service import get_prediction_service
 from backend.services.explainability_service import get_explainability_service
 from backend.services.counterfactual_service import get_counterfactual_service
 from backend.services.loan_calculator import loan_terms_for
+from backend.services import eligibility_service as eligibility
 from backend.serializers import labelled_options
 
 router = APIRouter()
@@ -28,12 +29,12 @@ def predict_application(
     Generate prediction, explanation, and counterfactuals for an application.
     
     Pipeline:
-    1. Load application features
+    1. Eligibility rules (minor with guardian, no income) and the record to score
     2. Make prediction with LightGBM model
-    3. Apply three-band decision router
+    3. Apply three-band decision router; a rule only removes automatic approval
     4. Generate SHAP explanation
     5. Generate LIME explanation
-    6. Generate counterfactuals if rejected
+    6. Generate counterfactuals where they can improve the decision
     7. Save decision and explanations to database
     8. Update application status
     """
@@ -75,8 +76,12 @@ def predict_application(
         explainability_service = get_explainability_service()
         counterfactual_service = get_counterfactual_service()
         
-        # Step 1: Make prediction
-        probability, decision_str = prediction_service.predict(application.features_json)
+        # Step 1: Eligibility, and the record the model scores (a minor's guardian's details)
+        elig = eligibility.check(application.features_json, application.guardian)
+        features = eligibility.assessed_features(application.features_json, application.guardian)
+
+        probability, model_decision = prediction_service.predict(features)
+        decision_str = eligibility.route(model_decision, elig)
         
         # Step 2: Create decision record
         decision = Decision(
@@ -84,22 +89,23 @@ def predict_application(
             decision=DecisionType[decision_str],
             probability=probability,
             approve_threshold=prediction_service.approve_below,
-            reject_threshold=prediction_service.reject_from
+            reject_threshold=prediction_service.reject_from,
+            eligibility={**elig, "model_decision": model_decision},
         )
         db.add(decision)
         db.flush()  # Get decision ID
         
         # Step 3: Generate SHAP explanation
-        shap_values = explainability_service.generate_shap_explanation(application.features_json)
+        shap_values = explainability_service.generate_shap_explanation(features)
         
         # Step 4: Generate LIME explanation
-        lime_explanation = explainability_service.generate_lime_explanation(application.features_json)
+        lime_explanation = explainability_service.generate_lime_explanation(features)
         
-        # Step 5: Recourse for anyone not approved (Reject -> Review, Review -> Approve)
+        # Step 5: Recourse (Reject -> Review; Review -> Approve only when automatic approval is possible)
         counterfactuals = None
-        if decision_str in ("REJECT", "REVIEW"):
+        if eligibility.recourse_applies(decision_str, elig):
             counterfactuals = counterfactual_service.generate_counterfactuals(
-                application.features_json, preferences=_preferences(application.recourse_preferences))
+                features, preferences=_preferences(application.recourse_preferences))
         
         # Step 6: Create explanation record
         explanation = Explanation(
@@ -156,6 +162,11 @@ def recourse_with_preferences(
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Application has not been scored yet")
     if application.decision.decision == DecisionType.APPROVE:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Approved applications need no recourse")
+    elig = eligibility.check(application.features_json, application.guardian)
+    if not eligibility.recourse_applies(application.decision.decision.value, elig):
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST,
+                            detail="This application cannot be approved automatically; a loan officer decides")
 
+    features = eligibility.assessed_features(application.features_json, application.guardian)
     return labelled_options(get_counterfactual_service().generate_counterfactuals(
-        application.features_json, preferences=preferences.as_kwargs()))
+        features, preferences=preferences.as_kwargs()))

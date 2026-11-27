@@ -24,6 +24,7 @@ def create_application(
         tenure_months=application_data.tenure_months,
         recourse_preferences=(application_data.recourse_preferences.model_dump()
                               if application_data.recourse_preferences else None),
+        guardian=application_data.guardian.model_dump() if application_data.guardian else None,
         status=ApplicationStatus.SUBMITTED
     )
     

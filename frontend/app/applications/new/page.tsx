@@ -13,10 +13,13 @@ import {
   FAMILY_STATUS,
   HOUSING,
   INCOME_TYPE,
+  RELATIONSHIPS,
   SAMPLES,
   TENURES,
   estimateYearlyRepayment,
+  isMinor,
   toFeatures,
+  toGuardian,
   validate,
   type FormValues,
 } from "@/lib/applicationForm";
@@ -39,6 +42,7 @@ function NewApplicationForm() {
     onChange: (e: React.ChangeEvent<HTMLInputElement>) => set(key, e.target.value as never),
   });
 
+  const minor = isMinor(v);
   const estimate = Number(v.loanAmount) > 0 ? estimateYearlyRepayment(Number(v.loanAmount), v.tenureMonths) : null;
 
   async function submit(e: React.FormEvent) {
@@ -53,6 +57,7 @@ function NewApplicationForm() {
         features: toFeatures(v),
         tenure_months: v.tenureMonths,
         recourse_preferences: showPrefs ? prefs : null,
+        guardian: toGuardian(v),
       });
       setBusy("Assessing application");
       await applicationAPI.predict(app.id);
@@ -110,11 +115,11 @@ function NewApplicationForm() {
 
         <Card title="About you">
           <div className="grid gap-4 sm:grid-cols-3">
-            <Field label="Yearly income">
-              <Input type="number" min={1} inputMode="numeric" required {...text("yearlyIncome")} />
+            <Field label="Yearly income" hint="Enter 0 if you have no income">
+              <Input type="number" min={0} inputMode="numeric" required {...text("yearlyIncome")} />
             </Field>
             <Field label="Age">
-              <Input type="number" min={18} max={100} required {...text("age")} />
+              <Input type="number" min={1} max={100} required {...text("age")} />
             </Field>
             <Field label="Years in current job" hint="Leave empty if not employed">
               <Input type="number" min={0} step="0.5" {...text("yearsEmployed")} />
@@ -147,6 +152,42 @@ function NewApplicationForm() {
             </label>
           </div>
         </Card>
+
+        {minor && (
+          <Card title="Guardian">
+            <p className="mb-3 text-sm text-slate-600">
+              Applicants under 18 apply together with a guardian. The application is assessed on the guardian&apos;s
+              income and employment, and a loan officer makes the decision. The officer will need the guardian&apos;s ID
+              proof and income proof, which you can upload on the decision page.
+            </p>
+            <div className="grid gap-4 sm:grid-cols-3">
+              <Field label="Guardian's full name">
+                <Input required {...text("guardianName")} />
+              </Field>
+              <Field label="Relationship">
+                <Select
+                  options={RELATIONSHIPS.map((r) => r.label)}
+                  value={RELATIONSHIPS.find((r) => r.value === v.guardianRelationship)?.label}
+                  onChange={(e) =>
+                    set("guardianRelationship", RELATIONSHIPS.find((r) => r.label === e.target.value)?.value ?? "other")
+                  }
+                />
+              </Field>
+              <Field label="Guardian's age">
+                <Input type="number" min={18} max={100} required {...text("guardianAge")} />
+              </Field>
+              <Field label="Guardian's yearly income">
+                <Input type="number" min={0} inputMode="numeric" required {...text("guardianIncome")} />
+              </Field>
+              <Field label="Guardian's income type">
+                <Select options={INCOME_TYPE} value={v.guardianIncomeType} onChange={(e) => set("guardianIncomeType", e.target.value)} />
+              </Field>
+              <Field label="Guardian's years in current job" hint="Leave empty if not employed">
+                <Input type="number" min={0} step="0.5" {...text("guardianYearsEmployed")} />
+              </Field>
+            </div>
+          </Card>
+        )}
 
         <Card title="Credit-bureau scores (optional)">
           <p className="mb-3 text-sm text-slate-600">

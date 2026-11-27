@@ -1,4 +1,4 @@
-import type { Features, Lever } from "./types";
+import type { Features, Guardian, GuardianRelationship, Lever } from "./types";
 
 // Category values as the model knows them. The backend turns
 // "Secondary / secondary special" into the one-hot column
@@ -29,6 +29,12 @@ export const HOUSING = [
   "Office apartment",
   "Co-op apartment",
 ];
+export const RELATIONSHIPS: { value: GuardianRelationship; label: string }[] = [
+  { value: "parent", label: "Parent" },
+  { value: "legal_guardian", label: "Legal guardian" },
+  { value: "other", label: "Other relative" },
+];
+export const ADULT_AGE = 18;
 export const TENURES = [12, 24, 36, 48, 60];
 export const WAITS = [0, 3, 6, 12];
 export const LEVERS: Lever[] = ["credit", "income", "tenure", "wait"];
@@ -52,6 +58,12 @@ export interface FormValues {
   bureau1: string;
   bureau2: string;
   bureau3: string;
+  guardianName: string;
+  guardianRelationship: GuardianRelationship;
+  guardianAge: string;
+  guardianIncome: string;
+  guardianIncomeType: string;
+  guardianYearsEmployed: string;
 }
 
 export const EMPTY: FormValues = {
@@ -73,6 +85,12 @@ export const EMPTY: FormValues = {
   bureau1: "",
   bureau2: "",
   bureau3: "",
+  guardianName: "",
+  guardianRelationship: "parent",
+  guardianAge: "",
+  guardianIncome: "",
+  guardianIncomeType: "Working",
+  guardianYearsEmployed: "",
 };
 
 // Demo profiles: one lands in each decision band with the current model.
@@ -141,6 +159,26 @@ export function toFeatures(v: FormValues): Features {
   return f;
 }
 
+/** True when the age entered is under 18, so a guardian applies with the applicant. */
+export function isMinor(v: FormValues) {
+  const age = num(v.age);
+  return age != null && age < ADULT_AGE;
+}
+
+/** Guardian details for the backend, or null for adult applicants. */
+export function toGuardian(v: FormValues): Guardian | null {
+  if (!isMinor(v)) return null;
+  const years = num(v.guardianYearsEmployed);
+  return {
+    full_name: v.guardianName.trim(),
+    relationship: v.guardianRelationship,
+    age: Number(v.guardianAge),
+    yearly_income: Number(v.guardianIncome),
+    income_type: v.guardianIncomeType,
+    years_employed: years,
+  };
+}
+
 /** Problems to show before submitting, or an empty list. */
 export function validate(v: FormValues): string[] {
   const errors: string[] = [];
@@ -149,12 +187,22 @@ export function validate(v: FormValues): string[] {
   };
   positive(v.loanAmount, "Loan amount");
   positive(v.goodsPrice, "Goods price");
-  positive(v.yearlyIncome, "Yearly income");
   positive(v.yearlyRepayment, "Yearly repayment");
   const age = num(v.age);
-  if (age == null || age < 18 || age > 100) errors.push("Age must be between 18 and 100");
+  if (age == null || age < 1 || age > 100) errors.push("Age must be between 1 and 100");
+  const minor = isMinor(v);
+  if (!(Number(v.yearlyIncome) >= 0) || v.yearlyIncome.trim() === "") errors.push("Yearly income must be 0 or more");
+  if (minor) {
+    if (!v.guardianName.trim()) errors.push("Enter the guardian's name");
+    const gAge = num(v.guardianAge);
+    if (gAge == null || gAge < ADULT_AGE || gAge > 100) errors.push(`Guardian's age must be between ${ADULT_AGE} and 100`);
+    if (!(Number(v.guardianIncome) >= 0) || v.guardianIncome.trim() === "") errors.push("Guardian's yearly income must be 0 or more");
+    const gYears = num(v.guardianYearsEmployed);
+    if (gYears != null && (gYears < 0 || (gAge != null && gYears > gAge - 14)))
+      errors.push("Guardian's years in current job is out of range");
+  }
   const employed = num(v.yearsEmployed);
-  if (employed != null && (employed < 0 || (age != null && employed > age - 14)))
+  if (employed != null && (employed < 0 || (age != null && employed > Math.max(age - 14, 0))))
     errors.push("Years in current job is out of range");
   for (const [s, name] of [[v.bureau1, "Bureau score 1"], [v.bureau2, "Bureau score 2"], [v.bureau3, "Bureau score 3"]]) {
     const n = num(s);

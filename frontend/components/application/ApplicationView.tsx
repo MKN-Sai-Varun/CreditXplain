@@ -100,7 +100,7 @@ function Detail({ id }: { id: number }) {
         <div className="space-y-6">
           <DecisionSummary app={app} />
           <Reasons rows={app.explanation?.shap_values ?? []} />
-          {d.decision !== "APPROVE" && (
+          {d.decision !== "APPROVE" && app.explanation?.counterfactuals != null && (
             <Recourse appId={app.id} initial={options} initialPrefs={app.recourse_preferences} />
           )}
           {app.loan_terms && <LoanTermsCard terms={app.loan_terms} />}

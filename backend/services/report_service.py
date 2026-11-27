@@ -238,7 +238,25 @@ def _decision(application):
     if application.status.value != {"APPROVE": "approved", "REVIEW": "under_review",
                                      "REJECT": "rejected"}[d.decision.value]:
         out.append(_p(f"Current status after officer review: {application.status.value.replace('_', ' ')}"))
+    for rule in (d.eligibility or {}).get("rules", []):
+        out.append(_p(f"Eligibility: {rule['reason']}"))
     return out
+
+
+def _guardian(application, detailed=False):
+    g = application.guardian
+    if not g:
+        return []
+    rows = [["Guardian", g["full_name"]], ["Relationship", g["relationship"].replace("_", " ")]]
+    if detailed:
+        rows += [["Guardian's age", f"{g['age']} years"], ["Guardian's yearly income", money(g["yearly_income"])],
+                 ["Guardian's income type", g["income_type"]],
+                 ["Guardian's years in current job", "-" if g.get("years_employed") is None else f"{g['years_employed']:g}"]]
+    uploaded = {doc.doc_type for doc in application.documents}
+    needed = (application.decision.eligibility or {}).get("required_documents", []) if application.decision else []
+    for t in needed:
+        rows.append([t.replace("_", " ").capitalize(), "uploaded" if t in uploaded else "still needed"])
+    return [_p("Guardian", H2), _table(rows, [70 * mm, 90 * mm], header=False)]
 
 
 def _reasons(explanation, n=5):
@@ -328,8 +346,9 @@ def applicant_report(application):
     explanation = application.decision.explanation
     story = _header(application, "CreditXplain - Credit Decision Report")
     story += _decision(application)
+    story += _guardian(application)
     story += _reasons(explanation)
-    if application.decision.decision.value != "APPROVE":
+    if application.decision.decision.value != "APPROVE" and explanation and explanation.counterfactuals is not None:
         story += _recourse(explanation)
     story += _loan_terms(application)
     story += _document_requests(application)
@@ -362,6 +381,11 @@ def compliance_report(application, audit_logs, fairness=None):
         ["Status", application.status.value.replace("_", " ")],
     ], [70 * mm, 90 * mm], header=False)]
     story += _decision(application)
+    elig = d.eligibility or {}
+    if elig.get("rules"):
+        story += [_p(f"Model's own band before eligibility rules: {elig.get('model_decision', '-')}; "
+                     f"assessed on the {elig.get('assessed_on', 'applicant')}'s details.", SMALL)]
+    story += _guardian(application, detailed=True)
     story += [_p("Model", H2), _table(_model_info(), [70 * mm, 90 * mm], header=False),
               _p(f"Cutoffs stored with this decision: approve below {d.approve_threshold:.4f}, "
                  f"reject from {d.reject_threshold:.4f}.", SMALL)]
@@ -379,7 +403,7 @@ def compliance_report(application, audit_logs, fairness=None):
             [["Rule", "Weight"]] + [[r.get("rule") or r["feature"], f"{r['weight']:+.3f}"] for r in lime_rows[:10]],
             [125 * mm, 35 * mm])]
 
-    if d.decision.value != "APPROVE":
+    if d.decision.value != "APPROVE" and explanation and explanation.counterfactuals is not None:
         story += _recourse(explanation, detailed=True)
     prefs = application.recourse_preferences
     story += [_p("Recourse preferences", H2), _p(

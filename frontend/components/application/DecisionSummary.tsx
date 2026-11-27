@@ -1,4 +1,6 @@
 import { Card, DecisionBadge, StatusBadge } from "../ui";
+import { DOC_TYPES } from "./Documents";
+import { RELATIONSHIPS } from "@/lib/applicationForm";
 import { humanize, money, percent } from "@/lib/format";
 import type { ApplicationDetail, ShapValue } from "@/lib/types";
 
@@ -26,6 +28,23 @@ export function DecisionSummary({ app }: { app: ApplicationDetail }) {
           <p className="text-2xl font-semibold text-slate-900">{percent(d.probability)}</p>
         </div>
       </div>
+      {(d.eligibility?.rules.length ?? 0) > 0 && (
+        <ul className="mt-4 space-y-1 rounded-md bg-amber-50 p-3 text-sm text-amber-900">
+          {d.eligibility!.rules.map((r) => (
+            <li key={r.code}>{r.reason}</li>
+          ))}
+        </ul>
+      )}
+      {app.guardian && (
+        <p className="mt-3 text-sm text-slate-700">
+          Guardian: {app.guardian.full_name} (
+          {RELATIONSHIPS.find((r) => r.value === app.guardian!.relationship)?.label.toLowerCase() ?? app.guardian.relationship})
+          {(d.eligibility?.required_documents.length ?? 0) > 0 &&
+            ` · documents needed: ${d.eligibility!.required_documents
+              .map((t) => `${app.documents.some((doc) => doc.doc_type === t) ? "✓" : "✗"} ${DOC_TYPES[t] ?? humanize(t)}`)
+              .join(", ")}`}
+        </p>
+      )}
       <dl className="mt-4 grid grid-cols-2 gap-4 border-t border-slate-100 pt-4 text-sm sm:grid-cols-3">
         <div>
           <dt className="text-slate-500">Loan amount</dt>

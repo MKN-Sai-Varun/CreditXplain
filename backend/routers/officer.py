@@ -8,6 +8,7 @@ from backend.schemas import ApplicationDetail, OfficerAction, OfficerActionRespo
 from backend.auth import get_current_officer
 from backend.serializers import application_detail
 from backend.services.loan_calculator import loan_terms_for
+from backend.services.eligibility_service import GUARDIAN_DOCS, is_minor
 from backend.services.report_service import compliance_report
 
 router = APIRouter()
@@ -70,6 +71,15 @@ def officer_action(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="A justification is required for this action"
         )
+
+    if action == "approve" and is_minor(application.features_json):
+        uploaded = {d.doc_type for d in application.documents}
+        missing = [t for t in GUARDIAN_DOCS if t not in uploaded]
+        if missing:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="The guardian's documents must be uploaded before approval: " + ", ".join(missing)
+            )
 
     previous_status = application.status
     if action == "approve":

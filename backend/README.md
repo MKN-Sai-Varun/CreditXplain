@@ -77,13 +77,13 @@ uvicorn backend.main:app --host 0.0.0.0 --port 8000 --workers 4
 - `GET /api/auth/me` - Get current user info
 
 ### Applications
-- `POST /api/applications/` - Submit new application. Body: `{"features": {...}, "tenure_months": 12, "recourse_preferences": {...}}` (preferences optional); `features.AMT_CREDIT` (requested loan amount) is required and must be positive; `tenure_months` is one of 12, 24, 36, 48, 60 (default 12)
+- `POST /api/applications/` - Submit new application. Body: `{"features": {...}, "tenure_months": 12, "recourse_preferences": {...}, "guardian": {...}}` (preferences optional; `guardian` required when the applicant is under 18 and ignored otherwise: `full_name`, `relationship` parent/legal_guardian/other, `age` 18–100, `yearly_income`, `income_type`, optional `years_employed`); `features.AMT_CREDIT` (requested loan amount) is required and must be positive; `tenure_months` is one of 12, 24, 36, 48, 60 (default 12)
 - `GET /api/applications/` - Get user's applications
 - `GET /api/applications/{id}` - Get application details (decision, explanation, loan terms, documents, document requests)
 - `GET /api/applications/{id}/report.pdf` - Decision report (PDF) for a scored application (owner or officer)
 
 ### Documents
-- `POST /api/applications/{id}/documents` - Upload a document (multipart: `file`, `doc_type`). Applicant who owns the application only. PDF, PNG or JPEG, up to 5 MB; the file content must match its type
+- `POST /api/applications/{id}/documents` - Upload a document (multipart: `file`, `doc_type`: income_proof, id_proof, address_proof, bank_statement, employment_proof, guardian_id_proof, guardian_income_proof or other). Applicant who owns the application only. PDF, PNG or JPEG, up to 5 MB; the file content must match its type
 - `GET /api/applications/{id}/documents` - Documents uploaded and documents requested by officers (owner or officer)
 - `GET /api/applications/{id}/documents/{document_id}` - Download a document (owner or officer)
 
@@ -91,6 +91,10 @@ Files are stored under `uploads/<application id>/` (gitignored).
 
 ### Predictions
 - `POST /api/predictions/{application_id}` - Generate prediction & explanation; recourse for Reject and Review cases uses the application's stored `recourse_preferences`
+- Eligibility rules run first (`services/eligibility_service.py`) and are returned as `eligibility` on the decision:
+  - **under 18:** the application is scored on the guardian's age, income and employment; it is never approved automatically, and an officer can approve only after `guardian_id_proof` and `guardian_income_proof` are uploaded;
+  - **no income** (zero or missing income, or income type Student or Unemployed): never approved automatically.
+  A rule only turns Approve into Review; it never worsens the model's band. When automatic approval is not possible, no Review → Approve options are generated and the recourse endpoint returns 400 for Review cases.
 - Recourse options list those that also pass 5 retrained models first (`retrain_check_passed: true`) when `models/bootstrap_lgbm_1.pkl` to `_5.pkl` exist and `ROBUST_RECOURSE` is on; otherwise the flag is `null`.
 - `POST /api/predictions/{application_id}/recourse` - Recourse options for new preferences (`locked_levers`, `max_loan_reduction`, `max_wait_months`) for a scored, not-approved application; nothing is stored
 
@@ -125,10 +129,10 @@ python3 -m pytest backend/tests/ -v --cov=backend --cov-report=html
 - `id`, `email`, `password_hash`, `role`, `full_name`, `created_at`
 
 ### Applications
-- `id`, `user_id`, `features_json`, `tenure_months`, `recourse_preferences`, `status`, `created_at`, `updated_at`
+- `id`, `user_id`, `features_json`, `tenure_months`, `recourse_preferences`, `guardian`, `status`, `created_at`, `updated_at`
 
 ### Decisions
-- `id`, `application_id`, `decision`, `probability`, `thresholds`, `created_at`
+- `id`, `application_id`, `decision`, `probability`, `thresholds`, `eligibility` (rules applied, whose details were assessed, the model's own band), `created_at`
 
 ### Explanations
 - `id`, `decision_id`, `shap_values`, `lime_explanation`, `counterfactuals`
@@ -142,7 +146,7 @@ python3 -m pytest backend/tests/ -v --cov=backend --cov-report=html
 ### Documents
 - `id`, `application_id`, `uploaded_by`, `doc_type`, `original_name`, `stored_name`, `content_type`, `size_bytes`, `uploaded_at`
 
-Columns added after the first release (currently `applications.tenure_months` and `applications.recourse_preferences`) are added to an existing database at startup (`backend/database.py`, `upgrade_schema`).
+Columns added after the first release (currently `applications.tenure_months`, `applications.recourse_preferences`, `applications.guardian` and `decisions.eligibility`) are added to an existing database at startup (`backend/database.py`, `upgrade_schema`).
 
 ### Fairness Metrics
 - `id`, `age_dpd`, `children_dpd`, `metrics_json`, `has_alert`, `calculated_at`
@@ -167,6 +171,7 @@ backend/
 │   ├── prediction_service.py
 │   ├── explainability_service.py
 │   ├── counterfactual_service.py
+│   ├── eligibility_service.py
 │   ├── loan_calculator.py
 │   └── pdf_generator.py
 └── tests/               # Test suite

@@ -34,6 +34,13 @@ class Settings(BaseSettings):
     APPROVE_THRESHOLD: float = 0.0349
     REJECT_THRESHOLD: float = 0.1189
     
+    # Eligibility rules checked before the model (illustrative policy, see eligibility_service)
+    MIN_ADULT_AGE: int = 18
+    NO_INCOME_TYPES: list = ["Student", "Unemployed"]
+    GUARDIAN_RELATIONSHIPS: list = ["parent", "legal_guardian", "other"]
+    INCOME_TYPES: list = ["Working", "Commercial associate", "State servant", "Businessman", "Pensioner",
+                          "Student", "Unemployed", "Maternity leave"]
+
     # Fairness thresholds
     FAIRNESS_DPD_THRESHOLD: float = 0.1
     

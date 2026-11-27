@@ -1,4 +1,4 @@
-from pydantic import BaseModel, ConfigDict, EmailStr, Field, field_validator
+from pydantic import BaseModel, ConfigDict, EmailStr, Field, field_validator, model_validator
 from datetime import datetime
 from typing import Optional, Dict, List, Any
 from backend.config import settings
@@ -65,11 +65,53 @@ class RecoursePreferences(BaseModel):
                 "max_wait_months": self.max_wait_months}
 
 
+# Guardian of an applicant under 18
+class Guardian(BaseModel):
+    full_name: str = Field(..., min_length=1, max_length=200)
+    relationship: str = Field(..., description="parent, legal_guardian or other")
+    age: int = Field(..., description="Guardian's age in years")
+    yearly_income: float = Field(..., ge=0, description="Guardian's yearly income")
+    income_type: str
+    years_employed: Optional[float] = Field(None, ge=0)
+
+    @field_validator("relationship")
+    @classmethod
+    def known_relationship(cls, v):
+        if v not in settings.GUARDIAN_RELATIONSHIPS:
+            raise ValueError(f"relationship must be one of {settings.GUARDIAN_RELATIONSHIPS}")
+        return v
+
+    @field_validator("age")
+    @classmethod
+    def adult(cls, v):
+        if not settings.MIN_ADULT_AGE <= v <= 100:
+            raise ValueError(f"a guardian must be between {settings.MIN_ADULT_AGE} and 100 years old")
+        return v
+
+    @field_validator("income_type")
+    @classmethod
+    def known_income_type(cls, v):
+        if v not in settings.INCOME_TYPES:
+            raise ValueError(f"income_type must be one of {settings.INCOME_TYPES}")
+        return v
+
+
 # Application schemas
 class ApplicationCreate(BaseModel):
     features: Dict[str, Any] = Field(..., description="Application features as key-value pairs")
     tenure_months: int = Field(settings.DEFAULT_TENURE_MONTHS, description="Requested repayment period in months")
     recourse_preferences: Optional[RecoursePreferences] = None
+    guardian: Optional[Guardian] = Field(None, description="Required when the applicant is under 18; ignored otherwise")
+
+    @model_validator(mode="after")
+    def guardian_for_minors(self):
+        from backend.services.eligibility_service import is_minor
+        if is_minor(self.features):
+            if self.guardian is None:
+                raise ValueError(f"applicants under {settings.MIN_ADULT_AGE} need a guardian: add guardian details")
+        else:
+            self.guardian = None
+        return self
 
     @field_validator("features")
     @classmethod
@@ -103,6 +145,7 @@ class DecisionResponse(BaseModel):
     probability: float
     approve_threshold: float
     reject_threshold: float
+    eligibility: Optional[Dict[str, Any]] = None
     created_at: datetime
     
     model_config = ConfigDict(from_attributes=True)
@@ -181,6 +224,7 @@ class ApplicationDetail(ApplicationResponse):
     features: Dict[str, Any]
     tenure_months: int = settings.DEFAULT_TENURE_MONTHS
     recourse_preferences: Optional[RecoursePreferences] = None
+    guardian: Optional[Guardian] = None
     decision: Optional[DecisionResponse] = None
     explanation: Optional[ExplanationResponse] = None
     loan_terms: Optional[LoanTermsResponse] = None

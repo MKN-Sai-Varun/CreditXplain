@@ -22,7 +22,9 @@ def get_db():
 # Columns added after the first release. create_all() only creates missing
 # tables, so older databases get these columns added here.
 _ADDED_COLUMNS = {
-    "applications": {"tenure_months": "INTEGER NOT NULL DEFAULT 12", "recourse_preferences": "JSON"},
+    "applications": {"tenure_months": "INTEGER NOT NULL DEFAULT 12", "recourse_preferences": "JSON",
+                     "guardian": "JSON"},
+    "decisions": {"eligibility": "JSON"},
 }
 
 

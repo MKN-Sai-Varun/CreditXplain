@@ -41,7 +41,7 @@ npx tsc --noEmit
 | `/` | everyone | Landing page; signed-in users are sent to their area |
 | `/login`, `/register` | everyone | Sign in / create an applicant account |
 | `/applications` | applicant | Own applications with status |
-| `/applications/new` | applicant | Application form (sample profiles, repayment estimate, optional bureau scores, recourse limits); submitting scores the application |
+| `/applications/new` | applicant | Application form (sample profiles, repayment estimate, optional bureau scores, recourse limits; a guardian section appears for applicants under 18); submitting scores the application |
 | `/applications/[id]` | applicant (own), officer | Decision and risk, main reasons, recourse options with "What if…?", loan terms, document requests and upload, PDF report |
 | `/officer` | officer | Review queue: Review-band applications, oldest first, with risk, amount, tenure, documents and waiting time |
 | `/officer/applications/[id]` | officer | Decision, officer action (approve / reject / request documents with justification), SHAP and LIME tables, recourse and the applicant's limits, loan terms, documents (read-only), audit trail, compliance report |

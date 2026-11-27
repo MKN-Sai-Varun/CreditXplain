@@ -83,11 +83,11 @@
 
 ---
 
-## 4. Test baseline (Nov 27, 2026, after Phase 5.4)
+## 4. Test baseline (Nov 27, 2026, after Phase 5.5a)
 
 | Suite | Result |
 |---|---|
-| `python3 -m pytest tests backend/tests -q` | ✅ 245 passed |
+| `python3 -m pytest tests backend/tests -q` | ✅ 266 passed |
 | `npx tsc --noEmit` (frontend) | ✅ |
 | `npm run build` (frontend) | ✅ 12 routes |
 | `npm run lint` (frontend) | ✅ clean |
@@ -130,7 +130,9 @@ Phases 4.7 onward (TECHNICAL_DECISIONS D-41) follow this order.
 
 **Phase 5.4:** applicant text reads at Flesch 60.0 (about 8th grade) with no jargon; every displayed factor now has a plain-language name (#74 resolved). No user study with applicants (#84); an expert review for one or two evaluators is ready.
 
-**Remaining phases (each awaiting approval):** 5.5 age fairness experiment (informs Q5), 5.6 EDA report and optional loose ends (#1, #79, #76), 5.7 figures and tables from the report files, 5.8 manuscript, 5.9 code release and submission (Q3; venue and fees still to be decided with the project guide).
+**Phase 5.5a:** eligibility rules before the model: applicants under 18 apply with a guardian, who is assessed, and the officer needs the guardian's documents; no automatic approval without income (D-76). Age experiment: removing age does not narrow the age gap and makes under-25s look riskier than they are (D-77).
+
+**Remaining phases (each awaiting approval):** 5.5b only if Q5 is decided against the proposal, 5.6 EDA report and optional loose ends (#1, #79, #76), 5.7 figures and tables from the report files, 5.8 manuscript, 5.9 code release and submission (Q3; venue and fees still to be decided with the project guide).
 
 | # | Open question | Status |
 |---|---|---|
@@ -138,6 +140,6 @@ Phases 4.7 onward (TECHNICAL_DECISIONS D-41) follow this order.
 | Q2 | How is the final model reported? | **Settled by implementation:** a single fit, test AUC 0.7668 |
 | Q3 | Review and submission dates | Open |
 | Q4 | What have Members 2, 3 and 4 built? | Open |
-| Q5 | Age and family status: keep as features and audit, or exclude? | Open. Both are currently kept and audited (age-band DPD 0.349, #16) |
+| Q5 | Age and family status: keep as features and audit, or exclude? | **Tested (Phase 5.5a):** removing age widens the gap (0.349 → 0.377) and lowers AUC; the model is calibrated by age band. Proposed: keep age, apply age policy as eligibility rules (D-76, D-77). Awaiting the project lead's confirmation |
 | Q7 | Registration: real sign-up or seeded demo applicants only? | Open (real sign-up exists for applicants) |
 | Q8 | Recourse in the paper: Reject→Review only, or add a Review→Approve tier? | **Settled:** both tiers (project-lead decision), implemented in 4.7 |

@@ -22,7 +22,8 @@ from backend.serializers import document_requests
 
 router = APIRouter()
 
-DOC_TYPES = {"income_proof", "id_proof", "address_proof", "bank_statement", "employment_proof", "other"}
+DOC_TYPES = {"income_proof", "id_proof", "address_proof", "bank_statement", "employment_proof",
+             "guardian_id_proof", "guardian_income_proof", "other"}
 
 # first bytes each allowed type must start with, so a renamed file is refused
 SIGNATURES = {

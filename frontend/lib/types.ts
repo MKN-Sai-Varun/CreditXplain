@@ -27,10 +27,23 @@ export interface RecoursePreferences {
 
 export type Features = Record<string, string | number | null>;
 
+export type GuardianRelationship = "parent" | "legal_guardian" | "other";
+
+/** Guardian applying with an applicant under 18 */
+export interface Guardian {
+  full_name: string;
+  relationship: GuardianRelationship;
+  age: number;
+  yearly_income: number;
+  income_type: string;
+  years_employed?: number | null;
+}
+
 export interface ApplicationCreate {
   features: Features;
   tenure_months: number;
   recourse_preferences?: RecoursePreferences | null;
+  guardian?: Guardian | null;
 }
 
 export interface ApplicationSummary {
@@ -48,7 +61,17 @@ export interface Decision {
   probability: number;
   approve_threshold: number;
   reject_threshold: number;
+  eligibility?: Eligibility | null;
   created_at: string;
+}
+
+/** Rules checked before the model (backend/services/eligibility_service.py) */
+export interface Eligibility {
+  rules: { code: "minor" | "no_income"; reason: string }[];
+  assessed_on: "applicant" | "guardian";
+  automatic_approval: boolean;
+  required_documents: string[];
+  model_decision?: Band;
 }
 
 export interface ShapValue {
@@ -132,6 +155,7 @@ export interface ApplicationDetail extends ApplicationSummary {
   features: Features;
   tenure_months: number;
   recourse_preferences?: RecoursePreferences | null;
+  guardian?: Guardian | null;
   decision?: Decision | null;
   explanation?: Explanation | null;
   loan_terms?: LoanTerms | null;

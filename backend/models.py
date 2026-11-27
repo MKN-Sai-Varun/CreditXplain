@@ -48,6 +48,9 @@ class Application(Base):
     # What the applicant can change if not approved (see RecoursePreferences)
     recourse_preferences = Column(JSON, nullable=True)
 
+    # Guardian applying with an applicant under 18 (see eligibility_service)
+    guardian = Column(JSON, nullable=True)
+
     # Status
     status = Column(Enum(ApplicationStatus), default=ApplicationStatus.SUBMITTED, nullable=False)
     
@@ -72,6 +75,9 @@ class Decision(Base):
     probability = Column(Float, nullable=False)
     approve_threshold = Column(Float, nullable=False)
     reject_threshold = Column(Float, nullable=False)
+
+    # Eligibility rules that applied and the model's own band (see eligibility_service)
+    eligibility = Column(JSON, nullable=True)
     
     # Timestamps
     created_at = Column(DateTime, default=datetime.utcnow)

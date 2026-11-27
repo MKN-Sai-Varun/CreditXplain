@@ -263,7 +263,14 @@ This document tracks bugs, gaps, technical debt, and unresolved questions. Items
 ---
 
 ### #16: Age-Based Fairness Disparity Detected
-**Status:** Open — Requires Mitigation  
+**Status:** Investigated (Phase 5.5a), decision pending (Q5)  
+**Update (Nov 27, 2026):** `src/age_fairness_experiment.py` found the following (TECHNICAL_DECISIONS D-77):
+- The gap follows actual default rates (11.4% for under-25s, 5.3% for over-55s), and the model is calibrated within 0.8 points per band.
+- Removing age widens the gap (DPD 0.349 → 0.377) and lowers AUC (0.7668 → 0.7646), because age is recoverable from other features (R² 0.735).
+- Only per-band cutoffs, which use age at decision time, close it (0.022), and they raise the default rate of approved under-25s from 0.9% to 3.4%.
+
+Age policy is now applied as eligibility rules before the model (D-76). The 0.1 threshold below is a monitoring alert, not a legal limit.  
+**Original status:** Open — Requires Mitigation  
 **Phase:** 3  
 **Severity:** 🔴 **Critical** (violates fairness threshold)  
 **Description:** Fairness audit identified significant age-based disparity in approval rates that exceeds the 0.1 threshold.  
@@ -1255,6 +1262,16 @@ Found on Nov 25, 2026 by running every existing test (`tests/`: 88 passed; `back
 
 ---
 
+## Phase 5.5a: Age as Eligibility — New Issues
+
+### #85: Eligibility Rules Are Illustrative Policy
+**Status:** Open (limitation)  
+**Phase:** 5.5a  
+**Description:** The age limit (18), the no-income types (Student, Unemployed) and the guardian requirement follow common lending practice, but they have not been reviewed against Indian lending regulation. A minor's application is scored on the guardian's age, income and employment combined with the applicant's other details (loan, bureau scores, family). A real guardian application would assess the guardian's full credit record. No age-at-loan-end limit is applied.  
+**Action:** State this as a limitation. A lender would replace the settings with its own policy.
+
+---
+
 ## Change Log (Updated)
 
 | Date | Issue | Action |
@@ -1293,6 +1310,8 @@ Found on Nov 25, 2026 by running every existing test (`tests/`: 88 passed; `back
 | Nov 27, 2026 | #73 | Resolved: time-cost sensitivity (Phase 5.3) |
 | Nov 27, 2026 | #74 | Resolved: plain names for every displayed factor (Phase 5.4) |
 | Nov 27, 2026 | #84 | Identified: no user study with applicants |
+| Nov 27, 2026 | #16 | Investigated: age experiment; age handled as eligibility rules (Phase 5.5a) |
+| Nov 27, 2026 | #85 | Identified: eligibility rules are illustrative policy |
 
 ---
 

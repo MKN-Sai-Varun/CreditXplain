@@ -105,7 +105,7 @@ function Review({ id }: { id: number }) {
           <DecisionSummary app={app} />
           <ActionPanel app={app} onDone={refresh} />
           <ExplanationTables explanation={app.explanation} />
-          {d.decision !== "APPROVE" && (
+          {d.decision !== "APPROVE" && app.explanation?.counterfactuals != null && (
             <>
               <Card title="Applicant's recourse limits">
                 <p className="text-sm text-slate-700">

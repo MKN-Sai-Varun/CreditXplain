@@ -1738,6 +1738,35 @@ Accessibility is checked with Lighthouse (`docs/usability/accessibility_audit.md
 
 ---
 
+### D-76: Age Is an Eligibility Rule Before the Model
+**Decision:** `backend/services/eligibility_service.py` runs before scoring.
+- An applicant **under 18** applies with a guardian. The application is scored on the guardian's age, income, income type and employment, it is never approved automatically, and an officer can approve only after the guardian's ID proof and income proof are uploaded.
+- An applicant assessed as having **no income** (zero or missing, Student or Unemployed) is never approved automatically.
+- A rule only removes automatic approval (Approve → Review). It never worsens the model's band, and Review → Approve recourse is not offered when automatic approval is out of reach.
+- The rules, reasons, whose details were assessed and the model's own band are stored with the decision and shown in the app and PDFs.
+
+**Why:** This follows the project lead's description of real credit practice: age should not limit an adult who earns, and a minor needs a guardian. A minor generally cannot take on a loan alone, so the guardian is assessed as the co-applicant. The training data covers ages 20.5–69 only, so the model cannot score a minor's own record meaningfully. Pensioners keep automatic approval, because a pension is an income.
+
+**Limits:** These are illustrative policy settings (`MIN_ADULT_AGE`, `NO_INCOME_TYPES`), not a legal review. No age-at-loan-end limit was added (KNOWN_ISSUES #85).
+
+**Date:** Nov 27, 2026
+
+---
+
+### D-77: Removing Age From the Model Was Tested and Is Not Recommended (Proposed)
+**Finding** (`src/age_fairness_experiment.py`, 61,503 test applicants):
+- Dropping the three direct age features raises the age-band DPD from 0.349 to 0.364. Also dropping the three age-derived features raises it to 0.377, and AUC falls 0.7668 → 0.7646.
+- Age is recoverable from the remaining features (R² 0.735).
+- Without age, the model over-predicts risk for under-25s (13.8% against an actual 11.4%) and approves fewer of them (13.4% → 9.8%).
+- The current model is calibrated within 0.8 points in every age band. The approval gap follows the actual default rates (11.4% for under-25s, 5.3% for over-55s).
+- Per-band cutoffs reach DPD 0.022, but only by using age at decision time, and approved under-25s then default at 3.4% instead of 0.9%.
+
+**Proposed decision:** keep the current model (age audited, gender excluded). Deliver the age policy through D-76, and report the experiment in the paper as evidence that fairness through unawareness fails here. The switch to the age-free model (5.5b) is not recommended. This is pending the project lead's confirmation of Q5.
+
+**Date:** Nov 27, 2026
+
+---
+
 ## Change Log (Updated)
 
 | Date | Phase | Changes |
@@ -1758,6 +1787,7 @@ Accessibility is checked with Lighthouse (`docs/usability/accessibility_audit.md
 | Nov 27, 2026 | Phase 5.2b | D-72 ensemble-robust search; D-73 separate search and evaluation models |
 | Nov 27, 2026 | Phase 5.2c | D-74 hybrid recourse in the application |
 | Nov 27, 2026 | Phase 5.4 | D-75 understandability measured from the system's text, plus an expert review |
+| Nov 27, 2026 | Phase 5.5a | D-76 age as an eligibility rule (guardian for minors, no automatic approval without income); D-77 age removal tested, not recommended (proposed) |
 
 ---
 

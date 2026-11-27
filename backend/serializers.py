@@ -43,6 +43,7 @@ def application_detail(application: Application) -> dict:
         "features": application.features_json,
         "tenure_months": application.tenure_months,
         "recourse_preferences": application.recourse_preferences,
+        "guardian": application.guardian,
         "documents": list(application.documents),
         "document_requests": document_requests(application),
     }
