@@ -1232,7 +1232,7 @@ Found on Nov 25, 2026 by running every existing test (`tests/`: 88 passed; `back
 ## Phase 5.2: Recourse Robustness — New Issues
 
 ### #83: Recourse Is Fragile Under Retraining
-**Status:** 🟡 Mitigated (Phase 5.2b). Ensemble-robust search doubles robustness on held-out retrained models (27.7% → 52.4%, Reject → Review); with waiting, 25.0% of rejected applicants get a usable option that survives retraining, against 16.3% for the current app. The live API does not use it yet (decision pending)  
+**Status:** 🟡 Mitigated (Phase 5.2b). Ensemble-robust search doubles robustness on held-out retrained models (27.7% → 52.4%, Reject → Review); with waiting, 25.0% of rejected applicants get a usable option that survives retraining, against 16.3% for the current app. Since Phase 5.2c the application lists options passing the retraining check first and labels every option (D-74)  
 **Phase:** 5.2  
 **Description:** On 5 bootstrap-retrained models, 23.2% of the proposed engine's Reject → Review options and 14.7% of its Review → Approve options hold on all 5 models (margin 0.1). The refinement step aims for the smallest change, which places options just past the margin. Random search's larger changes hold more often (34.2%). A 0.2 margin raises robustness to 42.3%, but coverage falls to 49.7%.  
 **Options:**
@@ -1278,7 +1278,7 @@ Found on Nov 25, 2026 by running every existing test (`tests/`: 88 passed; `back
 | Nov 26, 2026 | #3, #5, #6, #7 | Resolved in Phase 5.1; #12 mitigated |
 | Nov 26, 2026 | #81, #82 | Identified: CI on Python 3.9, data-dependent tests skip in CI |
 | Nov 26, 2026 | #83 | Identified: recourse fragile under retraining (Phase 5.2 finding) |
-| Nov 27, 2026 | #83 | Mitigated: ensemble-robust search (Phase 5.2b) |
+| Nov 27, 2026 | #83 | Mitigated: ensemble-robust search (Phase 5.2b); hybrid in the application (Phase 5.2c) |
 
 ---
 

@@ -26,6 +26,19 @@ function ChangeLine({ ch }: { ch: RecourseChange }) {
   );
 }
 
+function RetrainBadge({ passed }: { passed?: boolean | null }) {
+  if (passed == null) return null;
+  return passed ? (
+    <span className="mt-1 inline-block rounded-full bg-emerald-50 px-2 py-0.5 text-xs font-medium text-emerald-800">
+      Likely to hold if the model is updated
+    </span>
+  ) : (
+    <span className="mt-1 inline-block rounded-full bg-slate-100 px-2 py-0.5 text-xs font-medium text-slate-600">
+      May change if the model is updated
+    </span>
+  );
+}
+
 function OptionCard({ opt, index }: { opt: RecourseOption; index: number }) {
   return (
     <div className="rounded-md border border-slate-200 p-4">
@@ -35,6 +48,7 @@ function OptionCard({ opt, index }: { opt: RecourseOption; index: number }) {
         </p>
         <span className="text-sm font-medium text-emerald-700">{OUTCOME_TEXT[opt.new_decision]}</span>
       </div>
+      <RetrainBadge passed={opt.retrain_check_passed} />
       <ul className="mt-2 list-disc space-y-1 pl-5 text-sm text-slate-700">
         {opt.changes.map((ch) => (
           <ChangeLine key={ch.feature} ch={ch} />

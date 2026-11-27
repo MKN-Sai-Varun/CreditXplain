@@ -367,3 +367,33 @@ def explain_change(scorer, shap_explainer, raw, option, top=3, only_changed=True
         delta = np.where(moved, delta, 0.0)
     order = [j for j in np.argsort(-np.abs(delta)) if delta[j] != 0][:top]
     return [{"feature": X.columns[j], "delta": float(delta[j])} for j in order]
+
+
+def merge_options(robust, standard, n=3):
+    """
+    Options that passed the retraining check first, then standard options for
+    lever combinations the robust search found nothing for. A standard option's
+    combination has no robust option (the robust search covers every
+    combination), so it did not pass the check.
+    """
+    out = [{**o, "retrain_check_passed": True} for o in robust]
+    seen = {tuple(o["levers"]) for o in out}
+    for o in standard:
+        if tuple(o["levers"]) not in seen:
+            out.append({**o, "retrain_check_passed": False})
+            seen.add(tuple(o["levers"]))
+    return out[:n]
+
+
+def find_recourse_hybrid(scorer, raw, ensemble, n=3, **kwargs):
+    """
+    What the application offers: options likely to survive a model update
+    (agreed by all retrained models in `ensemble`) listed first, then the
+    standard options. Without an ensemble it is the standard search, with
+    retrain_check_passed set to None.
+    """
+    standard = find_recourse(scorer, raw, n=n, **kwargs)
+    if ensemble is None:
+        return [{**o, "retrain_check_passed": None} for o in standard]
+    robust = find_recourse(scorer, raw, n=n, ensemble=ensemble, **kwargs)
+    return merge_options(robust, standard, n)

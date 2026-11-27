@@ -94,6 +94,9 @@ export interface RecourseOption {
   robust_margin?: number | null;
   plausible?: boolean | null;
   drivers?: Driver[] | null;
+  /** true: also reached the better band on all retrained models; null: not checked */
+  retrain_check_passed?: boolean | null;
+  ensemble_agreement?: string | null;
 }
 
 export interface Explanation {

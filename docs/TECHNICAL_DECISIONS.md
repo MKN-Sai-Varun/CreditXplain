@@ -1705,6 +1705,22 @@ An option **holds** on a model if that model, with the option applied, puts the 
 
 ---
 
+### D-74: The Application Uses Hybrid Recourse
+**Decision:** The API, both at scoring and in "What if…?", uses `find_recourse_hybrid`:
+- options that also pass all 5 search models (bootstrap models 1–5) come first, marked `retrain_check_passed: true`;
+- standard options fill the remaining slots for lever combinations with no robust option, marked `false`;
+- if the retrained models are not present, or `ROBUST_RECOURSE` is off, it is the standard search, with `null`.
+
+The decision page and the PDFs say "Likely to hold if the model is updated" or "May change if the model is updated"; the compliance report adds the agreement count.
+
+**Why:** It is chosen by the project lead (Nov 27, 2026). Applicants keep the standard search's coverage, and the advice most likely to last is listed first and labelled.
+
+**Cost:** two searches per decision instead of one, plus 5 extra models in memory.
+
+**Date:** Nov 27, 2026
+
+---
+
 ## Change Log (Updated)
 
 | Date | Phase | Changes |
@@ -1723,6 +1739,7 @@ An option **holds** on a model if that model, with the option applied, puts the 
 | Nov 26, 2026 | Phase 5.1 | D-67 pinned requirements; D-68 pipeline script; D-69 CI without private data |
 | Nov 26, 2026 | Phase 5.2 | D-70 robustness on retrained models; D-71 shared cutoff rule |
 | Nov 27, 2026 | Phase 5.2b | D-72 ensemble-robust search; D-73 separate search and evaluation models |
+| Nov 27, 2026 | Phase 5.2c | D-74 hybrid recourse in the application |
 
 ---
 

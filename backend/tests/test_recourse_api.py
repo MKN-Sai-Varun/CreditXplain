@@ -77,6 +77,9 @@ def test_review_application_gets_path_to_approve_with_drivers(client, applicant_
         assert cf["new_decision"] == "APPROVE"
         assert cf["robust_margin"] > 0
         assert cf["drivers"] and {"feature", "delta"} <= set(cf["drivers"][0])
+        assert cf["retrain_check_passed"] in (True, False, None)
+    flags = [cf["retrain_check_passed"] for cf in cfs]
+    assert flags == sorted(flags, key=lambda f: f is not True)   # checked options listed first
     lime_rows = expl["lime_explanation"]
     assert lime_rows and lime_rows[0]["rule"]
 

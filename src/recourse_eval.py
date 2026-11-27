@@ -16,6 +16,9 @@ Methods (all but proposed_with_wait limited to the same three loan levers and bo
               must also reach the better band on all 5 / at least 4 of the
               search models (bootstrap models 1-5)
   proposed_ensemble_with_wait - proposed_ensemble plus the waiting lever
+  hybrid    - what the application offers (src/recourse.find_recourse_hybrid):
+              options passing the retraining check first, standard options
+              after; its best option is the first one shown
 
 Bootstrap models are split in two: 1-5 are used by the ensemble methods during
 the search, 6-10 only for evaluation, so robustness is never measured on a model
@@ -54,7 +57,7 @@ from src.inference import Scorer
 from src.robustness import Ensemble
 from src.recourse import (BAND, DEFAULT_MARGIN, INCOME_SCALES, CREDIT_SCALES, INSTALMENT_SCALES,
                           _Evaluator, _cost, _levers, _logit, _qualifies, apply_changes,
-                          default_plausibility, find_recourse)
+                          default_plausibility, find_recourse, find_recourse_hybrid)
 
 warnings.filterwarnings("ignore")
 
@@ -62,8 +65,8 @@ RANDOM_BUDGET = 300
 DICE_BACKGROUND = 200
 METHODS = ["previous", "proposed", "proposed_with_wait", "ablation_no_margin", "ablation_no_plausibility",
            "proposed_margin_0p2", "proposed_ensemble", "proposed_ensemble_4of5", "proposed_ensemble_with_wait",
-           "random", "dice"]
-ENSEMBLE_METHODS = {"proposed_ensemble", "proposed_ensemble_4of5", "proposed_ensemble_with_wait"}
+           "hybrid", "random", "dice"]
+ENSEMBLE_METHODS = {"proposed_ensemble", "proposed_ensemble_4of5", "proposed_ensemble_with_wait", "hybrid"}
 SEARCH_MODELS = range(1, 6)
 EVAL_MODELS = range(6, 11)
 LOAN_ONLY = ("wait",)
@@ -395,6 +398,7 @@ def main():
                         sc, raw, locked=LOAN_ONLY, ensemble=search_models, min_agree=4)),
                     "proposed_ensemble_with_wait": lambda: from_engine(sc, raw, find_recourse(
                         sc, raw, ensemble=search_models)),
+                    "hybrid": lambda: from_engine(sc, raw, find_recourse_hybrid(sc, raw, search_models)),
                     "random": lambda: random_search(sc, raw, plaus, search_rng),
                     "dice": lambda: dice_search(sc, raw, plaus, base_band, background),
                 }

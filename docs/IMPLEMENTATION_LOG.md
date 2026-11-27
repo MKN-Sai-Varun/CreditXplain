@@ -2234,6 +2234,45 @@ Full test run: **225 passed**.
 
 ---
 
+## Phase 5.2c: Hybrid Recourse in the Application (Nov 27, 2026)
+
+### Overview
+Brings ensemble-robust recourse into the application as a hybrid: options that survive retrained models first, standard options as a labelled fallback. Decision: TECHNICAL_DECISIONS D-74.
+
+### Changes
+- `src/recourse.py`: `merge_options` and `find_recourse_hybrid`.
+- `backend/services/counterfactual_service.py`: loads bootstrap models 1–5 once and uses the hybrid. Without those files it falls back to the standard search, as in CI or a fresh clone.
+- `backend/config.py`: `ROBUST_RECOURSE` setting, on by default.
+- `backend/schemas.py`: `retrain_check_passed` and `ensemble_agreement` on recourse options.
+- `frontend/lib/types.ts`, `frontend/components/application/Recourse.tsx`: label on each option.
+- `backend/services/report_service.py`: the same label in the PDFs; agreement count in the compliance report.
+- `src/recourse_eval.py`: `hybrid` method (its best option is the first one shown).
+
+### Tests (4 new)
+- `tests/test_recourse_time.py` (1, CI-safe): merge rule.
+- `tests/test_recourse.py` (2): without models the hybrid is the standard search; with always-agreeing / always-blocking models every option is marked true / false.
+- `backend/tests/test_recourse_api.py` (in an existing test): options carry the flag, checked options listed first.
+
+Full run: **228 passed**. Frontend lint, build (12 routes) and type check clean.
+
+### Results (Nov 27, 2026; `--methods hybrid`, merged into the existing evaluation, held-out models 6–10)
+The best option is the first one the app shows.
+
+| Tier | Method | Usable | First option holds on all 5 | Usable and holds on all 5 | Mean change | Latency mean / p95 |
+|---|---|---|---|---|---|---|
+| Reject → Review | **hybrid (application)** | **67.0%** | 39.3% | **26.3%** | 0.341 | 96 / 121 ms |
+| | proposed_with_wait (before 5.2c) | 67.0% | 24.4% | 16.3% | 0.255 | 39 / 46 ms |
+| | proposed_ensemble_with_wait | 48.7% | 51.4% | 25.0% | 0.283 | 57 / 74 ms |
+| Review → Approve | **hybrid (application)** | **43.7%** | 25.2% | **11.0%** | 0.396 | 86 / 114 ms |
+| | proposed_with_wait (before 5.2c) | 43.7% | 15.3% | 6.7% | 0.309 | 35 / 45 ms |
+| | proposed_ensemble_with_wait | 25.0% | 41.3% | 10.3% | 0.376 | 52 / 69 ms |
+
+**Reading:**
+- The hybrid keeps the full coverage of the standard search and gives the largest share of applicants an option that is usable and survives retraining, in both tiers: 26.3% against 16.3% before (Reject → Review), and 11.0% against 6.7% (Review → Approve). That is the highest of all evaluated methods.
+- Costs: the first option asks for more change (0.341 against 0.255), and a decision takes about 60 ms longer (two searches, five extra models).
+
+---
+
 ## Change Log (updated)
 
 | Date | Phase | Event | Files Changed |
@@ -2254,7 +2293,8 @@ Full test run: **225 passed**.
 | 2026-11-26 | 5.1 | Reproducibility and CI | README rewrite, pipeline script, pinned requirements, GitHub Actions, needs marker |
 | 2026-11-26 | 5.2 | Recourse robustness | Bootstrap models, robustness check, margin 0.2 variant, shared cutoff rule |
 | 2026-11-27 | 5.2b | Ensemble-robust recourse | Agreement rule in the search, models 1-5 for search and 6-10 for evaluation, 3 new methods |
+| 2026-11-27 | 5.2c | Hybrid recourse in the app | Robust options first with labels in UI and PDFs, standard fallback, hybrid evaluation method |
 
 ---
 
-**Last Updated:** Nov 27, 2026 (Phase 5.2b complete)
+**Last Updated:** Nov 27, 2026 (Phase 5.2c complete)

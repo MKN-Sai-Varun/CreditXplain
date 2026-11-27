@@ -103,3 +103,16 @@ def test_dominance_rule():
     assert not _dominates(same_plus_wait, loan_only)
     assert not _dominates(loan_only, loan_only)            # an option never removes itself
     assert not _dominates((0.8, 1.0, 1.0, 0), (0.9, 1.0, 0.8, 0))   # trade-off: neither dominates
+
+
+def test_merge_puts_checked_options_first_and_fills_gaps():
+    from src.recourse import merge_options
+    robust = [{"levers": ["credit", "tenure"], "cost": 0.3}]
+    standard = [{"levers": ["credit"], "cost": 0.1},
+                {"levers": ["credit", "tenure"], "cost": 0.2},   # same combination as the robust one: dropped
+                {"levers": ["income"], "cost": 0.4}]
+    out = merge_options(robust, standard, n=3)
+    assert [o["levers"] for o in out] == [["credit", "tenure"], ["credit"], ["income"]]
+    assert [o["retrain_check_passed"] for o in out] == [True, False, False]
+    assert len(merge_options(robust, standard, n=2)) == 2
+    assert merge_options([], [], n=3) == []

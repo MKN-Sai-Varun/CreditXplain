@@ -82,11 +82,11 @@
 
 ---
 
-## 4. Test baseline (Nov 26, 2026, after Phase 4.9)
+## 4. Test baseline (Nov 27, 2026, after Phase 5.2c)
 
 | Suite | Result |
 |---|---|
-| `python3 -m pytest tests backend/tests -q` | ✅ 212 passed |
+| `python3 -m pytest tests backend/tests -q` | ✅ 228 passed |
 | `npx tsc --noEmit` (frontend) | ✅ |
 | `npm run build` (frontend) | ✅ 12 routes |
 | `npm run lint` (frontend) | ✅ clean |
@@ -123,7 +123,7 @@ Phases 4.7 onward (TECHNICAL_DECISIONS D-41) follow this order.
 
 **Phase 5.2 / 5.2b:** recourse was fragile under retraining (27.7% of Reject → Review options hold on all 5 held-out retrained models). Ensemble-robust search raises that to 52.4%; with waiting, 25.0% of rejected applicants get a usable option that survives retraining, against 16.3% today (KNOWN_ISSUES #83, IMPLEMENTATION_LOG 5.2b).
 
-**Open decision:** whether the live API switches to ensemble-robust recourse.
+**Decided (Phase 5.2c):** the application uses hybrid recourse: options that survive retrained models first, labelled, with standard options as a fallback (D-74). It keeps 67.0% coverage and raises the share of rejected applicants with usable advice that survives retraining from 16.3% to 26.3%.
 
 **Next phase (awaiting approval):** 5.3 system measurements, then 5.4 usability check, 5.5 manuscript.
 

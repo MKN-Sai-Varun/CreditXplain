@@ -239,6 +239,9 @@ def _recourse(explanation, detailed=False):
         outcome = OUTCOME_TEXT.get(opt["new_decision"], f"leads to {opt['new_decision']}")
         out.append(_p(f"Option {k} ({levers}): {outcome}", ParagraphStyle(
             "opt", parent=BODY, fontName="Helvetica-Bold", spaceBefore=4)))
+        if opt.get("retrain_check_passed") is not None:
+            out.append(_p("Likely to hold if the model is updated" if opt["retrain_check_passed"]
+                          else "May change if the model is updated", SMALL))
         for line in _option_lines(opt):
             out.append(_p(f"- {line}"))
         drivers = opt.get("drivers") or []
@@ -248,7 +251,9 @@ def _recourse(explanation, detailed=False):
         if detailed:
             out.append(_p(f"New estimated risk {opt['new_probability']:.1%}; margin below cutoff "
                           f"{opt.get('robust_margin', 0):.2f} log-odds; plausible: {opt.get('plausible')}; "
-                          f"cost {opt.get('cost', 0):.3f}", SMALL))
+                          f"cost {opt.get('cost', 0):.3f}"
+                          + (f"; retrained models agreeing {opt['ensemble_agreement']}" if opt.get("ensemble_agreement") else ""),
+                          SMALL))
     return out
 
 

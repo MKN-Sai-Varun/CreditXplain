@@ -54,6 +54,9 @@ class Settings(BaseSettings):
     WAIT_OPTIONS: list = [0, 3, 6, 12]
     MAX_LOAN_REDUCTION: float = 0.5
 
+    # List options that survive retrained models first (bootstrap models 1-5, if present)
+    ROBUST_RECOURSE: bool = True
+
     # Document uploads
     MAX_UPLOAD_BYTES: int = 5 * 1024 * 1024
     ALLOWED_UPLOAD_TYPES: dict = {

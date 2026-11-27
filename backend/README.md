@@ -91,6 +91,7 @@ Files are stored under `uploads/<application id>/` (gitignored).
 
 ### Predictions
 - `POST /api/predictions/{application_id}` - Generate prediction & explanation; recourse for Reject and Review cases uses the application's stored `recourse_preferences`
+- Recourse options list those that also pass 5 retrained models first (`retrain_check_passed: true`) when `models/bootstrap_lgbm_1.pkl` to `_5.pkl` exist and `ROBUST_RECOURSE` is on; otherwise the flag is `null`.
 - `POST /api/predictions/{application_id}/recourse` - Recourse options for new preferences (`locked_levers`, `max_loan_reduction`, `max_wait_months`) for a scored, not-approved application; nothing is stored
 
 ### Officer Dashboard

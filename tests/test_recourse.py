@@ -274,3 +274,22 @@ def test_disagreeing_ensemble_blocks_everything(scorer, solved):
 def test_min_agree_validated(scorer, solved):
     with pytest.raises(ValueError):
         find_recourse(scorer, solved[0][0], ensemble=_ensemble(0.0), min_agree=6)
+
+
+def test_hybrid_without_models_is_the_standard_search(scorer, solved):
+    from src.recourse import find_recourse_hybrid
+    raw, res = solved[0]
+    out = find_recourse_hybrid(scorer, raw, None)
+    assert [o["changes"] for o in out] == [o["changes"] for o in res]
+    assert all(o["retrain_check_passed"] is None for o in out)
+
+
+def test_hybrid_marks_options_by_retraining_check(scorer, solved):
+    from src.recourse import find_recourse_hybrid
+    for raw, res in solved[:4]:
+        agreeing = find_recourse_hybrid(scorer, raw, _ensemble(0.0))
+        assert [o["changes"] for o in agreeing] == [o["changes"] for o in res]
+        assert all(o["retrain_check_passed"] is True for o in agreeing)
+        blocking = find_recourse_hybrid(scorer, raw, _ensemble(0.9))
+        assert [o["changes"] for o in blocking] == [o["changes"] for o in res]
+        assert all(o["retrain_check_passed"] is False for o in blocking)

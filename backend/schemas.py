@@ -136,6 +136,8 @@ class Counterfactual(BaseModel):
     plausible: Optional[bool] = None
     plausibility_distance: Optional[float] = None
     drivers: Optional[List[Dict[str, Any]]] = None
+    retrain_check_passed: Optional[bool] = None
+    ensemble_agreement: Optional[str] = None
 
 class ExplanationResponse(BaseModel):
     shap_values: List[ShapValue]
