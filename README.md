@@ -50,6 +50,7 @@ tests/          model and pipeline tests
 backend/tests/  API tests
 scripts/        run_pipeline.sh: rebuilds every artifact and report from the raw data
 reports/        results: model comparison, explanations, recourse and fairness evaluations
+paper/          manuscript source (IEEE Access); tables and figures come from reports/paper/
 docs/           project state, implementation log, technical decisions, known issues, plan,
                 usability materials (expert review, accessibility audit)
 data/, models/  local only (not in git): raw data, processed data, trained model

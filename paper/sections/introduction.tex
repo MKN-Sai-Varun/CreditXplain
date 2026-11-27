@@ -1,0 +1,72 @@
+\section{Introduction}
+\label{sec:introduction}
+
+\PARstart{L}{enders} increasingly rely on machine learning models to decide who receives credit. Gradient-boosted
+trees in particular have become a standard choice for credit scoring on tabular data, because they handle missing
+values, mixed feature types and nonlinear interactions with little tuning~\cite{lessmann2015benchmark,ke2017lightgbm}.
+A decision produced by such a model, however, affects a real person, and that person, the loan officer who
+reviews the case and the regulator who audits the process all need more than a probability. They need to know why
+the decision was made, what the applicant could do to obtain a better one, and whether the model treats groups of
+applicants differently.
+
+Post-hoc explanation methods such as SHAP~\cite{lundberg2017shap,lundberg2020tree} and
+LIME~\cite{ribeiro2016lime} are now routinely attached to credit models to answer the first question. Recent work
+on the Home Credit Default Risk dataset~\cite{homecredit2018} compared random forest, XGBoost and LightGBM and
+reported SHAP and LIME explanations for the best model~\cite{shreya2025base}. Such studies stop at the explanation:
+they show which features pushed a score up or down, but they do not tell an applicant what to change, they produce
+static reports rather than a working decision process, and they do not examine whether the decisions differ across
+groups of applicants. Three gaps in particular remain.
+
+\emph{First, explanations are often not local.} LIME is meant to explain one prediction by fitting a simple model
+in the neighbourhood of the applicant. When it is configured, as it often is, to perturb features across the whole
+training distribution, the surrogate describes the model's global behaviour and gives nearly the same explanation to
+everyone. In our setting, such an explanation had a rank correlation of only 0.02 with the applicant's SHAP values.
+
+\emph{Second, recourse advice is fragile.} Counterfactual explanations~\cite{wachter2018counterfactual} and
+algorithmic recourse~\cite{ustun2019recourse,karimi2022survey} go further and suggest a change that would alter the
+decision, such as a smaller loan or a longer repayment period. Lenders retrain their models regularly, and an
+option computed against today's model may no longer work after the next update~\cite{rawal2020shift,pawelczyk2020multiplicity}.
+We found that only about a quarter of standard recourse options for rejected applicants still reached the promised
+outcome on five independently retrained models. An applicant who follows such advice, for example by waiting six
+months and re-applying, may be rejected again.
+
+\emph{Third, fairness is usually treated as a model property alone.} Removing a sensitive attribute such as age from
+the model is a common response to an age disparity, but other features can carry the same
+information~\cite{dwork2012awareness}, and lending practice treats age partly as a question of eligibility (a minor
+cannot take on a loan alone) rather than of risk.
+
+This paper presents \emph{CreditXplain}, an explainable, counterfactual-driven decision support system for credit
+risk prediction that addresses these gaps as one working system: an applicant portal, an officer dashboard and
+auditable PDF reports built around a LightGBM risk model. Its contributions are as follows.
+
+\begin{enumerate}
+\item \textbf{A three-band decision process with eligibility rules.} Applications are approved automatically below a
+low risk cutoff, rejected above a high one, and referred to a loan officer in between, with a written justification
+required to override the model. Eligibility rules run before the model: an applicant under 18 applies with a
+guardian whose income and employment are assessed, and an applicant without an income is never approved
+automatically.
+\item \textbf{Local explanations that agree with SHAP.} We restrict LIME to perturbations around the applicant and to
+the model's most important features. Its rank correlation with SHAP rises from 0.02 to 0.64, and both explanations
+are shown in plain language that reads at about an eighth-grade level.
+\item \textbf{A recourse engine for credit decisions.} It searches over the loan amount, income, repayment period and
+a waiting option, keeps a safety margin from the decision cutoff, rejects implausible combinations by comparison
+with real applicants, respects limits set by the applicant, and offers a path in two steps, from Reject to Review and
+from Review to Approve.
+\item \textbf{Recourse that survives retraining.} The search requires options to work on five bootstrap-retrained
+models as well as the deployed one, and is evaluated on five further retrained models that it never saw. This more
+than doubles the share of options that survive retraining, from 24.4\% to 53.3\%. A hybrid that lists these options
+first, and falls back to standard ones, gives 23.7\% of rejected applicants a usable option that survives retraining,
+against 17.7\% for random search, 14.3\% for the standard search and 8.7\% for a baseline engine without these safeguards.
+\item \textbf{An analysis of age in the model.} Removing age and the features derived from it widens the age-band
+gap in automatic approval (from 0.349 to 0.377 in our experiment) and makes the model overestimate the risk of applicants under 25,
+because age is largely recoverable from the remaining features. We therefore keep age as an audited feature and apply
+the age policy through the eligibility rules.
+\item \textbf{A complete, reproducible system.} An applicant's full path, from submission to a decision with
+explanations, recourse and a PDF report, takes 158~ms on average. The code, a single script that rebuilds every model
+and result, and the tests are publicly available.
+\end{enumerate}
+
+The rest of the paper is organized as follows. Section~\ref{sec:related} reviews related work.
+Section~\ref{sec:method} describes the system and its components, and Section~\ref{sec:setup} the data and
+evaluation protocol. Section~\ref{sec:results} reports the results, Section~\ref{sec:discussion} discusses their
+limitations, and Section~\ref{sec:conclusion} concludes.

@@ -19,8 +19,8 @@ script, and upload again. `numbers.json` holds the numbers quoted in the text, w
      ```
 6. Click **Recompile**. References appear once they are cited with `\cite{...}`.
 
-Before submission, check every entry of `references.bib` on Google Scholar or the publisher's page.
-The base paper's entry (`shreya2025base`) needs its exact title from arXiv.
+Before submission, check every entry of `references.bib` on Google Scholar or the publisher's page,
+and complete the author lists marked `and others` (IEEE lists up to six authors before \emph{et al.}).
 
 ## Figures
 

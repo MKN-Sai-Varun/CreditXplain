@@ -1,0 +1,84 @@
+\section{Related Work}
+\label{sec:related}
+
+\subsection{Machine Learning for Credit Scoring}
+Credit scoring has long been treated as a binary classification problem: predict whether an applicant will have
+difficulty repaying. A large benchmark of classifiers on several credit scoring datasets found that ensemble methods,
+including random forests, are among the strongest performers and that progress should be judged on several data
+sets and metrics rather than on accuracy alone~\cite{lessmann2015benchmark}. Gradient-boosted decision trees such as
+LightGBM~\cite{ke2017lightgbm} are now widely used for this task, since they train quickly on large tables and need
+little preprocessing. Credit data are typically imbalanced, which has motivated resampling methods such as
+SMOTE~\cite{chawla2002smote}; with an imbalanced target, threshold-free measures such as the area under the ROC curve
+are more informative than accuracy.
+
+The Home Credit Default Risk dataset~\cite{homecredit2018} is a public benchmark with more than 300{,}000
+applicants, many of whom have little or no credit history. Shreya and Pathak~\cite{shreya2025base} compared random
+forest, XGBoost and LightGBM on this dataset, found LightGBM the strongest, and explained it with SHAP and LIME. Our
+work builds on that study. It keeps the model family and the explanation methods, and adds what is needed to turn a
+prediction into a decision process: decision bands with officer review, recourse, a fairness analysis and a working
+application.
+
+\subsection{Post-Hoc Explanations}
+SHAP~\cite{lundberg2017shap} attributes a prediction to the input features using Shapley values, and its tree
+variant computes them exactly and efficiently for tree ensembles~\cite{lundberg2020tree}. The attributions add up to
+the model's output, which makes them well suited to explaining an individual credit decision. LIME~\cite{ribeiro2016lime}
+explains a prediction by sampling perturbed inputs around it and fitting an interpretable surrogate model. Its
+explanations depend on how the perturbations are drawn, and both LIME and SHAP explanations can change under small
+changes to the input~\cite{alvarezmelis2018robustness}. We therefore measure how well the LIME explanations agree
+with SHAP for each applicant, instead of assuming that two explanation methods tell the same story.
+
+How explanations should be evaluated is itself an open question. Doshi-Velez and Kim~\cite{doshivelez2017rigorous}
+distinguish evaluation with real users on the real task, evaluation with people on simplified tasks, and functionally
+grounded evaluation through measurable proxies. We follow the last approach, with measures of agreement, stability
+and readability~\cite{flesch1948readability}, and prepare an expert review based on usability
+heuristics~\cite{nielsen1994heuristics}.
+
+\subsection{Counterfactual Explanations and Algorithmic Recourse}
+A counterfactual explanation describes the smallest change to an input that would change the model's
+decision~\cite{wachter2018counterfactual}. Algorithmic recourse adds the requirement that the change be actionable:
+it should only alter features that a person can change, in directions and amounts that are
+feasible~\cite{ustun2019recourse}. Ustun~\emph{et al.}~\cite{ustun2019recourse} computed such recourse for linear
+classifiers with integer programming. DiCE~\cite{mothilal2020dice} generates several diverse counterfactuals for any
+differentiable or black-box model, trading off proximity to the input against diversity among the options. Karimi
+\emph{et al.}~\cite{karimi2022survey} survey the area and stress that recourse must account for the cost to the
+person and for the plausibility of the suggested profile.
+
+Our recourse engine shares these goals but is designed around credit decisions. Its levers are the ones an applicant
+can act on (the loan amount, documented income, the repayment period and the passage of time), immutable attributes
+are never changed, and options are offered as a path through the decision bands rather than as a single flip. We
+compare it with DiCE and with random search on the same applicants.
+
+\subsection{Explainable Credit Decision Systems}
+Several recent studies combine these ideas for credit. Nallakaruppan~\emph{et al.}~\cite{nallakaruppan2024risks}
+apply SHAP and LIME to decision trees and random forests for peer-to-peer lending and frame the result as decision
+support, but their explanations are attributions only. Dastile and Celik~\cite{dastile2024counterfactual} generate
+credit-scoring counterfactuals with genetic algorithms, particle swarm optimization and Bayesian optimization, and
+evaluate their plausibility, validity and sparsity; Nguyen Thanh~\emph{et al.}~\cite{nguyen2025milp} obtain plausible
+counterfactuals for credit approval with mixed-integer programming and local outlier factor modeling. In these works
+the counterfactual algorithm is the whole contribution. Kapoor~\emph{et al.}~\cite{kapoor2026fico} combine TabNet,
+LightGBM, SHAP and counterfactual explanations with a fairness perspective on the FICO dataset, and Popoola and
+Sheppard~\cite{popoola2026fair} study whether counterfactual explanations are consistent across groups as a measure of
+procedural fairness.
+
+CreditXplain differs from these studies in three ways. It integrates the model, both explanation methods, recourse and
+a fairness analysis into one decision process with officer review and an applicant portal, rather than evaluating a
+single component. Its recourse is evaluated for what happens when the model is retrained, which none of these studies
+measure. And it treats part of the fairness question as an eligibility policy outside the model, supported by an
+experiment showing that removing age from the model does not narrow the age gap.
+
+\subsection{Robustness of Recourse}
+A recourse option is only useful if it still works when the applicant acts on it. Rawal~\emph{et al.}~\cite{rawal2020shift}
+showed that recourse computed for one model is often invalid after the model is updated on shifted data, and
+Pawelczyk~\emph{et al.}~\cite{pawelczyk2020multiplicity} showed that counterfactuals for one model can fail on other
+models that are equally accurate. Upadhyay~\emph{et al.}~\cite{upadhyay2021robust} proposed computing recourse that
+remains valid under a bounded set of model shifts. We take a simple, model-agnostic route suited to periodic
+retraining: an option must also work on several bootstrap-retrained models, and its robustness is measured on
+further retrained models held out from the search.
+
+\subsection{Fairness in Credit Decisions}
+Group fairness criteria compare decisions across groups, for example the rate of positive decisions (demographic
+parity) or the rate among applicants who would repay (equal opportunity~\cite{hardt2016equality}). A common response
+to a disparity is to remove the sensitive attribute from the model. Dwork~\emph{et al.}~\cite{dwork2012awareness}
+argued that this ``fairness through unawareness'' is not sufficient, because other features can encode the same
+information. We test this directly for age on our data, and keep the parts of the age policy that are about
+eligibility rather than risk outside the model, as explicit rules.

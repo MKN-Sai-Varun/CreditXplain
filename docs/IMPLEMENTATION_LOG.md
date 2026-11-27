@@ -2561,6 +2561,20 @@ Builds every table and figure of the paper straight from the files in `reports/`
 
 ---
 
+## Phase 5.8, Batch 1: Manuscript Introduction and Related Work (Nov 27, 2026)
+
+### Changes
+- **`paper/main.tex` (new):** the IEEE Access title page, with the title *CreditXplain: An Explainable, Counterfactual-Driven Decision Support System for Credit Risk Prediction* and the authors MKN Sai Varun, Arnav Agarwal, K Preetham Reddy and Pranav Kasanagottu. It also holds the section list, the IEEEtran bibliography and biography placeholders. The affiliation e-mails, abstract, keywords and bios are still to fill in.
+- **`paper/sections/introduction.tex` (new):** the problem and three gaps (explanations that are not local, recourse that does not survive retraining, and fairness treated only as a model property), six contributions with the measured results, and the paper outline.
+- **`paper/sections/related_work.tex` (new):** machine learning for credit scoring and the base paper; post-hoc explanations and how to evaluate them; counterfactual explanations and recourse; explainable credit decision systems (positioning against the credit-specific studies in the project's literature survey); robustness of recourse; fairness in credit decisions.
+- **`reports/paper/references.bib`:** 9 references added, for 27 in total:
+  - credit scoring benchmark, SHAP for trees, robustness of interpretability methods and predictive multiplicity;
+  - five credit-specific studies from the project's literature survey.
+  The base paper's entry now has its full title and authors. Every citation in the text resolves to an entry.
+- **`paper/README.md` (new):** the section files and the Overleaf project layout.
+
+---
+
 ## Change Log (updated)
 
 | Date | Phase | Event | Files Changed |
@@ -2588,7 +2602,8 @@ Builds every table and figure of the paper straight from the files in `reports/`
 | 2026-11-27 | 5.6 | EDA and age decision | `src/eda.py` and `reports/eda/`; Q5 confirmed (age kept, policy as eligibility rules) |
 | 2026-11-27 | 5.6b | Leak-free cleaning | Cleaning statistics from training rows only (#86); pipeline, recourse evaluation and measurements rebuilt; age experiment not repeated |
 | 2026-11-27 | 5.7 | Paper figures and tables | `src/paper_figures.py`: 9 IEEE tables, 6 figures, numbers file, references, Overleaf guide |
+| 2026-11-27 | 5.8 (batch 1) | Manuscript | Title page, Introduction, Related Work; 9 references added |
 
 ---
 
-**Last Updated:** Nov 27, 2026 (Phase 5.7 complete)
+**Last Updated:** Nov 27, 2026 (Phase 5.8 batch 1)
