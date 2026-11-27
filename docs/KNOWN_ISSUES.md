@@ -1,6 +1,6 @@
 # KNOWN_ISSUES — CreditXplain
 
-**Last Updated:** Nov 27, 2026 (Phase 5.2b: ensemble-robust recourse)
+**Last Updated:** Nov 27, 2026 (Phase 5.3: system measurements)
 
 This document tracks bugs, gaps, technical debt, and unresolved questions. Items are numbered for reference.
 
@@ -1144,7 +1144,7 @@ Found on Nov 25, 2026 by running every existing test (`tests/`: 88 passed; `back
 ---
 
 ### #73: Time Cost Is a Judgement
-**Status:** Open (sensitivity check)  
+**Status:** ✅ Resolved (Phase 5.3). Sensitivity checked: doubling the time cost changes the first suggestion for 1–2% of applicants, halving it for 7–9%; coverage unchanged (`reports/time_cost_sensitivity.json`)  
 **Phase:** 4.7c  
 **Description:** `TIME_COST_PER_MONTH = 0.04` (12 months ≈ halving the loan) decides how waiting ranks against loan changes. The value is a judgement, not measured.  
 **Action:** Report `wait_months` separately (done). Optionally show rankings for 0.02 and 0.08 in the paper.
@@ -1279,6 +1279,7 @@ Found on Nov 25, 2026 by running every existing test (`tests/`: 88 passed; `back
 | Nov 26, 2026 | #81, #82 | Identified: CI on Python 3.9, data-dependent tests skip in CI |
 | Nov 26, 2026 | #83 | Identified: recourse fragile under retraining (Phase 5.2 finding) |
 | Nov 27, 2026 | #83 | Mitigated: ensemble-robust search (Phase 5.2b); hybrid in the application (Phase 5.2c) |
+| Nov 27, 2026 | #73 | Resolved: time-cost sensitivity (Phase 5.3) |
 
 ---
 

@@ -2273,6 +2273,64 @@ The best option is the first one the app shows.
 
 ---
 
+## Phase 5.3: System Measurements (Nov 27, 2026)
+
+### Overview
+Measures the system's speed for the paper (the plan's "prediction latency" metric) and checks how much the price put on waiting changes the advice (KNOWN_ISSUES #73). Measurement only: the application and the model are unchanged.
+
+### Changes
+- **`src/system_latency.py` (new):** times 100 held-out applicants (after one warm-up) two ways. Writes `reports/system_latency.json`.
+  - Through the API (test client, in-memory database): submit, decide, read decision, applicant PDF, "What if…?", compliance PDF, and the applicant's total path.
+  - Stage by stage: scoring, SHAP, LIME, hybrid recourse, applicant PDF.
+  - Start-up time (cold start) is reported separately.
+- **`src/time_cost_sensitivity.py` (new):** re-runs the recourse search at time costs of 0.02, 0.04 and 0.08 per month, on the same 600 applicants as the recourse evaluation. It reports coverage, how often the first option involves waiting, and how often the first option or the shown set changes against 0.04. Writes `reports/time_cost_sensitivity.json`.
+- **Tests (2 new, CI-safe):** latency summary statistics, and the time-cost comparison on hand-made options (`tests/test_eval_metrics.py`).
+
+### Results (Nov 27, 2026)
+Full test run: **230 passed**.
+
+**Latency** (`reports/system_latency.json`; 100 held-out applicants after a warm-up; MacBook Air, Python 3.9; decisions 28 Approve, 48 Review, 24 Reject):
+
+| Step (through the API) | Mean | Median | p95 |
+|---|---|---|---|
+| Submit application | 2.5 ms | 2.5 ms | 2.6 ms |
+| Decide (score, SHAP, LIME, hybrid recourse, loan terms, save) | 150.1 ms | 139.2 ms | 247.2 ms |
+| Read decision | 2.6 ms | 2.6 ms | 2.8 ms |
+| Applicant PDF | 4.5 ms | 4.6 ms | 5.3 ms |
+| **Applicant's full path** (the four above) | **159.8 ms** | **148.3 ms** | **257.4 ms** |
+| "What if…?" (Review/Reject, 72 cases) | 64.5 ms | 35.6 ms | 139.1 ms |
+| Compliance PDF | 10.2 ms | 9.9 ms | 11.2 ms |
+
+| Stage (called directly) | Mean | p95 |
+|---|---|---|
+| Scoring | 12.5 ms | 13.2 ms |
+| SHAP | 26.7 ms | 27.4 ms |
+| LIME | 38.6 ms | 40.7 ms |
+| Hybrid recourse (Review/Reject only) | 97.9 ms | 169.2 ms |
+| Applicant PDF | 2.9 ms | 3.7 ms |
+
+Start-up (loading the model, explainers and 5 retrained models): 1.6 s, once.
+
+**Time-cost sensitivity** (`reports/time_cost_sensitivity.json`; 300 applicants per tier):
+
+| Tier | Time cost / month | First option waits | Same first option as 0.04 | Same options shown as 0.04 |
+|---|---|---|---|---|
+| Reject → Review | 0.02 | 21.4% | 91.5% | 85.6% |
+| | 0.04 (used) | 14.4% | 100% | 100% |
+| | 0.08 | 13.4% | 99.0% | 89.6% |
+| Review → Approve | 0.02 | 31.3% | 93.1% | 88.5% |
+| | 0.04 (used) | 27.5% | 100% | 100% |
+| | 0.08 | 25.2% | 97.7% | 95.4% |
+
+Coverage is identical at every setting (67.0% and 43.7%).
+
+**Reading:**
+- An applicant gets a full decision with explanations, recourse and a PDF in about 0.16 s on average and 0.26 s at the 95th percentile on a laptop.
+- Recourse is the largest stage, then LIME; both stay well under a second.
+- The advice is insensitive to the time-cost setting: doubling it changes the first suggestion for 1–2% of applicants, halving it for 7–9%.
+
+---
+
 ## Change Log (updated)
 
 | Date | Phase | Event | Files Changed |
@@ -2294,7 +2352,8 @@ The best option is the first one the app shows.
 | 2026-11-26 | 5.2 | Recourse robustness | Bootstrap models, robustness check, margin 0.2 variant, shared cutoff rule |
 | 2026-11-27 | 5.2b | Ensemble-robust recourse | Agreement rule in the search, models 1-5 for search and 6-10 for evaluation, 3 new methods |
 | 2026-11-27 | 5.2c | Hybrid recourse in the app | Robust options first with labels in UI and PDFs, standard fallback, hybrid evaluation method |
+| 2026-11-27 | 5.3 | System measurements | Latency through the API and per stage; time-cost sensitivity |
 
 ---
 
-**Last Updated:** Nov 27, 2026 (Phase 5.2c complete)
+**Last Updated:** Nov 27, 2026 (Phase 5.3 complete)

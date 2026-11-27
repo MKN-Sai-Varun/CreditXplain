@@ -77,7 +77,8 @@
 |---|---|
 | CI | ✅ GitHub Actions: model/API tests (Ubuntu 24.04, Python 3.9) and frontend checks, both passing since `3680046` (D-69) |
 | README | ✅ Rewritten with setup, pipeline and results (Phase 5.1) |
-| End-to-end latency, usability check | ⬜ |
+| End-to-end latency | ✅ Phase 5.3 (`reports/system_latency.json`) |
+| Usability check | ⬜ Phase 5.4 |
 | Manuscript | ⬜ |
 
 ---
@@ -125,7 +126,9 @@ Phases 4.7 onward (TECHNICAL_DECISIONS D-41) follow this order.
 
 **Decided (Phase 5.2c):** the application uses hybrid recourse: options that survive retrained models first, labelled, with standard options as a fallback (D-74). It keeps 67.0% coverage and raises the share of rejected applicants with usable advice that survives retraining from 16.3% to 26.3%.
 
-**Next phase (awaiting approval):** 5.3 system measurements, then 5.4 usability check, 5.5 manuscript.
+**Phase 5.3:** an applicant's full path (submit, decision with SHAP, LIME and hybrid recourse, PDF) takes 160 ms on average and 257 ms at p95 on a laptop; the advice is insensitive to the time-cost setting (#73 resolved).
+
+**Next phase (awaiting approval):** 5.4 usability check, then 5.5 manuscript.
 
 | # | Open question | Status |
 |---|---|---|

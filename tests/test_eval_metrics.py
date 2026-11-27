@@ -81,3 +81,34 @@ def test_aggregate_robustness_fields():
     assert a["mean_retrained_models_held"] == pytest.approx(13 / 3, abs=1e-3)
     assert a["usable_and_holds_on_all"] == pytest.approx(1 / 4)       # only the first row
     assert a["unchanged_applicant_already_promised_on_any"] == pytest.approx(1 / 4)
+
+
+def test_latency_summary():
+    from src.system_latency import summarize
+    s = summarize([10.0, 20.0, 30.0, None, 40.0])
+    assert s["n"] == 4
+    assert s["mean_ms"] == 25.0 and s["median_ms"] == 25.0 and s["max_ms"] == 40.0
+    assert 30.0 <= s["p95_ms"] <= 40.0
+    assert summarize([None, None]) is None
+
+
+def test_time_cost_comparison():
+    from src.time_cost_sensitivity import compare
+
+    def opt(levers, wait, credit):
+        return {"levers": levers, "wait_months": wait,
+                "changes": [{"feature": "AMT_CREDIT", "recommended": credit}]}
+
+    a, b, c = opt(["credit"], 0, 100.0), opt(["credit", "wait"], 6, 120.0), opt(["income"], 0, 0.0)
+    runs = {
+        0.04: [[a, b], [c], []],           # baseline
+        0.02: [[b, a], [c], []],           # waiting now ranked first for applicant 1
+        0.08: [[a, b], [c], []],           # identical to baseline
+    }
+    out = compare(runs, 0.04)
+    assert out["0.04"]["same_first_option_as_baseline"] == 1.0
+    assert out["0.08"]["same_options_shown_as_baseline"] == 1.0
+    assert out["0.02"]["same_first_option_as_baseline"] == 0.5      # 1 of the 2 applicants with options
+    assert out["0.02"]["same_options_shown_as_baseline"] == 1.0     # same set, different order
+    assert out["0.02"]["first_option_waits"] == 0.5
+    assert out["0.04"]["coverage"] == round(2 / 3, 4)

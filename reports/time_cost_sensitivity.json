@@ -1,0 +1,58 @@
+{
+  "applicants_per_tier": 300,
+  "baseline_cost_per_month": 0.04,
+  "tiers": {
+    "reject_to_review": {
+      "0.02": {
+        "coverage": 0.67,
+        "first_option_waits": 0.2139,
+        "first_option_mean_wait_months": 1.67,
+        "first_option_mean_levers": 1.801,
+        "same_first_option_as_baseline": 0.9154,
+        "same_options_shown_as_baseline": 0.8557
+      },
+      "0.04": {
+        "coverage": 0.67,
+        "first_option_waits": 0.1443,
+        "first_option_mean_wait_months": 1.22,
+        "first_option_mean_levers": 1.766,
+        "same_first_option_as_baseline": 1.0,
+        "same_options_shown_as_baseline": 1.0
+      },
+      "0.08": {
+        "coverage": 0.67,
+        "first_option_waits": 0.1343,
+        "first_option_mean_wait_months": 1.19,
+        "first_option_mean_levers": 1.751,
+        "same_first_option_as_baseline": 0.99,
+        "same_options_shown_as_baseline": 0.8955
+      }
+    },
+    "review_to_approve": {
+      "0.02": {
+        "coverage": 0.4367,
+        "first_option_waits": 0.313,
+        "first_option_mean_wait_months": 2.34,
+        "first_option_mean_levers": 1.969,
+        "same_first_option_as_baseline": 0.9313,
+        "same_options_shown_as_baseline": 0.8855
+      },
+      "0.04": {
+        "coverage": 0.4367,
+        "first_option_waits": 0.2748,
+        "first_option_mean_wait_months": 1.85,
+        "first_option_mean_levers": 2.008,
+        "same_first_option_as_baseline": 1.0,
+        "same_options_shown_as_baseline": 1.0
+      },
+      "0.08": {
+        "coverage": 0.4367,
+        "first_option_waits": 0.2519,
+        "first_option_mean_wait_months": 1.76,
+        "first_option_mean_levers": 2.008,
+        "same_first_option_as_baseline": 0.9771,
+        "same_options_shown_as_baseline": 0.9542
+      }
+    }
+  }
+}

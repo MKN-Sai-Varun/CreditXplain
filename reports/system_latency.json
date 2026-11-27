@@ -1,0 +1,125 @@
+{
+  "applicants": 100,
+  "decisions": {
+    "APPROVE": 28,
+    "REVIEW": 48,
+    "REJECT": 24
+  },
+  "cold_start_ms": 1623.2,
+  "robust_recourse": true,
+  "api": {
+    "submit": {
+      "n": 100,
+      "mean_ms": 2.5,
+      "median_ms": 2.5,
+      "p95_ms": 2.6,
+      "max_ms": 3.0
+    },
+    "decide": {
+      "n": 100,
+      "mean_ms": 150.1,
+      "median_ms": 139.2,
+      "p95_ms": 247.2,
+      "max_ms": 250.8
+    },
+    "read_decision": {
+      "n": 100,
+      "mean_ms": 2.6,
+      "median_ms": 2.6,
+      "p95_ms": 2.8,
+      "max_ms": 2.8
+    },
+    "applicant_pdf": {
+      "n": 100,
+      "mean_ms": 4.5,
+      "median_ms": 4.6,
+      "p95_ms": 5.3,
+      "max_ms": 5.3
+    },
+    "what_if": {
+      "n": 72,
+      "mean_ms": 64.5,
+      "median_ms": 35.6,
+      "p95_ms": 139.1,
+      "max_ms": 140.4
+    },
+    "compliance_pdf": {
+      "n": 100,
+      "mean_ms": 10.2,
+      "median_ms": 9.9,
+      "p95_ms": 11.2,
+      "max_ms": 23.5
+    },
+    "total": {
+      "n": 100,
+      "mean_ms": 159.8,
+      "median_ms": 148.3,
+      "p95_ms": 257.4,
+      "max_ms": 261.3
+    }
+  },
+  "stages": {
+    "score": {
+      "n": 100,
+      "mean_ms": 12.5,
+      "median_ms": 11.8,
+      "p95_ms": 13.2,
+      "max_ms": 39.8
+    },
+    "shap": {
+      "n": 100,
+      "mean_ms": 26.7,
+      "median_ms": 26.0,
+      "p95_ms": 27.4,
+      "max_ms": 56.2
+    },
+    "lime": {
+      "n": 100,
+      "mean_ms": 38.6,
+      "median_ms": 38.2,
+      "p95_ms": 40.7,
+      "max_ms": 49.0
+    },
+    "recourse": {
+      "n": 72,
+      "mean_ms": 97.9,
+      "median_ms": 61.0,
+      "p95_ms": 169.2,
+      "max_ms": 171.1
+    },
+    "applicant_pdf": {
+      "n": 100,
+      "mean_ms": 2.9,
+      "median_ms": 3.0,
+      "p95_ms": 3.7,
+      "max_ms": 3.9
+    }
+  },
+  "recourse_by_band": {
+    "REVIEW": {
+      "n": 48,
+      "mean_ms": 84.6,
+      "median_ms": 60.3,
+      "p95_ms": 162.1,
+      "max_ms": 170.1
+    },
+    "REJECT": {
+      "n": 24,
+      "mean_ms": 124.6,
+      "median_ms": 142.7,
+      "p95_ms": 170.1,
+      "max_ms": 171.1
+    }
+  },
+  "notes": {
+    "api.total": "submit + decide + read decision + applicant PDF, i.e. one applicant's full path",
+    "api.decide": "scoring, SHAP, LIME, recourse (Review and Reject only) and loan terms, saved to the database",
+    "what_if": "recourse recomputed with income locked; Review and Reject only"
+  },
+  "environment": {
+    "python": "3.9.6",
+    "machine": "arm64",
+    "system": "Darwin",
+    "cpu_count": 10
+  }
+}

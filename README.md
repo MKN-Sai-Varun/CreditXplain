@@ -19,7 +19,7 @@ CreditXplain extends an explainable credit-scoring baseline, Shreya & Pathak (20
 | Capability | Base paper | CreditXplain |
 |---|---|---|
 | Risk prediction + SHAP/LIME explanations | ✅ | ✅ LightGBM, test ROC-AUC 0.767 (base paper 0.720); local LIME checked against SHAP |
-| Actionable recourse for applicants who are not approved | ❌ | ✅ Robust, plausible, two-tier recourse (Reject → Review → Approve), including waiting options |
+| Actionable recourse for applicants who are not approved | ❌ | ✅ Plausible, two-tier recourse (Reject → Review → Approve), including waiting options, with advice that survives model retraining listed first |
 | Fairness audit across subgroups | ❌ | ✅ Offline audit plus live monitoring with alerts |
 | Interactive decision-support tool | ❌ static HTML/JSON/PNG | ✅ Applicant portal, officer dashboard, PDF reports |
 
@@ -146,17 +146,25 @@ Tests that need the trained model or processed data skip when those files are ab
 
 The previous whole-model LIME set-up scored 0.00 on rank correlation and gave nearly the same explanation for everyone.
 
-**Recourse** (300 rejected and 300 Review applicants, `reports/recourse_evaluation.json`). An option counts as usable when it is plausible and clears a safety margin.
+**Recourse** (300 rejected and 300 Review applicants, `reports/recourse_evaluation.json`). An option is *usable* when it is plausible and clears a safety margin. *Survives retraining* means it still reaches the promised band on 5 bootstrap-retrained models that the search never saw.
 
-| | Usable option | Mean change | Levers changed |
-|---|---|---|---|
-| Rejected → Review, proposed with waiting | **67.0%** | 0.255 | 1.77 |
-| Rejected → Review, proposed (loan levers) | 59.0% | 0.193 | 1.57 |
-| Rejected → Review, random search | 61.3% | 0.286 | 3.00 |
-| Rejected → Review, previous engine | 21.3% | 0.254 | 1.40 |
-| Review → Approve, proposed with waiting | **43.7%** | 0.309 | 2.01 |
+| Rejected → Review | Usable option | Usable and survives retraining | Mean change | Levers changed |
+|---|---|---|---|---|
+| **Hybrid (what the application shows)** | **67.0%** | **26.3%** | 0.341 | 1.99 |
+| Proposed with waiting, no retraining check | 67.0% | 16.3% | 0.255 | 1.77 |
+| Proposed, loan levers only | 59.0% | 16.3% | 0.193 | 1.57 |
+| Random search | 61.3% | 21.3% | 0.286 | 3.00 |
+| Previous engine | 21.3% | 6.3% | 0.254 | 1.40 |
 
-On the same 20 applicants per tier, DiCE produced a usable option for 5% (Reject) and 20% (Review), against 60% and 50% for the proposed engine.
+For Review → Approve, the hybrid gives 43.7% of applicants a usable option, and 11.0% one that survives retraining. On the same 20 applicants per tier, DiCE produced a usable option for 5% (Reject) and 20% (Review), against 60% and 50% for the proposed engine.
+
+The hybrid lists first the options that all 5 retrained search models agree on, and labels each option as likely or not to hold if the model is updated. Requiring that agreement roughly doubles how often an option survives retraining (27.7% → 52.4%), at some cost in coverage. The hybrid keeps full coverage by falling back to the standard options.
+
+**System performance** (`reports/system_latency.json`, 100 applicants, laptop):
+- An applicant's full path (submit, decision with SHAP, LIME and recourse, PDF report) takes 160 ms on average and 257 ms at the 95th percentile.
+- Recourse is the largest stage (98 ms on average, Review and Reject only), then LIME (39 ms).
+- Start-up takes 1.6 s.
+- The advice is insensitive to the price put on waiting: doubling it changes the first suggestion for 1–2% of applicants.
 
 **Fairness** (offline audit). Age-band demographic parity difference 0.349; children / no children 0.045. Age is a model feature and is audited; the disparity is documented in `docs/KNOWN_ISSUES.md`.
 
