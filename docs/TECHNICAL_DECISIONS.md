@@ -1753,7 +1753,7 @@ Accessibility is checked with Lighthouse (`docs/usability/accessibility_audit.md
 
 ---
 
-### D-77: Removing Age From the Model Was Tested and Is Not Recommended (Proposed)
+### D-77: Age Stays in the Model; the Age-Free Model Was Tested and Rejected
 **Finding** (`src/age_fairness_experiment.py`, 61,503 test applicants):
 - Dropping the three direct age features raises the age-band DPD from 0.349 to 0.364. Also dropping the three age-derived features raises it to 0.377, and AUC falls 0.7668 → 0.7646.
 - Age is recoverable from the remaining features (R² 0.735).
@@ -1761,7 +1761,7 @@ Accessibility is checked with Lighthouse (`docs/usability/accessibility_audit.md
 - The current model is calibrated within 0.8 points in every age band. The approval gap follows the actual default rates (11.4% for under-25s, 5.3% for over-55s).
 - Per-band cutoffs reach DPD 0.022, but only by using age at decision time, and approved under-25s then default at 3.4% instead of 0.9%.
 
-**Proposed decision:** keep the current model (age audited, gender excluded). Deliver the age policy through D-76, and report the experiment in the paper as evidence that fairness through unawareness fails here. The switch to the age-free model (5.5b) is not recommended. This is pending the project lead's confirmation of Q5.
+**Decision:** keep the current model (age audited, gender excluded). Deliver the age policy through D-76, and report the experiment in the paper as evidence that fairness through unawareness fails here. The switch to the age-free model (5.5b) is not done. Confirmed by the project lead (Nov 27, 2026, Q5).
 
 **Date:** Nov 27, 2026
 
@@ -1787,8 +1787,8 @@ Accessibility is checked with Lighthouse (`docs/usability/accessibility_audit.md
 | Nov 27, 2026 | Phase 5.2b | D-72 ensemble-robust search; D-73 separate search and evaluation models |
 | Nov 27, 2026 | Phase 5.2c | D-74 hybrid recourse in the application |
 | Nov 27, 2026 | Phase 5.4 | D-75 understandability measured from the system's text, plus an expert review |
-| Nov 27, 2026 | Phase 5.5a | D-76 age as an eligibility rule (guardian for minors, no automatic approval without income); D-77 age removal tested, not recommended (proposed) |
+| Nov 27, 2026 | Phase 5.5a | D-76 age as an eligibility rule (guardian for minors, no automatic approval without income); D-77 age stays in the model; age-free model tested and rejected (confirmed, Q5) |
 
 ---
 
-**Next Update:** Phase 5.5
+**Next Update:** Phase 5.7

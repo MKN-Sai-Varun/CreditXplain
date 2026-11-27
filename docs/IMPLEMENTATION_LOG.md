@@ -2436,7 +2436,34 @@ Proxy check: age is predicted from the age-free features with R² 0.735, with a 
 - **Removing age does not remove the disparity; it makes it slightly larger** (0.349 → 0.364 → 0.377) and costs 0.002 AUC. Age is largely recoverable from the other features (job tenure, registration and ID dates, car age, family). Without the explicit feature, the model over-predicts risk for under-25s (13.8% against an actual 11.4%) and approves fewer of them (13.4% → 9.8%). This is the known failure of fairness through unawareness.
 - **The current model is calibrated by age band:** predicted risk is within 0.8 points of the actual default rate in every band. The approval gap follows a real difference in repayment in this data: 11.4% of under-25s default against 5.3% of over-55s.
 - **Equal approval rates are possible only by using age at decision time** (D: DPD 0.022). The price falls on lending quality: approved under-25s then default at 3.4% instead of 0.9%.
-- **Decision needed (Q5):** the age-free model is not better on either accuracy or fairness, so switching (5.5b) is not recommended. The eligibility rules deliver the policy instead: minors apply through a guardian, and income, not age, decides whether automatic approval is possible.
+- **Decision (Q5, confirmed by the project lead):** the age-free model is not better on either accuracy or fairness, so the model is not switched (no 5.5b). The eligibility rules deliver the policy instead: minors apply through a guardian, and income, not age, decides whether automatic approval is possible.
+
+---
+
+## Phase 5.6: EDA Report and Age Decision (Nov 27, 2026)
+
+### Overview
+The paper needs a dataset section, and the Phase 1 EDA deliverable was missing (#1). The project lead also confirmed Q5: age stays in the model and is audited, and the age policy is applied as eligibility rules (D-77 decided). No model or application code changed.
+
+### Changes
+- **`src/eda.py` (new):** describes `data/home_credit/application_train.csv` as received, before cleaning, and states what `src/data_prep.py` does with it. It writes `reports/eda/`:
+  - `eda_report.md`: size, target imbalance, the `DAYS_EMPLOYED` placeholder, missing values, distributions by outcome, default rate by group, and the most related numeric columns;
+  - `eda_summary.json`: every number in the report;
+  - three figures: `missing_values.png` (the 20 most-missing columns), `distributions.png` (income, loan, age, job tenure and bureau scores 2 and 3, repaid against defaulted) and `default_rate_by_group.png` (age band, income type, education and family status, with the overall rate marked);
+  - `top_correlations.csv`: Spearman correlation with the target.
+- **Tests (4 new, CI-safe, `tests/test_eda.py`):** the missing-value table, age bands matching the fairness audit, default rate by group with a minimum group size, and correlation ranking that skips the ID and the target.
+- **Docs:** Q5 and D-77 are marked decided; #16 is resolved by decision; #1 is resolved; #86 is new (preprocessing statistics computed before the split).
+
+### Results (Nov 27, 2026; `reports/eda/eda_summary.json`)
+- **307,511 applicants, 122 columns** (106 numeric, 16 categorical); **default rate 8.07%** (24,825 applicants).
+- Ages 20.5–69.1: the data has no minors.
+- 55,374 applicants (18.0%) have the `DAYS_EMPLOYED` placeholder 365243, and 99.96% of them are pensioners. They default at 5.40%, against 8.66% for the rest. `src/data_prep.py` turns the placeholder into the `IS_EMPLOYED_ANOMALY` flag.
+- **67 of 122 columns have gaps; 41 are missing for more than half** of the applicants, mostly building details. The bureau scores are missing for 56.4% (score 1), 0.2% (score 2) and 19.8% (score 3).
+- **Default rate by group:**
+  - age: <25 12.3%, 25–35 10.7%, 35–45 8.4%, 45–55 7.1%, 55+ 5.2%;
+  - education: higher 5.4%, lower secondary 10.9%;
+  - income type: working 9.6%, pensioner 5.4%.
+- **Strongest single signals:** bureau scores 3, 1 and 2 (Spearman −0.166, −0.151, −0.147), then age (`DAYS_BIRTH`, +0.078: younger means more defaults). This agrees with the SHAP ranking.
 
 ---
 
@@ -2464,7 +2491,8 @@ Proxy check: age is predicted from the age-free features with R² 0.735, with a 
 | 2026-11-27 | 5.3 | System measurements | Latency through the API and per stage; time-cost sensitivity |
 | 2026-11-27 | 5.4 | Understandability | Readability, information amount, plain-name coverage and jargon measured; 29 plain names added; expert review and accessibility audit materials |
 | 2026-11-27 | 5.5a | Age as eligibility | Eligibility rules (minor with guardian, no income) in API, PDFs and form; age experiment: removing age widens the gap, model calibrated by age band |
+| 2026-11-27 | 5.6 | EDA and age decision | `src/eda.py` and `reports/eda/`; Q5 confirmed (age kept, policy as eligibility rules) |
 
 ---
 
-**Last Updated:** Nov 27, 2026 (Phase 5.5a complete)
+**Last Updated:** Nov 27, 2026 (Phase 5.6 complete)

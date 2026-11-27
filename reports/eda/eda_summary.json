@@ -1,0 +1,171 @@
+{
+  "rows": 307511,
+  "columns": 122,
+  "defaults": 24825,
+  "default_rate": 0.0807,
+  "numeric_columns": 106,
+  "categorical_columns": 16,
+  "age_min": 20.5,
+  "age_max": 69.1,
+  "employed_placeholder": {
+    "rows": 55374,
+    "share": 0.1801,
+    "pensioner_share": 0.9996,
+    "default_rate": 0.054,
+    "others_default_rate": 0.0866
+  },
+  "missing": {
+    "columns_with_missing": 67,
+    "columns_over_50pct": 41,
+    "EXT_SOURCE_1": 0.5638,
+    "EXT_SOURCE_2": 0.0021,
+    "EXT_SOURCE_3": 0.1983,
+    "top_20": {
+      "COMMONAREA_MEDI": 0.6987,
+      "COMMONAREA_AVG": 0.6987,
+      "COMMONAREA_MODE": 0.6987,
+      "NONLIVINGAPARTMENTS_MEDI": 0.6943,
+      "NONLIVINGAPARTMENTS_MODE": 0.6943,
+      "NONLIVINGAPARTMENTS_AVG": 0.6943,
+      "FONDKAPREMONT_MODE": 0.6839,
+      "LIVINGAPARTMENTS_MODE": 0.6835,
+      "LIVINGAPARTMENTS_MEDI": 0.6835,
+      "LIVINGAPARTMENTS_AVG": 0.6835,
+      "FLOORSMIN_MODE": 0.6785,
+      "FLOORSMIN_MEDI": 0.6785,
+      "FLOORSMIN_AVG": 0.6785,
+      "YEARS_BUILD_MODE": 0.665,
+      "YEARS_BUILD_MEDI": 0.665,
+      "YEARS_BUILD_AVG": 0.665,
+      "OWN_CAR_AGE": 0.6599,
+      "LANDAREA_AVG": 0.5938,
+      "LANDAREA_MEDI": 0.5938,
+      "LANDAREA_MODE": 0.5938
+    }
+  },
+  "medians_by_outcome": {
+    "AMT_INCOME_TOTAL": {
+      "repaid": 148500.0,
+      "defaulted": 135000.0
+    },
+    "AMT_CREDIT": {
+      "repaid": 517788.0,
+      "defaulted": 497520.0
+    },
+    "DAYS_BIRTH": {
+      "repaid": 43.46885694729637,
+      "defaulted": 39.10198494182067
+    },
+    "DAYS_EMPLOYED": {
+      "repaid": 4.629705681040384,
+      "defaulted": 3.3675564681724848
+    },
+    "EXT_SOURCE_2": {
+      "repaid": 0.5739046869026359,
+      "defaulted": 0.4403806303763837
+    },
+    "EXT_SOURCE_3": {
+      "repaid": 0.5460231970049609,
+      "defaulted": 0.3791004853998145
+    }
+  },
+  "default_rate_by_group": {
+    "AGE_BAND": {
+      "<25": {
+        "n": 12233,
+        "default_rate": 0.1229
+      },
+      "25-35": {
+        "n": 72429,
+        "default_rate": 0.1066
+      },
+      "35-45": {
+        "n": 84261,
+        "default_rate": 0.0841
+      },
+      "45-55": {
+        "n": 70190,
+        "default_rate": 0.0705
+      },
+      "55+": {
+        "n": 68398,
+        "default_rate": 0.0522
+      }
+    },
+    "NAME_INCOME_TYPE": {
+      "Commercial associate": {
+        "n": 71617,
+        "default_rate": 0.0748
+      },
+      "Pensioner": {
+        "n": 55362,
+        "default_rate": 0.0539
+      },
+      "State servant": {
+        "n": 21703,
+        "default_rate": 0.0575
+      },
+      "Working": {
+        "n": 158774,
+        "default_rate": 0.0959
+      }
+    },
+    "NAME_EDUCATION_TYPE": {
+      "Higher education": {
+        "n": 74863,
+        "default_rate": 0.0536
+      },
+      "Incomplete higher": {
+        "n": 10277,
+        "default_rate": 0.0848
+      },
+      "Lower secondary": {
+        "n": 3816,
+        "default_rate": 0.1093
+      },
+      "Secondary / secondary special": {
+        "n": 218391,
+        "default_rate": 0.0894
+      }
+    },
+    "NAME_FAMILY_STATUS": {
+      "Civil marriage": {
+        "n": 29775,
+        "default_rate": 0.0994
+      },
+      "Married": {
+        "n": 196432,
+        "default_rate": 0.0756
+      },
+      "Separated": {
+        "n": 19770,
+        "default_rate": 0.0819
+      },
+      "Single / not married": {
+        "n": 45444,
+        "default_rate": 0.0981
+      },
+      "Widow": {
+        "n": 16088,
+        "default_rate": 0.0582
+      }
+    }
+  },
+  "top_correlations": {
+    "EXT_SOURCE_3": -0.1663,
+    "EXT_SOURCE_1": -0.1511,
+    "EXT_SOURCE_2": -0.1473,
+    "DAYS_BIRTH": 0.0783,
+    "REGION_RATING_CLIENT_W_CITY": 0.0609,
+    "REGION_RATING_CLIENT": 0.0589,
+    "DAYS_LAST_PHONE_CHANGE": 0.0537,
+    "OWN_CAR_AGE": 0.0529,
+    "DAYS_ID_PUBLISH": 0.0525,
+    "REG_CITY_NOT_WORK_CITY": 0.051,
+    "FLOORSMAX_AVG": -0.0462,
+    "FLOORSMAX_MEDI": -0.046,
+    "FLAG_EMP_PHONE": 0.046,
+    "FLOORSMAX_MODE": -0.0454,
+    "REG_CITY_NOT_LIVE_CITY": 0.0444
+  }
+}

@@ -15,7 +15,7 @@ This document tracks bugs, gaps, technical debt, and unresolved questions. Items
 ## 🟡 Medium Priority (Should Fix Soon)
 
 ### #1: EDA Report Missing
-**Status:** Open  
+**Status:** ✅ Resolved (Phase 5.6): `src/eda.py` writes `reports/eda/` (report, summary, three figures, correlations)  
 **Phase:** 1  
 **Description:** Phase 1 deliverable included EDA report (`reports/eda_age_distribution.png`), but no EDA output files exist in the repo.  
 **Impact:** Incomplete Phase 1 documentation; no visual confirmation of data distributions.  
@@ -263,7 +263,7 @@ This document tracks bugs, gaps, technical debt, and unresolved questions. Items
 ---
 
 ### #16: Age-Based Fairness Disparity Detected
-**Status:** Investigated (Phase 5.5a), decision pending (Q5)  
+**Status:** ✅ Resolved by decision (Phase 5.5a, Q5): age stays in the model and is audited, and the age policy is applied as eligibility rules  
 **Update (Nov 27, 2026):** `src/age_fairness_experiment.py` found the following (TECHNICAL_DECISIONS D-77):
 - The gap follows actual default rates (11.4% for under-25s, 5.3% for over-55s), and the model is calibrated within 0.8 points per band.
 - Removing age widens the gap (DPD 0.349 → 0.377) and lowers AUC (0.7668 → 0.7646), because age is recoverable from other features (R² 0.735).
@@ -1272,6 +1272,16 @@ Found on Nov 25, 2026 by running every existing test (`tests/`: 88 passed; `back
 
 ---
 
+## Phase 5.6: EDA — New Issues
+
+### #86: Preprocessing Statistics Computed Before the Train/Test Split
+**Status:** Open (low; stated as a limitation)  
+**Phase:** 1 (found in 5.6)  
+**Description:** `src/data_prep.py` fills numeric gaps with medians and clips to the mean ± 3 standard deviations using all 307,511 rows. The 80/20 split happens later, in `src/train_baseline.py`, so the test rows contribute to these statistics. The target is not used, and the statistics come from hundreds of thousands of rows, so the effect on reported scores is expected to be very small. It is still a form of leakage.  
+**Action:** Either compute the medians and clipping bounds on the training rows only and re-run the pipeline (every report would be rebuilt), or state it in the paper. Recommended: state it now, and fix it if time allows before submission.
+
+---
+
 ## Change Log (Updated)
 
 | Date | Issue | Action |
@@ -1312,7 +1322,10 @@ Found on Nov 25, 2026 by running every existing test (`tests/`: 88 passed; `back
 | Nov 27, 2026 | #84 | Identified: no user study with applicants |
 | Nov 27, 2026 | #16 | Investigated: age experiment; age handled as eligibility rules (Phase 5.5a) |
 | Nov 27, 2026 | #85 | Identified: eligibility rules are illustrative policy |
+| Nov 27, 2026 | #16 | Resolved by decision: age kept and audited (Q5 confirmed) |
+| Nov 27, 2026 | #1 | Resolved: EDA report (Phase 5.6) |
+| Nov 27, 2026 | #86 | Identified: preprocessing statistics computed before the split |
 
 ---
 
-**Next Update:** Phase 5.5
+**Next Update:** Phase 5.7
