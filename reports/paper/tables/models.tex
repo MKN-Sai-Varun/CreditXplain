@@ -1,0 +1,19 @@
+\begin{table}[t]
+\caption{Baselines and Final Model on the Test Set}
+\label{tab:models}
+\centering
+\setlength{\tabcolsep}{4pt}
+\begin{tabular}{lrrrr}
+\hline
+\textbf{Model} & \textbf{ROC-AUC} & \textbf{Precision} & \textbf{Recall} & \textbf{F1} \\
+\hline
+Logistic regression & 0.722 & 0.220 & 0.395 & 0.283 \\
+Random forest & 0.701 & 0.184 & 0.394 & 0.251 \\
+XGBoost & 0.748 & 0.225 & 0.428 & 0.295 \\
+LightGBM & 0.747 & 0.229 & 0.424 & 0.297 \\
+\hline
+Final model (LightGBM, FE v2) & 0.767 & -- & -- & -- \\
+\hline
+\multicolumn{5}{p{0.92\linewidth}}{\footnotesize Baselines: SMOTE on training data, metrics at each model's F1-optimal threshold. Final model PR-AUC 0.2549; gender excluded (cost 0.0015 AUC). Ten bootstrap-retrained models: 0.7609 $\pm$ 0.0009.} \\
+\end{tabular}
+\end{table}

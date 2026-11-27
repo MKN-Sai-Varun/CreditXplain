@@ -79,15 +79,16 @@
 | README | ✅ Rewritten with setup, pipeline and results (Phase 5.1) |
 | End-to-end latency | ✅ Phase 5.3 (`reports/system_latency.json`) |
 | Usability check | ✅ Phase 5.4: readability, information amount, plain names and jargon measured (`reports/understandability.json`); expert review and accessibility audit prepared in `docs/usability/`, to be run by the project lead (D-75, #84) |
+| Paper figures and tables | ✅ `src/paper_figures.py` → `reports/paper/` (Phase 5.7) |
 | Manuscript | ⬜ |
 
 ---
 
-## 4. Test baseline (Nov 27, 2026, after Phase 5.6b)
+## 4. Test baseline (Nov 27, 2026, after Phase 5.7)
 
 | Suite | Result |
 |---|---|
-| `python3 -m pytest tests backend/tests -q` | ✅ 275 passed |
+| `python3 -m pytest tests backend/tests -q` | ✅ 279 passed |
 | `npx tsc --noEmit` (frontend) | ✅ |
 | `npm run build` (frontend) | ✅ 12 routes |
 | `npm run lint` (frontend) | ✅ clean |
@@ -136,7 +137,9 @@ Phases 4.7 onward (TECHNICAL_DECISIONS D-41) follow this order.
 
 **Phase 5.6b:** #86 fixed: cleaning is learned from training rows only, and everything was rebuilt except the age experiment (D-78). Test AUC unchanged (0.7668). Recourse percentages moved by 1–5 points; every conclusion holds (IMPLEMENTATION_LOG 5.6b).
 
-**Remaining phases (each awaiting approval):** optional #79 (officer list of all applications), 5.7 figures and tables from the report files, 5.8 manuscript, 5.9 code release and submission (Q3; venue and fees still to be decided with the project guide).
+**Phase 5.7:** every paper table and figure is generated from the report files into `reports/paper/` for the IEEE Access template, with an Overleaf guide and a references file.
+
+**Remaining phases (each awaiting approval):** optional #79 (officer list of all applications), 5.8 manuscript, 5.9 code release and submission (Q3; venue and fees still to be decided with the project guide).
 
 | # | Open question | Status |
 |---|---|---|

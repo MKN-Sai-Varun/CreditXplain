@@ -1,0 +1,20 @@
+\begin{table}[t]
+\caption{Dataset and Evaluation Split}
+\label{tab:dataset}
+\centering
+\setlength{\tabcolsep}{4pt}
+\begin{tabular}{lr}
+\hline
+\textbf{Property} & \textbf{Value} \\
+\hline
+Applicants (Home Credit, application table) & 307,511 \\
+Columns as received & 122 \\
+Default rate & 8.07\% \\
+Columns missing for more than half of applicants & 41 \\
+Training / validation / test applicants & 196,806 / 49,202 / 61,503 \\
+Engineered features used by the model & 300 \\
+Age range (years) & 20.5--69.1 \\
+\hline
+\multicolumn{2}{p{0.92\linewidth}}{\footnotesize Stratified 80/20 train/test split; validation is 20\% of the training part. Cleaning statistics are learned from the training rows only.} \\
+\end{tabular}
+\end{table}

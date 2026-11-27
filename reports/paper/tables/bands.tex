@@ -1,0 +1,16 @@
+\begin{table}[t]
+\caption{Decision Bands on the Test Set}
+\label{tab:bands}
+\centering
+\setlength{\tabcolsep}{4pt}
+\begin{tabular}{llrrr}
+\hline
+\textbf{Band} & \textbf{Rule} & \textbf{Share} & \textbf{Actual default} & \textbf{Mean predicted} \\
+\hline
+Approve & $p < 0.0351$ & 34.9\% & 2.1\% & 2.1\% \\
+Review & between & 44.9\% & 6.7\% & 6.6\% \\
+Reject & $p \geq 0.1190$ & 20.2\% & 21.4\% & 21.2\% \\
+\hline
+\multicolumn{5}{p{0.92\linewidth}}{\footnotesize Cutoffs chosen on the validation set (src/decision.py).} \\
+\end{tabular}
+\end{table}

@@ -2526,6 +2526,41 @@ Full test run: **275 passed** (on the rebuilt models and data).
 
 ---
 
+## Phase 5.7: Paper Figures and Tables (Nov 27, 2026)
+
+### Overview
+Builds every table and figure of the paper straight from the files in `reports/` and `models/final_model_card.json`, in the format of the official IEEE Access template. Every number in the paper then traces to a file, which is the plan's test gate for evaluation and manuscript. The application and the models are unchanged.
+
+### Changes
+- **`src/paper_figures.py` (new):** writes `reports/paper/`.
+  - **9 tables**, each as an IEEE `table`/`table*` environment with caption, label and note (`tables/*.tex`) and as Markdown (`tables/*.md`):
+    - dataset and split;
+    - baselines and final model;
+    - decision bands;
+    - LIME vs SHAP;
+    - recourse for each tier;
+    - latency;
+    - understandability;
+    - the age experiment, labelled as run before the 5.6b fix.
+  - **6 figures**, as vector PDFs with embedded fonts and 300 dpi PNGs, sized to IEEE's column (3.5 in) or page (7.16 in) width with 6.5–8 pt text:
+    1. architecture;
+    2. recourse, usable against usable-and-survives;
+    3. how many retrained models each method's options hold on;
+    4. LIME vs SHAP by band;
+    5. default rate and approval rate by age band;
+    6. latency by stage.
+  - **`numbers.json`**: the numbers quoted in the text, with their source files.
+- **`reports/paper/README.md` (new):** how to set up the Overleaf project, and the exact line to paste for each figure and table.
+- **`reports/paper/references.bib` (new):** 18 references (base paper, dataset, SHAP, LIME, LightGBM, counterfactual and recourse papers, robustness under model shift, SMOTE, fairness, interpretability evaluation, readability, usability heuristics, scikit-learn). Each entry must be checked against the publisher before submission, and the base paper's title must be copied from arXiv.
+- **Tests (4 new, CI-safe, `tests/test_paper_figures.py`):**
+  - LaTeX escaping and percentage formatting;
+  - table rendering in LaTeX and Markdown;
+  - the usable-option rule;
+  - every table checked against its source file, using only committed reports: each hybrid recourse figure, the final model's AUC and cutoff, the latency total, and one environment per table.
+- Every figure was inspected after rendering. The architecture figure was redrawn once to remove overflowing text and a crossing arrow, and label spacing was fixed in figures 3, 5 and 6. LaTeX is not installed locally, so the tables are first compiled in Overleaf.
+
+---
+
 ## Change Log (updated)
 
 | Date | Phase | Event | Files Changed |
@@ -2552,7 +2587,8 @@ Full test run: **275 passed** (on the rebuilt models and data).
 | 2026-11-27 | 5.5a | Age as eligibility | Eligibility rules (minor with guardian, no income) in API, PDFs and form; age experiment: removing age widens the gap, model calibrated by age band |
 | 2026-11-27 | 5.6 | EDA and age decision | `src/eda.py` and `reports/eda/`; Q5 confirmed (age kept, policy as eligibility rules) |
 | 2026-11-27 | 5.6b | Leak-free cleaning | Cleaning statistics from training rows only (#86); pipeline, recourse evaluation and measurements rebuilt; age experiment not repeated |
+| 2026-11-27 | 5.7 | Paper figures and tables | `src/paper_figures.py`: 9 IEEE tables, 6 figures, numbers file, references, Overleaf guide |
 
 ---
 
-**Last Updated:** Nov 27, 2026 (Phase 5.6b complete)
+**Last Updated:** Nov 27, 2026 (Phase 5.7 complete)

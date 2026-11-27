@@ -1,0 +1,15 @@
+\begin{table*}[t]
+\caption{Agreement of LIME With SHAP}
+\label{tab:explanations}
+\centering
+\setlength{\tabcolsep}{4pt}
+\begin{tabular}{lrrrrr}
+\hline
+\textbf{Set-up} & \textbf{Spearman} & \textbf{Top-5 overlap} & \textbf{Sign agreement} & \textbf{Locality gap} & \textbf{Seed stability} \\
+\hline
+Whole-model LIME (previous) & 0.02 & 36\% & 52\% & 0.00 & -- \\
+Local LIME (proposed) & 0.64 & 48\% & 73\% & 0.51 & 0.83 \\
+\hline
+\multicolumn{6}{p{0.95\linewidth}}{\footnotesize 150 test applicants (50 per band), 5 seeds. Locality gap: how much better the local surrogate fits the applicant's neighbourhood than the whole data.} \\
+\end{tabular}
+\end{table*}
