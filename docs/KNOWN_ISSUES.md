@@ -1154,8 +1154,9 @@ Found on Nov 25, 2026 by running every existing test (`tests/`: 88 passed; `back
 ## Phase 4.4: PDF Reports — New Issues
 
 ### #74: Plain-Language Names Cover the Common Features Only
-**Status:** Open (low)  
+**Status:** ✅ Resolved (Phase 5.4)  
 **Phase:** 4.4  
+**Resolution:** `src/understandability_eval.py` listed the factors shown under fallback names on 150 held-out applicants: 3.05% of applicant-facing and 5.2% of officer-facing factors. 29 names were added, and coverage is now 100% in both views.  
 **Description:** About 70 features have hand-written plain-language names in `report_service.FEATURE_NAMES`, and one-hot category columns read e.g. "Education level (lower secondary)" (`CATEGORY_NAMES`). The rest fall back to a cleaned column name (e.g. "Flag document 6"), which may be unclear to applicants.  
 **Action:** Extend the mapping when the usability check (Phase 5) shows which names confuse readers.
 
@@ -1244,6 +1245,16 @@ Found on Nov 25, 2026 by running every existing test (`tests/`: 88 passed; `back
 
 ---
 
+## Phase 5.4: Understandability — New Issues
+
+### #84: No User Study With Applicants
+**Status:** Open (limitation, stated in the paper)  
+**Phase:** 5.4  
+**Description:** Understandability is measured from the system's text: readability, amount of information, plain names and jargon (D-75). An expert review is prepared for one or two evaluators. Neither shows whether real applicants understand the explanations or act on the recommendations.  
+**Action:** Run the expert review if an evaluator is available, and fix what it finds. Report a study with applicants or loan officers as future work.
+
+---
+
 ## Change Log (Updated)
 
 | Date | Issue | Action |
@@ -1280,7 +1291,9 @@ Found on Nov 25, 2026 by running every existing test (`tests/`: 88 passed; `back
 | Nov 26, 2026 | #83 | Identified: recourse fragile under retraining (Phase 5.2 finding) |
 | Nov 27, 2026 | #83 | Mitigated: ensemble-robust search (Phase 5.2b); hybrid in the application (Phase 5.2c) |
 | Nov 27, 2026 | #73 | Resolved: time-cost sensitivity (Phase 5.3) |
+| Nov 27, 2026 | #74 | Resolved: plain names for every displayed factor (Phase 5.4) |
+| Nov 27, 2026 | #84 | Identified: no user study with applicants |
 
 ---
 
-**Next Update:** Phase 4.4
+**Next Update:** Phase 5.5

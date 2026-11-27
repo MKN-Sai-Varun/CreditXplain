@@ -78,16 +78,16 @@
 | CI | ✅ GitHub Actions: model/API tests (Ubuntu 24.04, Python 3.9) and frontend checks, both passing since `3680046` (D-69) |
 | README | ✅ Rewritten with setup, pipeline and results (Phase 5.1) |
 | End-to-end latency | ✅ Phase 5.3 (`reports/system_latency.json`) |
-| Usability check | ⬜ Phase 5.4 |
+| Usability check | ✅ Phase 5.4: readability, information amount, plain names and jargon measured (`reports/understandability.json`); expert review and accessibility audit prepared in `docs/usability/`, to be run by the project lead (D-75, #84) |
 | Manuscript | ⬜ |
 
 ---
 
-## 4. Test baseline (Nov 27, 2026, after Phase 5.2c)
+## 4. Test baseline (Nov 27, 2026, after Phase 5.4)
 
 | Suite | Result |
 |---|---|
-| `python3 -m pytest tests backend/tests -q` | ✅ 228 passed |
+| `python3 -m pytest tests backend/tests -q` | ✅ 245 passed |
 | `npx tsc --noEmit` (frontend) | ✅ |
 | `npm run build` (frontend) | ✅ 12 routes |
 | `npm run lint` (frontend) | ✅ clean |
@@ -128,7 +128,9 @@ Phases 4.7 onward (TECHNICAL_DECISIONS D-41) follow this order.
 
 **Phase 5.3:** an applicant's full path (submit, decision with SHAP, LIME and hybrid recourse, PDF) takes 160 ms on average and 257 ms at p95 on a laptop; the advice is insensitive to the time-cost setting (#73 resolved).
 
-**Next phase (awaiting approval):** 5.4 usability check, then 5.5 manuscript.
+**Phase 5.4:** applicant text reads at Flesch 60.0 (about 8th grade) with no jargon; every displayed factor now has a plain-language name (#74 resolved). No user study with applicants (#84); an expert review for one or two evaluators is ready.
+
+**Remaining phases (each awaiting approval):** 5.5 age fairness experiment (informs Q5), 5.6 EDA report and optional loose ends (#1, #79, #76), 5.7 figures and tables from the report files, 5.8 manuscript, 5.9 code release and submission (Q3; venue and fees still to be decided with the project guide).
 
 | # | Open question | Status |
 |---|---|---|

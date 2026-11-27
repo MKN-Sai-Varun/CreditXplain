@@ -2331,6 +2331,49 @@ Coverage is identical at every setting (67.0% and 43.7%).
 
 ---
 
+## Phase 5.4: Understandability Without a User Study (Nov 27, 2026)
+
+### Overview
+The plan asks for a small usability check (§6.4). With a sole developer, a questionnaire study is not feasible, and SUS averages from one or two people would carry no statistical weight. Phase 5.4 therefore measures understandability directly from the system's own text, and prepares an expert review for one or two evaluators (D-75). Accessibility is audited with Lighthouse.
+
+### Changes
+- **`src/understandability_eval.py` (new):** runs 150 held-out applicants (50 per decision band) through the same services as the app. It rebuilds the text an applicant reads, with the app's own wording. Writes `reports/understandability.json`. It measures:
+  - **readability:** Flesch reading ease and Flesch–Kincaid grade, each displayed line counted as one sentence;
+  - **amount of information:** reasons, options, change lines per option, levers per option, and words per applicant;
+  - **plain names:** the share of displayed factors with a written plain-language name, for the applicant view (top 5 reasons plus option drivers) and the officer view (top 10 SHAP and LIME rows), with the most frequent fallback names;
+  - **jargon:** technical terms (log-odds, SHAP, LIME, threshold…) and raw column names in applicant text.
+- **`backend/services/report_service.py`:**
+  - The fixed sentences are now named constants (`REASONS_INTRO`, `RECOURSE_INTRO`, `NO_RECOURSE_TEXT`, `HOLDS_TEXT`, `FOOTER_TEXT`), so the evaluation measures exactly the PDF's wording.
+  - Added `option_heading`; `_option_lines` was renamed to `option_lines`.
+  - Added 29 plain-language names for the factors the evaluation found shown under fallback names: the credit-bureau score combinations, building details, social-circle late payments, previous refusals and approvals, region ratings, address mismatch, application hour.
+  - Output of the PDFs is unchanged apart from these names.
+- **`docs/usability/expert_review.md` (new):** an expert review for one or two evaluators, about 30–40 minutes each. It contains setup, consent wording, five tasks (applicant and officer), Nielsen's ten heuristics with what to look for in this app, the 0–4 severity scale, five explanation and recourse statements (1–5), a findings table, and how to merge and report the results.
+- **`docs/usability/accessibility_audit.md` (new):** Lighthouse steps for all nine pages, a results table and a keyboard check.
+- **Tests (15 new, CI-safe, `tests/test_understandability.py`):** syllable counts, numbers ignored, a hand-computed Flesch example, hyphen and empty-line handling, jargon and raw-name detection, the plain-name rule, and that the rebuilt text uses the app's wording for Reject, Review and Approve.
+
+### Results (Nov 27, 2026; `reports/understandability.json`; 150 held-out applicants, 50 per band)
+
+| Measure | Value |
+|---|---|
+| Flesch reading ease, all applicant text | **60.0** (plain English is 60–70) |
+| Flesch–Kincaid grade | **7.8** (Approve 7.3, Review 8.2, Reject 7.8) |
+| Words per sentence / syllables per word | 11.9 / 1.59 |
+| Reasons shown | 5 |
+| Options per Review or Reject applicant | mean 1.44, max 3 |
+| Change lines per option / levers per option | mean 2.39 (max 4) / mean 2.05 (max 4) |
+| Words an applicant reads | median 115, mean 171, max 382 |
+| Technical terms or raw column names in applicant text | **0** |
+| Displayed factors with a written plain name, before → after the new names | applicant view 96.95% → **100%**; officer view 94.8% → **100%** |
+
+**Reading:**
+- The text an applicant reads is at plain-English level (about 8th grade) and contains no technical terms.
+- An applicant sees a short explanation: five reasons and usually one or two options of about two changes each.
+- The remaining gap was unnamed factors: about 3% of applicant-facing and 5% of officer-facing factors. The evaluation listed them, and they now have names (#74 resolved).
+
+**Not measured here:** whether people actually understand and act on the text. That is the purpose of the expert review (results to be added when it is run) and remains future work as a user study (#84).
+
+---
+
 ## Change Log (updated)
 
 | Date | Phase | Event | Files Changed |
@@ -2353,7 +2396,8 @@ Coverage is identical at every setting (67.0% and 43.7%).
 | 2026-11-27 | 5.2b | Ensemble-robust recourse | Agreement rule in the search, models 1-5 for search and 6-10 for evaluation, 3 new methods |
 | 2026-11-27 | 5.2c | Hybrid recourse in the app | Robust options first with labels in UI and PDFs, standard fallback, hybrid evaluation method |
 | 2026-11-27 | 5.3 | System measurements | Latency through the API and per stage; time-cost sensitivity |
+| 2026-11-27 | 5.4 | Understandability | Readability, information amount, plain-name coverage and jargon measured; 29 plain names added; expert review and accessibility audit materials |
 
 ---
 
-**Last Updated:** Nov 27, 2026 (Phase 5.3 complete)
+**Last Updated:** Nov 27, 2026 (Phase 5.4 complete)

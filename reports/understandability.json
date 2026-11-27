@@ -1,0 +1,87 @@
+{
+  "applicants_per_band": 50,
+  "decisions_seen": {
+    "APPROVE": 50,
+    "REVIEW": 50,
+    "REJECT": 50
+  },
+  "readability": {
+    "all_applicant_text": {
+      "sentences": 2226,
+      "words": 26531,
+      "words_per_sentence": 11.92,
+      "syllables_per_word": 1.592,
+      "flesch_reading_ease": 60.0,
+      "fk_grade": 7.8
+    },
+    "by_decision": {
+      "APPROVE": {
+        "sentences": 450,
+        "words": 4461,
+        "words_per_sentence": 9.91,
+        "syllables_per_word": 1.616,
+        "flesch_reading_ease": 60.1,
+        "fk_grade": 7.3
+      },
+      "REVIEW": {
+        "sentences": 742,
+        "words": 9200,
+        "words_per_sentence": 12.4,
+        "syllables_per_word": 1.609,
+        "flesch_reading_ease": 58.1,
+        "fk_grade": 8.2
+      },
+      "REJECT": {
+        "sentences": 1034,
+        "words": 12870,
+        "words_per_sentence": 12.45,
+        "syllables_per_word": 1.572,
+        "flesch_reading_ease": 61.2,
+        "fk_grade": 7.8
+      }
+    }
+  },
+  "amount_of_information": {
+    "reasons_shown": 5,
+    "options_per_review_or_reject_applicant": {
+      "mean": 1.44,
+      "median": 1.0,
+      "max": 3.0
+    },
+    "changes_per_option": {
+      "mean": 2.39,
+      "median": 2.0,
+      "max": 4.0
+    },
+    "levers_per_option": {
+      "mean": 2.05,
+      "median": 2.0,
+      "max": 4.0
+    },
+    "words_per_applicant": {
+      "mean": 171.23,
+      "median": 115.0,
+      "max": 382.0
+    }
+  },
+  "plain_names": {
+    "applicant_view": {
+      "factors_shown": 1182,
+      "distinct_factors": 74,
+      "with_written_plain_name": 1.0,
+      "most_frequent_fallback_names": []
+    },
+    "officer_view": {
+      "factors_shown": 3000,
+      "distinct_factors": 89,
+      "with_written_plain_name": 1.0,
+      "most_frequent_fallback_names": []
+    }
+  },
+  "jargon_in_applicant_text": {},
+  "notes": {
+    "readability": "Flesch reading ease: 60-70 plain English, 50-60 fairly difficult, 30-50 difficult. FK grade is the US school grade needed. Each displayed line counts as a sentence.",
+    "plain_names": "written = an entry in FEATURE_NAMES or CATEGORY_NAMES; otherwise the column name is shown with underscores removed",
+    "officer_view": "LIME rules shown to officers also contain the raw condition (e.g. 'X <= 0.4'); only the factor label is measured here"
+  }
+}

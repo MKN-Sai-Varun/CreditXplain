@@ -88,6 +88,35 @@ FEATURE_NAMES = {
     "BUREAU_REQUEST_TOTAL": "Total recent credit enquiries",
     "BUREAU_REQUEST_MEAN": "Average recent credit enquiries",
     "BUREAU_REQUEST_MAX": "Most credit enquiries in one period",
+    "EXT_SOURCE_MIN": "Lowest credit-bureau score",
+    "EXT_SOURCE_MEDIAN": "Middle credit-bureau score",
+    "EXT_SOURCE_STD": "Spread between credit-bureau scores",
+    "EXT_SOURCE_RANGE": "Gap between the highest and lowest credit-bureau scores",
+    "EXT_SOURCE_1_2_PRODUCT": "Credit-bureau scores 1 and 2 combined",
+    "EXT_SOURCE_1_3_PRODUCT": "Credit-bureau scores 1 and 3 combined",
+    "EXT_SOURCE_1_2_DIFF": "Difference between credit-bureau scores 1 and 2",
+    "EXT_SOURCE_1_3_DIFF": "Difference between credit-bureau scores 1 and 3",
+    "EXT_SOURCE_2_3_DIFF": "Difference between credit-bureau scores 2 and 3",
+    "PROPERTY_AVG_MEAN": "Details of the home building (average)",
+    "PROPERTY_AVG_STD": "Details of the home building (variation)",
+    "PROPERTY_MEDI_MEAN": "Details of the home building (typical values)",
+    "PROPERTY_AVG_MISSING": "Details of the home building not provided",
+    "YEARS_BEGINEXPLUATATION_AVG": "Age of the home building",
+    "YEARS_BEGINEXPLUATATION_MEDI": "Age of the home building (typical value)",
+    "SOCIAL_DEF_30_RATE": "Share of social contacts with a recent late payment",
+    "SOCIAL_DEF_60_RATE": "Share of social contacts with a serious late payment",
+    "PREV_APP_REFUSED_COUNT": "Number of previous applications refused",
+    "PREV_APP_APPROVAL_COUNT": "Number of previous applications approved",
+    "REGION_RATING_CLIENT": "Rating of home region",
+    "REGION_RATING_CLIENT_W_CITY": "Rating of home region, including the city",
+    "REGION_RATING_DIFF": "Difference between the region and city ratings",
+    "REG_REGION_NOT_LIVE_REGION": "Registered address in a different region from home",
+    "REG_CITY_NOT_LIVE_CITY": "Registered address in a different city from home",
+    "HOUR_APPR_PROCESS_START": "Hour the application was started",
+    "YEARS_BEGINEXPLUATATION_MODE": "Age of the home building (most common value)",
+    "APARTMENTS_MODE": "Number of apartments in the home building",
+    "NONLIVINGAREA_MODE": "Non-living area of the home building",
+    "DEF_30_CNT_SOCIAL_CIRCLE": "Social contacts with a recent late payment",
     "BUREAU_REQUEST_NONZERO": "Number of periods with credit enquiries",
 }
 
@@ -118,6 +147,16 @@ OUTCOME_TEXT = {
     "REVIEW": "would move the application to officer review",
     "APPROVE": "would make the application eligible for automatic approval",
 }
+
+# fixed sentences, kept here so src/understandability_eval.py measures the same wording
+REASONS_INTRO = "The factors that weighed most in this decision, strongest first:"
+NO_RECOURSE_TEXT = ("No change within the supported limits (loan amount, income, repayment length, "
+                    "waiting up to 12 months) was found that would improve this decision.")
+RECOURSE_INTRO = ("Each option below would move the application to the next stage according to the model. "
+                  "These are model-based estimates, not guarantees.")
+HOLDS_TEXT = {True: "Likely to hold if the model is updated", False: "May change if the model is updated"}
+FOOTER_TEXT = ("This report explains an automated credit-risk assessment. A loan officer reviews cases referred "
+               "for review, and you may ask for any decision to be reviewed by a person.")
 
 LEVER_TEXT = {
     "credit": "smaller loan",
@@ -207,7 +246,7 @@ def _reasons(explanation, n=5):
     rows = (explanation.shap_values or []) if explanation else []
     if not rows:
         return out + [_p("No explanation is available for this application.")]
-    out.append(_p("The factors that weighed most in this decision, strongest first:"))
+    out.append(_p(REASONS_INTRO))
     table = [["Factor", "Effect on risk"]]
     for r in rows[:n]:
         table.append([feature_name(r["feature"]), "raises risk" if r["value"] > 0 else "lowers risk"])
@@ -215,7 +254,7 @@ def _reasons(explanation, n=5):
     return out
 
 
-def _option_lines(opt):
+def option_lines(opt):
     lines = []
     for ch in opt.get("changes", []):
         if ch["feature"] == "WAIT_MONTHS":
@@ -226,23 +265,24 @@ def _option_lines(opt):
     return lines
 
 
+def option_heading(k, opt):
+    levers = ", ".join(LEVER_TEXT.get(lv, lv) for lv in opt.get("levers", []))
+    outcome = OUTCOME_TEXT.get(opt["new_decision"], f"leads to {opt['new_decision']}")
+    return f"Option {k} ({levers}): {outcome}"
+
+
 def _recourse(explanation, detailed=False):
     out = [_p("What could change the decision", H2)]
     options = (explanation.counterfactuals or []) if explanation else []
     if not options:
-        return out + [_p("No change within the supported limits (loan amount, income, repayment length, "
-                         "waiting up to 12 months) was found that would improve this decision.")]
-    out.append(_p("Each option below would move the application to the next stage according to the model. "
-                  "These are model-based estimates, not guarantees."))
+        return out + [_p(NO_RECOURSE_TEXT)]
+    out.append(_p(RECOURSE_INTRO))
     for k, opt in enumerate(options, 1):
-        levers = ", ".join(LEVER_TEXT.get(lv, lv) for lv in opt.get("levers", []))
-        outcome = OUTCOME_TEXT.get(opt["new_decision"], f"leads to {opt['new_decision']}")
-        out.append(_p(f"Option {k} ({levers}): {outcome}", ParagraphStyle(
+        out.append(_p(option_heading(k, opt), ParagraphStyle(
             "opt", parent=BODY, fontName="Helvetica-Bold", spaceBefore=4)))
         if opt.get("retrain_check_passed") is not None:
-            out.append(_p("Likely to hold if the model is updated" if opt["retrain_check_passed"]
-                          else "May change if the model is updated", SMALL))
-        for line in _option_lines(opt):
+            out.append(_p(HOLDS_TEXT[bool(opt["retrain_check_passed"])], SMALL))
+        for line in option_lines(opt):
             out.append(_p(f"- {line}"))
         drivers = opt.get("drivers") or []
         if drivers:
@@ -293,9 +333,7 @@ def applicant_report(application):
         story += _recourse(explanation)
     story += _loan_terms(application)
     story += _document_requests(application)
-    story += [Spacer(1, 8), _p(
-        "This report explains an automated credit-risk assessment. A loan officer reviews cases referred "
-        "for review, and you may ask for any decision to be reviewed by a person.", SMALL)]
+    story += [Spacer(1, 8), _p(FOOTER_TEXT, SMALL)]
     return _render(story, f"Credit decision report - application {application.id}")
 
 

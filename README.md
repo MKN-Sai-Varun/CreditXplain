@@ -50,7 +50,8 @@ tests/          model and pipeline tests
 backend/tests/  API tests
 scripts/        run_pipeline.sh: rebuilds every artifact and report from the raw data
 reports/        results: model comparison, explanations, recourse and fairness evaluations
-docs/           project state, implementation log, technical decisions, known issues, plan
+docs/           project state, implementation log, technical decisions, known issues, plan,
+                usability materials (expert review, accessibility audit)
 data/, models/  local only (not in git): raw data, processed data, trained model
 ```
 
@@ -97,6 +98,8 @@ scripts/run_pipeline.sh 7        # resume from a step (11 steps)
 | 9 | `src/fairness_audit.py` | `reports/fairness/` |
 | 10 | `src.train_bootstrap_models --n 10` | 10 retrained models (`models/bootstrap_lgbm_*.pkl`: 1–5 used by the robust search, 6–10 only for evaluation), `reports/bootstrap_models.json` |
 | 11 | `src.recourse_eval --robustness` | `reports/recourse_evaluation.json` |
+
+System measurements, run after the pipeline: `python3 -m src.system_latency` (speed), `python3 -m src.time_cost_sensitivity` (price of waiting) and `python3 -m src.understandability_eval` (readability and plain wording), each writing a JSON file to `reports/`.
 
 Experiments behind the model choice (cross-validation, CatBoost, the blend, threshold strategies) are in `src/lgbm_fe_v2_cv.py`, `src/catboost_fe_v2_cv.py`, `src/ensemble_lgbm_catboost.py`, `src/evaluate_on_test.py`, `src/compare_lightgbm_strategies.py` and `src/scale_and_balance.py` (scaling and SMOTENC variants; the final model does not use their outputs).
 
@@ -165,6 +168,12 @@ The hybrid lists first the options that all 5 retrained search models agree on, 
 - Recourse is the largest stage (98 ms on average, Review and Reject only), then LIME (39 ms).
 - Start-up takes 1.6 s.
 - The advice is insensitive to the price put on waiting: doubling it changes the first suggestion for 1–2% of applicants.
+
+**Understandability** (`reports/understandability.json`, 150 applicants, 50 per decision):
+- The text an applicant reads scores 60.0 on Flesch reading ease (plain English) and is at about an 8th-grade level.
+- It contains no technical terms or raw column names, and every factor shown has a plain-language name.
+- An applicant sees five reasons and, if not approved, usually one or two options of about two changes each (median 115 words in all).
+- No user study with applicants was run. An expert review is prepared in `docs/usability/`.
 
 **Fairness** (offline audit). Age-band demographic parity difference 0.349; children / no children 0.045. Age is a model feature and is audited; the disparity is documented in `docs/KNOWN_ISSUES.md`.
 

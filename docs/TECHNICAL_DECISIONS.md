@@ -1721,6 +1721,23 @@ The decision page and the PDFs say "Likely to hold if the model is updated" or "
 
 ---
 
+### D-75: Understandability Measured From the System's Text, Plus an Expert Review
+**Decision:** The usability check (plan §6.4) is done in two parts instead of a questionnaire study:
+- **Computed measures** (`src/understandability_eval.py`) on held-out applicants, using the app's own services and wording: readability (Flesch reading ease and Flesch–Kincaid grade), amount of information, plain-name coverage and jargon. Each displayed line counts as one sentence, because reasons and options are shown as separate lines, not as prose.
+- **An expert review** by one or two evaluators (`docs/usability/expert_review.md`): Nielsen's heuristics with 0–4 severities, a task walkthrough and five explanation and recourse statements. It is reported as problems found and fixed, with individual answers, not averages.
+
+Accessibility is checked with Lighthouse (`docs/usability/accessibility_audit.md`).
+
+**Why:** The project has a sole developer and cannot recruit a participant group. System Usability Scale averages from one or two people carry no statistical weight, while heuristic evaluation is designed for a small number of evaluators. The computed measures are reproducible and need no participants. The paper states that no user study with applicants was run, and names it as future work (KNOWN_ISSUES #84).
+
+**Alternatives considered:**
+- A 10–15 person online form: not feasible for the project lead.
+- No human element at all: still the fallback if no evaluator is available, with the computed measures reported alone.
+
+**Date:** Nov 27, 2026
+
+---
+
 ## Change Log (Updated)
 
 | Date | Phase | Changes |
@@ -1740,7 +1757,8 @@ The decision page and the PDFs say "Likely to hold if the model is updated" or "
 | Nov 26, 2026 | Phase 5.2 | D-70 robustness on retrained models; D-71 shared cutoff rule |
 | Nov 27, 2026 | Phase 5.2b | D-72 ensemble-robust search; D-73 separate search and evaluation models |
 | Nov 27, 2026 | Phase 5.2c | D-74 hybrid recourse in the application |
+| Nov 27, 2026 | Phase 5.4 | D-75 understandability measured from the system's text, plus an expert review |
 
 ---
 
-**Next Update:** Phase 4.4 (PDF reports)
+**Next Update:** Phase 5.5
