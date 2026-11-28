@@ -9,8 +9,8 @@ reviews the case and the regulator who audits the process all need more than a p
 the decision was made, what the applicant could do to obtain a better one, and whether the model treats groups of
 applicants differently.
 
-Post-hoc explanation methods such as SHAP~\cite{lundberg2017shap,lundberg2020tree} and
-LIME~\cite{ribeiro2016lime} are now routinely attached to credit models to answer the first question. Recent work
+Post-hoc explanation methods such as SHapley Additive exPlanations (SHAP)~\cite{lundberg2017shap,lundberg2020tree}
+and Local Interpretable Model-agnostic Explanations (LIME)~\cite{ribeiro2016lime} are now routinely attached to credit models to answer the first question. Recent work
 on the Home Credit Default Risk dataset~\cite{homecredit2018} compared random forest, XGBoost and LightGBM and
 reported SHAP and LIME explanations for the best model~\cite{shreya2025base}. Such studies stop at the explanation:
 they show which features pushed a score up or down, but they do not tell an applicant what to change, they produce
@@ -37,7 +37,7 @@ cannot take on a loan alone) rather than of risk.
 
 This paper presents \emph{CreditXplain}, an explainable, counterfactual-driven decision support system for credit
 risk prediction that addresses these gaps as one working system: an applicant portal, an officer dashboard and
-auditable PDF reports built around a LightGBM risk model. Its contributions are as follows.
+auditable reports in Portable Document Format (PDF), built around a LightGBM risk model. Its contributions are as follows.
 
 \begin{enumerate}
 \item \textbf{A three-band decision process with eligibility rules.} Applications are approved automatically below a

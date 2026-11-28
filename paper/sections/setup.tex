@@ -71,14 +71,14 @@ and holds on all five.
 
 \subsection{Fairness}
 We audit decisions by age band (under 25, 25--35, 35--45, 45--55 and over 55) and by whether the applicant has
-children. The demographic parity difference is the largest difference in the automatic approval rate between groups,
+children. The demographic parity difference (DPD) is the largest difference in the automatic approval rate between groups,
 and the equal opportunity difference~\cite{hardt2016equality} is the same difference among applicants who repaid. To
 test whether age needs to be a feature, we retrain the model without the three direct age features, and without them
 and the three features derived from age, with the same protocol as the final model, and compare them with the current
 model and with a variant that sets the cutoffs separately for each age band.
 
 \subsection{System Measurements}
-\emph{Latency.} We submit 100 test applicants through the application's API, after one warm-up applicant, and time
+\emph{Latency.} We submit 100 test applicants through the system's application programming interface (API), after one warm-up applicant, and time
 each step and each stage of the decision, on a laptop (Apple silicon, 10 cores, macOS, Python 3.9).
 
 \emph{Understandability.} For 150 test applicants, 50 per band, we rebuild the text an applicant reads, with the

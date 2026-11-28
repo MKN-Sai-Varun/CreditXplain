@@ -3,7 +3,7 @@
 
 \subsection{Predictive Performance and Decision Bands}
 Table~\ref{tab:models} compares the final model with the baselines. The final LightGBM model reaches a test ROC-AUC
-of 0.767 and a PR-AUC of 0.255, against 0.748 for the best baseline (XGBoost trained on SMOTE-balanced data). Excluding
+of 0.767 and an area under the precision-recall curve (PR-AUC) of 0.255, against 0.748 for the best baseline (XGBoost trained on SMOTE-balanced data). Excluding
 gender lowers the ROC-AUC by only 0.0015. The ten bootstrap-retrained models reach $0.7609 \pm 0.0009$; they are
 slightly weaker because each is trained on a resample with repeated rows, and their small spread indicates a stable
 training procedure. The base paper reported a ROC-AUC of 0.720 for LightGBM on the same dataset~\cite{shreya2025base};
@@ -40,8 +40,7 @@ Fig.~\ref{fig:recourse} summarizes the main ones.
 \input{tables/recourse_review_to_approve}
 
 \Figure[t!](topskip=0pt, botskip=0pt, midskip=0pt){figures/fig2_recourse.pdf}
-{Share of applicants given a usable recourse option, and one that is also still valid on all five held-out
-retrained models, by method and tier.\label{fig:recourse}}
+{Applicants given a usable recourse option, and one that also holds on all five held-out retrained models.\label{fig:recourse}}
 
 \emph{Coverage and cost.} With the three loan levers, the proposed engine gives a usable option to 57.3\% of
 rejected applicants and 37.0\% of Review applicants. Adding the waiting lever raises this to 62.0\% and 45.3\%. Random

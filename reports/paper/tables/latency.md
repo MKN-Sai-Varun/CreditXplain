@@ -15,4 +15,4 @@
 | "What if" recourse | 64.8 | 37.1 | 138.7 |
 | Compliance PDF | 10.4 | 10.3 | 11.6 |
 
-100 test applicants on a laptop (arm64, Python 3.9.6); start-up 1.6 s.
+100 test applicants on a laptop (arm64, Python 3.9.6); start-up 1.6 s. p95: 95th percentile.

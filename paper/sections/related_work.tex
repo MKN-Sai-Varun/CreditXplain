@@ -7,9 +7,9 @@ difficulty repaying. A large benchmark of classifiers on several credit scoring 
 including random forests, are among the strongest performers and that progress should be judged on several data
 sets and metrics rather than on accuracy alone~\cite{lessmann2015benchmark}. Gradient-boosted decision trees such as
 LightGBM~\cite{ke2017lightgbm} are now widely used for this task, since they train quickly on large tables and need
-little preprocessing. Credit data are typically imbalanced, which has motivated resampling methods such as
-SMOTE~\cite{chawla2002smote}; with an imbalanced target, threshold-free measures such as the area under the ROC curve
-are more informative than accuracy.
+little preprocessing. Credit data are typically imbalanced, which has motivated resampling methods such as the
+Synthetic Minority Over-sampling Technique (SMOTE)~\cite{chawla2002smote}; with an imbalanced target, threshold-free measures such as the area under the receiver
+operating characteristic curve (ROC-AUC) are more informative than accuracy.
 
 The Home Credit Default Risk dataset~\cite{homecredit2018} is a public benchmark with more than 300{,}000
 applicants, many of whom have little or no credit history. Shreya and Pathak~\cite{shreya2025base} compared random
@@ -38,7 +38,7 @@ A counterfactual explanation describes the smallest change to an input that woul
 decision~\cite{wachter2018counterfactual}. Algorithmic recourse adds the requirement that the change be actionable:
 it should only alter features that a person can change, in directions and amounts that are
 feasible~\cite{ustun2019recourse}. Ustun~\emph{et al.}~\cite{ustun2019recourse} computed such recourse for linear
-classifiers with integer programming. DiCE~\cite{mothilal2020dice} generates several diverse counterfactuals for any
+classifiers with integer programming. Diverse Counterfactual Explanations (DiCE)~\cite{mothilal2020dice} generates several diverse counterfactuals for any
 differentiable or black-box model, trading off proximity to the input against diversity among the options. Karimi
 \emph{et al.}~\cite{karimi2022survey} survey the area and stress that recourse must account for the cost to the
 person and for the plausibility of the suggested profile.

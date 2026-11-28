@@ -6,6 +6,6 @@
 | Random forest | 0.701 | 0.184 | 0.394 | 0.251 |
 | XGBoost | 0.748 | 0.225 | 0.428 | 0.295 |
 | LightGBM | 0.747 | 0.229 | 0.424 | 0.297 |
-| Final model (LightGBM, FE v2) | 0.767 | – | – | – |
+| Final model (LightGBM, 300 features) | 0.767 | – | – | – |
 
-Baselines: SMOTE on training data, metrics at each model's F1-optimal threshold. Final model PR-AUC 0.2549; gender excluded (cost 0.0015 AUC). Ten bootstrap-retrained models: 0.7609 ± 0.0009.
+Baselines: SMOTE on training data, metrics at each model's F1-optimal threshold. Final model PR-AUC 0.2549; gender excluded (cost 0.0015 ROC-AUC). Ten bootstrap-retrained models: 0.7609 ± 0.0009.

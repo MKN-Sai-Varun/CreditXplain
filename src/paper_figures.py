@@ -153,12 +153,12 @@ def build_tables(d):
              "xgboost": "XGBoost", "lightgbm": "LightGBM"}
     rows = [[names[m], num(b.loc[m, "roc_auc"]), num(b.loc[m, "thresh_precision"]),
              num(b.loc[m, "thresh_recall"]), num(b.loc[m, "thresh_f1"])] for m in names]
-    rows += ["---", ["Final model (LightGBM, FE v2)", num(card["test_roc_auc"]), "--", "--", "--"]]
+    rows += ["---", [f"Final model (LightGBM, {len(card['features_used'])} features)", num(card["test_roc_auc"]), "--", "--", "--"]]
     t.append(Table("models", "Baselines and Final Model on the Test Set",
                    ["Model", "ROC-AUC", "Precision", "Recall", "F1"], rows,
                    note="Baselines: SMOTE on training data, metrics at each model's F1-optimal threshold. "
                         f"Final model PR-AUC {card['test_pr_auc']:.4f}; gender excluded "
-                        f"(cost {d['gender']['test_roc_auc'].iloc[1] - d['gender']['test_roc_auc'].iloc[0]:.4f} AUC). "
+                        f"(cost {d['gender']['test_roc_auc'].iloc[1] - d['gender']['test_roc_auc'].iloc[0]:.4f} ROC-AUC). "
                         f"Ten bootstrap-retrained models: {d['bootstrap']['test_roc_auc_mean']:.4f} $\\pm$ "
                         f"{d['bootstrap']['test_roc_auc_std']:.4f}."))
 
@@ -214,7 +214,8 @@ def build_tables(d):
               num(lat["api"][k]["p95_ms"], 1)] for k in api_names if lat["api"].get(k)]
     t.append(Table("latency", "Latency (ms)", ["Step", "Mean", "Median", "p95"], rows,
                    note=f"{lat['applicants']} test applicants on a laptop ({lat['environment']['machine']}, "
-                        f"Python {lat['environment']['python']}); start-up {lat['cold_start_ms'] / 1000:.1f} s."))
+                        f"Python {lat['environment']['python']}); start-up {lat['cold_start_ms'] / 1000:.1f} s. "
+                        "p95: 95th percentile."))
 
     u = d["understandability"]
     r, a = u["readability"]["all_applicant_text"], u["amount_of_information"]
@@ -409,14 +410,14 @@ def fig_latency(plt, d):
     parts = [("Scoring", st["score"]["mean_ms"], MUTED), ("SHAP", st["shap"]["mean_ms"], AQUA),
              ("Local LIME", st["lime"]["mean_ms"], BLUE), ("Recourse, Review/Reject", st["recourse"]["mean_ms"], ORANGE),
              ("PDF", st["applicant_pdf"]["mean_ms"], YELLOW)]
-    fig, ax = plt.subplots(figsize=(COLUMN_IN, 1.6), layout="constrained")
+    fig, ax = plt.subplots(figsize=(COLUMN_IN, 1.9), layout="constrained")
     left = 0
     for name, v, c in parts:
         ax.barh(0, v, left=left, color=c, height=0.5, edgecolor="white", linewidth=1, label=f"{name} ({v:.0f} ms)")
         left += v
     ax.set_yticks([])
     ax.set_xlabel("Mean time per applicant (ms)")
-    ax.legend(ncol=2, loc="upper center", bbox_to_anchor=(0.5, -0.55), frameon=False, handlelength=1)
+    fig.legend(ncol=2, loc="outside lower center", frameon=False, handlelength=1)   # inside the figure's own area
     _clean(ax, "x")
     ax.spines["left"].set_visible(False)
     _save(fig, "fig6_latency")

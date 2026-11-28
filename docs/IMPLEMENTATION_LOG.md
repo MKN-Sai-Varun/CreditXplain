@@ -2635,6 +2635,10 @@ Builds every table and figure of the paper straight from the files in `reports/`
   - The IEEE Access class captions figures only through its own `\Figure` command; standard `figure*` blocks stopped with an undefined `\xfigwd`. All six figures now use `\Figure`.
   - The class sizes each figure from the PDF's own width, so figures are no longer cropped. Each PDF is exactly 3.5 in (column) or 7.16 in (page) wide, laid out with constrained layout.
   - The in-figure title of Fig. 3 was removed, because the caption carries it.
+  - Fig. 6's legend was clipped at the fixed 3.5 in size. It now uses a figure-level legend placed outside the axes, which the layout reserves space for, and the figure is 1.9 in tall.
+  - For page-wide figures the class sets the caption on one unwrapped line, which clipped Fig. 1's caption. The Fig. 1 and Fig. 2 captions are shortened, and page-wide captions are kept under about 130 characters.
+  - Acronyms are spelled out at first use in the body, as IEEE Access requires: SHAP, LIME, ROC-AUC, PR-AUC, SMOTE, DiCE, DPD, API and PDF. Table II's internal label "FE v2" now reads "300 features", and the latency table's note explains p95.
+  - Author biographies are rewritten at full length, with `FILL IN` parts. Two-line placeholders were shorter than the 1.25 in photo, so each next biography started beside the previous photo and looked misaligned.
 
 ---
 

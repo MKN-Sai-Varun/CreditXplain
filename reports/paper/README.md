@@ -27,11 +27,13 @@ and complete the author lists marked `and others` (IEEE lists up to six authors 
 Use the template's own `\Figure` command for every figure: the IEEE Access class captions figures only through it
 (a standard `figure` or `figure*` block stops with an undefined `\xfigwd` error). The class sizes each figure from the
 PDF's own width: the page-wide figures are 7.16 in and the column figures 3.5 in.
+For a page-wide figure the class sets the caption on a single line and does not wrap it, so keep those
+captions under about 130 characters; column-wide captions wrap normally.
 
 | File | Width | Line to paste |
 |---|---|---|
-| `fig1_architecture.pdf` | both columns | `\Figure[t!](topskip=0pt, botskip=0pt, midskip=0pt){figures/fig1_architecture.pdf}{CreditXplain: eligibility rules, risk model, three-band router, explanations and robust recourse, with officer review.\label{fig:architecture}}` |
-| `fig2_recourse.pdf` | both columns | `\Figure[t!](topskip=0pt, botskip=0pt, midskip=0pt){figures/fig2_recourse.pdf}{Share of applicants given a usable recourse option, and one that also survives retraining, per method and tier.\label{fig:recourse}}` |
+| `fig1_architecture.pdf` | both columns | `\Figure[t!](topskip=0pt, botskip=0pt, midskip=0pt){figures/fig1_architecture.pdf}{CreditXplain decision process: eligibility rules, risk model, three-band router, explanations, recourse and officer review.\label{fig:architecture}}` |
+| `fig2_recourse.pdf` | both columns | `\Figure[t!](topskip=0pt, botskip=0pt, midskip=0pt){figures/fig2_recourse.pdf}{Applicants given a usable recourse option, and one that also holds on all five held-out retrained models.\label{fig:recourse}}` |
 | `fig3_robustness.pdf` | one column | `\Figure[t!](topskip=0pt, botskip=0pt, midskip=0pt){figures/fig3_robustness.pdf}{Number of held-out retrained models on which each method's options still reach the promised band.\label{fig:robustness}}` |
 | `fig4_explanations.pdf` | both columns | `\Figure[t!](topskip=0pt, botskip=0pt, midskip=0pt){figures/fig4_explanations.pdf}{Agreement of whole-model and local LIME with SHAP, by decision band.\label{fig:explanations}}` |
 | `fig5_age.pdf` | both columns | `\Figure[t!](topskip=0pt, botskip=0pt, midskip=0pt){figures/fig5_age.pdf}{Actual default rate and automatic approval rate by age band on the test set.\label{fig:age}}` |
