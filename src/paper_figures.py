@@ -180,8 +180,9 @@ def build_tables(d):
     t.append(Table("explanations", "Agreement of LIME With SHAP", ["Set-up", "Spearman", "Top-5 overlap",
                                                                    "Sign agreement", "Locality gap", "Seed stability"],
                    rows, wide=True, note=f"{e['applicants']} test applicants ({e['per_band']} per band), "
-                                         f"{e['seeds']} seeds. Locality gap: how much better the local surrogate fits "
-                                         "the applicant's neighbourhood than the whole data."))
+                                         f"{e['seeds']} seeds. Spearman on SHAP's top 25 features. Locality gap: rank "
+                                         "correlation with the applicant's own SHAP values minus that with another "
+                                         "applicant's. Seed stability: top-5 overlap across seeds."))
 
     rr = d["recourse_rows"]
     for tier, label in TIERS.items():
@@ -267,7 +268,7 @@ def _clean(ax, grid="y"):
 
 def _save(fig, name):
     (OUT / "figures").mkdir(parents=True, exist_ok=True)
-    fig.savefig(OUT / "figures" / f"{name}.pdf", bbox_inches="tight")
+    fig.savefig(OUT / "figures" / f"{name}.pdf", bbox_inches="tight", metadata={"CreationDate": None})  # reproducible
     fig.savefig(OUT / "figures" / f"{name}.png", dpi=300, bbox_inches="tight")
 
 

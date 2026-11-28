@@ -1,0 +1,143 @@
+\section{System and Method}
+\label{sec:method}
+
+\subsection{Overview}
+Fig.~\ref{fig:architecture} shows the decision process. An applicant submits an application through the portal.
+Eligibility rules are checked first, and the record that will be scored is assembled. A LightGBM model estimates the
+probability of repayment difficulty, and a three-band router turns it into Approve, Review or Reject. Every decision
+is explained with SHAP and local LIME and stated in plain language. Applicants who are not approved receive recourse
+options, and Review cases go to a loan officer. Each component is described below.
+
+\begin{figure*}[t]
+\centering
+\includegraphics[width=\textwidth]{figures/fig1_architecture.pdf}
+\caption{CreditXplain decision process: eligibility rules, risk model, three-band router, explanations for every
+decision, recourse for applicants who are not approved, and officer review.}
+\label{fig:architecture}
+\end{figure*}
+
+\subsection{Eligibility Rules}
+\label{sec:eligibility}
+Some lending conditions are matters of policy, not of predicted risk. CreditXplain applies them as explicit rules
+before the model, so that they are visible and auditable.
+\begin{itemize}
+\item \emph{Minor applicant.} An applicant under 18 cannot take on a loan alone. The application must include a
+guardian (relationship, age, income, income type and years in employment). The record scored by the model takes the
+guardian's age, income, income type and employment in place of the applicant's, and every value derived from them is
+recomputed. Such an application is never approved automatically, and an officer can approve it only after the
+guardian's identity and income documents have been uploaded.
+\item \emph{No income.} If the person whose income is assessed has no income, or is recorded as a student or
+unemployed, the application is scored but not approved automatically; an officer decides and may ask for a guarantor.
+\end{itemize}
+A rule only removes automatic approval: an Approve outcome becomes Review, and Review and Reject are unchanged. The
+rules that applied, whose details were assessed and the model's own band are stored with the decision and shown in the
+reports. The thresholds are configurable policy settings.
+
+\subsection{Risk Model}
+The model is LightGBM~\cite{ke2017lightgbm} trained on 300 engineered features built from the application table and
+from aggregates of the applicant's credit bureau records and previous applications. The features include combinations
+of the three external credit bureau scores, ratios of the loan amount, annuity, goods price and income, employment and
+registration histories, and counts of recent credit enquiries. Gender is excluded from the model and kept only for
+auditing; age is kept as a feature and audited (Section~\ref{sec:age}). The same feature pipeline is used for
+training, evaluation and the running application, so a record scored by the application is identical to one scored
+in the experiments.
+
+\subsection{Three-Band Decision Router}
+Let $p(x)$ be the predicted probability of repayment difficulty for applicant $x$. The router assigns
+\begin{equation}
+d(x) =
+\begin{cases}
+\text{Approve}, & p(x) < \tau_a,\\
+\text{Reject}, & p(x) \geq \tau_r,\\
+\text{Review}, & \text{otherwise}.
+\end{cases}
+\label{eq:router}
+\end{equation}
+Both cutoffs are chosen on the validation set. The approval cutoff $\tau_a$ is the lowest of the 35th, 37th, \ldots,
+49th percentiles of the validation scores whose band has a default rate of at most 3\% (the 40th percentile if none
+qualifies). The rejection cutoff $\tau_r$ is the 80th percentile, or the 85th if the default rate above the 80th is
+below 20\%. An officer may override any automatic decision, but only with a written justification, which is stored in
+an audit trail.
+
+\subsection{Explanations}
+\emph{SHAP.} For every decision we compute exact SHAP values with TreeExplainer~\cite{lundberg2020tree} on the model's
+log-odds. The five largest contributions are shown to the applicant as plain-language reasons, each marked as raising
+or lowering risk; every displayed feature has a written plain-language name.
+
+\emph{Local LIME.} Applied to all 300 features with perturbations drawn from the whole training data, LIME produced a
+surrogate that described the model's global behaviour rather than the applicant. We restrict it in two ways. Only the
+25 features with the highest LightGBM gain are perturbed, while all other features keep the applicant's own values;
+and the surrogate is fitted to the model's log-odds, the scale SHAP uses. Perturbations follow LIME's quartile
+discretization, with 5{,}000 samples per explanation and a fixed seed, so the same applicant always receives the same
+explanation. Officers see both the SHAP contributions and the LIME rules.
+
+\subsection{Recourse Engine}
+\label{sec:recourse}
+\emph{Levers.} For an applicant who is not approved, the engine looks for changes that would move the application to
+the next band: from Reject to Review, or from Review to Approve. It changes only quantities the applicant can act on:
+\begin{itemize}
+\item the loan amount, scaled by $s_c \in \{1, 0.95, 0.9, 0.85, 0.8, 0.7, 0.6, 0.5\}$, for example through a larger
+down payment;
+\item documented income, scaled by $s_i \in \{1, 1.1, 1.2, 1.3, 1.5\}$, for example by adding a co-applicant;
+\item the yearly repayment, scaled by $s_a \in \{1, 0.9, 0.8, 0.7\}$ through a longer repayment period;
+\item waiting $w \in \{0, 3, 6, 12\}$ months before re-applying, while staying in the same job and making no new
+credit applications.
+\end{itemize}
+Waiting is modelled explicitly: employment, registration, identity-document, telephone and car records age by $w$
+months, and credit-bureau enquiries move to longer windows or expire. The applicant's own age is held fixed, so no
+option depends on growing older. All derived features are recomputed through the same pipeline as the model's input.
+
+\emph{Cost.} An option $s = (s_c, s_i, s_a, w)$ has the cost
+\begin{equation}
+c(s) = (1 - s_c) + (s_i - 1) + (1 - s_a) + \lambda w,
+\label{eq:cost}
+\end{equation}
+with $\lambda = 0.04$ per month, so that waiting a year costs about as much as halving the loan.
+
+\emph{Safety margin.} An option qualifies only if it reaches the better band with a margin $m$ on the log-odds scale:
+\begin{equation}
+\operatorname{logit} p(x') \leq \operatorname{logit} \tau - m,
+\label{eq:margin}
+\end{equation}
+where $x'$ is the changed applicant, $\tau$ is the cutoff to be crossed and $m = 0.1$. Without the margin, a
+suggestion can sit just below the cutoff and fail after any small change to the model.
+
+\emph{Plausibility.} The changed loan profile (income, loan amount, annuity and goods price, on a log scale and
+standardized) must resemble real applicants. We compute its mean distance to the five nearest non-rejected training
+applicants and require it to be at most the 95th percentile of the same distance among non-rejected applicants on a
+held-back calibration split. This removes combinations such as a large loan with a very small repayment.
+
+\emph{Search.} The engine evaluates the full grid of up to 640 combinations, subject to any levers the applicant has
+locked and to the limits the applicant has set on the loan reduction and waiting time. For each combination of levers
+it keeps the cheapest qualifying point, then moves that point back towards the applicant's own values in 20 steps and
+keeps the cheapest step that still qualifies. Options that ask for at least as much on every lever as another option
+are removed, and the three cheapest remaining options are offered, at most one per combination of levers. For each
+option, the features that changed are explained with SHAP, so the applicant sees why the change helps.
+
+\subsection{Recourse That Survives Retraining}
+\label{sec:robust}
+A deployed model is retrained periodically, and an option computed against the current model can fail on the next
+one. To anticipate this, we train $K$ bootstrap models: each repeats the training of the final model (same features,
+parameters, early stopping and cutoff rule) on a resample, with replacement, of the training data, with its own seed.
+An option is called \emph{ensemble-robust} if, in addition to the conditions above, it reaches the better band on all
+$K = 5$ of these models, each with its own cutoffs:
+\begin{equation}
+\left|\{\,k : d_k(x') \text{ is better than } d(x)\,\}\right| \geq K.
+\label{eq:agree}
+\end{equation}
+Requiring agreement makes the search stricter, and some applicants receive no ensemble-robust option. The application
+therefore uses a \emph{hybrid}: ensemble-robust options are listed first and labelled as likely to hold if the model is
+updated, and standard options fill the remaining places, labelled as possibly changing. The applicant always receives
+the same coverage as the standard search, and the most durable advice comes first.
+
+\subsection{Officer Workflow and Reports}
+Review cases enter a queue on the officer dashboard. The officer sees the decision, both explanations, the recourse
+options, the applicant's limits and any uploaded documents. The officer can approve, reject or request documents; an
+override and every document request need a written justification, and every action is recorded with the previous and
+new status. Approval produces loan terms priced by risk band. The applicant receives a PDF report with the decision,
+the main reasons, the recourse options and the loan terms. The officer can generate a compliance report that adds the
+model details, the SHAP and LIME values, the eligibility rules applied, the audit trail and the latest fairness
+monitoring results.
+
+The system is implemented as a FastAPI service with an SQLite database and a Next.js web application. The model,
+explanation and recourse components are shared by the experiments and the application.

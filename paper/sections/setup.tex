@@ -1,0 +1,92 @@
+\section{Experimental Setup}
+\label{sec:setup}
+
+\subsection{Data}
+We use the application table of the Home Credit Default Risk dataset~\cite{homecredit2018}, merged with aggregates of
+the credit bureau and previous-application tables (Table~\ref{tab:dataset}). The target marks applicants who had
+payment difficulties; 8.07\% of the 307{,}511 applicants are positive. The data are split once, stratified by the
+target, into 80\% for training and 20\% (61{,}503 applicants) for testing; 20\% of the training part is held out as a
+validation set for early stopping and for choosing the cutoffs. Every result is reported on the test set, which is used
+for nothing else.
+
+\input{tables/dataset}
+
+Preprocessing follows the base paper~\cite{shreya2025base}. The placeholder used for applicants without employment
+(365{,}243 days, almost all of them pensioners) becomes a flag and a missing value. Numeric gaps are filled with the
+median and categorical gaps with the most common value, and non-binary numeric columns are clipped to the mean plus or
+minus three standard deviations. All these statistics are learned from the training rows only and then applied to the
+test rows, so the test data never shape the training data.
+
+\subsection{Models}
+The final model uses learning rate 0.03, 35 leaves, maximum depth 6, at least 100 samples per leaf, row and column
+subsampling of 0.8, and L1 and L2 regularization of 0.5 and 1.0, with up to 2{,}000 boosting rounds and early stopping
+after 150 rounds without improvement on the validation set. No resampling is applied; the three-band router handles the
+imbalance through its cutoffs. As baselines, and to compare with the base paper, we train logistic regression (on standardized features), random
+forest (200 trees), XGBoost and LightGBM with library defaults otherwise, on SMOTE-balanced training data~\cite{chawla2002smote}, and report
+ROC-AUC and the precision, recall and F1 score at each model's F1-optimal threshold. Models are implemented with
+LightGBM~\cite{ke2017lightgbm} and scikit-learn~\cite{pedregosa2011sklearn}.
+
+\subsection{Explanation Agreement}
+We compare two LIME set-ups with SHAP on 150 test applicants, 50 from each band: LIME on all features with
+perturbations drawn from the whole training data, as it is commonly configured, and the local
+LIME of Section~\ref{sec:method}. Each is run with five seeds. We report the overlap between the five and ten
+most important features of LIME and SHAP; the Spearman rank correlation of the LIME weights with the SHAP values over
+SHAP's 25 most important features; the share of SHAP's top five features whose direction LIME reproduces; the
+\emph{locality gap}, the rank correlation with the applicant's own SHAP values minus that with another applicant's, which
+is near zero for an explanation that is the same for everyone; and the overlap of the top five features across seeds.
+
+\subsection{Recourse Evaluation}
+\emph{Applicants.} We draw 300 rejected and 300 Review applicants at random from the test set. Recourse for the
+rejected applicants targets Review, and for the Review applicants it targets Approve.
+
+\emph{Methods.} We compare the following methods on the same applicants. Unless stated otherwise, they use the three
+loan levers of Section~\ref{sec:recourse} within the same bounds.
+\begin{itemize}
+\item \emph{Proposed, loan levers only}: the engine with the safety margin, the plausibility check and refinement;
+\item \emph{Proposed, with waiting}: the same engine with the waiting lever added;
+\item \emph{Ensemble-robust}: the proposed engine with the agreement rule of \eqref{eq:agree}, requiring all five
+search models (and, as a variant, four of five), with and without waiting;
+\item \emph{Hybrid}: the method used by the application (Section~\ref{sec:robust}), whose first option is evaluated;
+\item \emph{Random search}: 300 random points in the same box, with the same margin and plausibility rules, keeping
+the cheapest qualifying point;
+\item \emph{Baseline engine}: the grid search without the safety margin and the plausibility check, as in the first
+version of the system;
+\item \emph{DiCE}~\cite{mothilal2020dice}: the model-agnostic random method on the same levers, with its post-hoc
+sparsity step, scored through the same feature pipeline; because of its run time it is evaluated on 20 applicants per
+tier;
+\item \emph{Ablations}: the proposed engine without the margin, without the plausibility check, and with a margin of
+0.2.
+\end{itemize}
+
+\emph{Measures.} An option is \emph{usable} if one is found, it is plausible and it clears the safety margin; we report
+the share of applicants who receive a usable option. We also report the mean cost \eqref{eq:cost} of the options found,
+the mean number of levers changed and the run time per applicant.
+
+\emph{Robustness to retraining.} We train ten bootstrap models as described in Section~\ref{sec:robust}. Their test
+ROC-AUC is $0.7609 \pm 0.0009$, against 0.7668 for the final model. Models 1--5 are used by the ensemble-robust search;
+models 6--10 are never seen by any search and are used only for evaluation. An option \emph{holds} on an evaluation
+model if, applied to the applicant, it reaches the promised band with that model's own cutoffs. We report the share of
+options that hold on all five evaluation models, and the share of applicants who receive an option that is both usable
+and holds on all five.
+
+\subsection{Fairness}
+We audit decisions by age band (under 25, 25--35, 35--45, 45--55 and over 55) and by whether the applicant has
+children. The demographic parity difference is the largest difference in the automatic approval rate between groups,
+and the equal opportunity difference~\cite{hardt2016equality} is the same difference among applicants who repaid. To
+test whether age needs to be a feature, we retrain the model without the three direct age features, and without them
+and the three features derived from age, with the same protocol as the final model, and compare them with the current
+model and with a variant that sets the cutoffs separately for each age band.
+
+\subsection{System Measurements}
+\emph{Latency.} We submit 100 test applicants through the application's API, after one warm-up applicant, and time
+each step and each stage of the decision, on a laptop (Apple silicon, 10 cores, macOS, Python 3.9).
+
+\emph{Understandability.} For 150 test applicants, 50 per band, we rebuild the text an applicant reads, with the
+application's own wording, and measure its Flesch reading ease and Flesch--Kincaid grade~\cite{flesch1948readability},
+the amount of information shown, the share of displayed features with a written plain-language name, and the number of
+technical terms. No study with applicants was conducted; Section~\ref{sec:discussion} discusses this limitation.
+
+\subsection{Reproducibility}
+One script rebuilds every model and result from the raw data, and a separate script builds every table and figure in
+this paper from the result files. The code, including 279 automated tests, is available at
+\url{https://github.com/MKN-Sai-Varun/CreditXplain}.

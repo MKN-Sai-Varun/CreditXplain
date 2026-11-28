@@ -2575,6 +2575,33 @@ Builds every table and figure of the paper straight from the files in `reports/`
 
 ---
 
+## Phase 5.8, Batch 2: Method and Experimental Setup (Nov 28, 2026)
+
+### Changes
+- **`paper/sections/method.tex` (new), III. System and Method:**
+  - overview with Fig. 1;
+  - eligibility rules (minor with guardian, no income);
+  - the risk model;
+  - the three-band router, with its cutoff rule (eq. 1);
+  - SHAP and local LIME (top-25 gain features, others fixed, log-odds, 5,000 samples, fixed seed);
+  - the recourse engine: levers and grid, the waiting model, cost (eq. 2), safety margin (eq. 3), kNN plausibility, refinement, dominance and SHAP drivers;
+  - recourse that survives retraining: bootstrap models, the agreement rule (eq. 4) and the hybrid;
+  - officer workflow, reports and implementation.
+  Every rule and constant was checked against the code.
+- **`paper/sections/setup.tex` (new), IV. Experimental Setup:**
+  - data and split (Table I);
+  - preprocessing with training-only statistics;
+  - model parameters and baselines;
+  - explanation agreement measures;
+  - the recourse evaluation: applicants, all methods, measures, and the retraining protocol (models 1–5 for search, 6–10 for evaluation);
+  - fairness measures and the age variants;
+  - latency and understandability measurements;
+  - reproducibility.
+- **`paper/main.tex`:** includes both new sections.
+- **`src/paper_figures.py`:** the explanations table note defined the locality gap incorrectly. It now matches `src/explanation_eval.py`: rank correlation with the applicant's own SHAP values minus that with another applicant's. The table was regenerated. Figure PDFs are now written without a creation timestamp, so re-running the script leaves unchanged figures byte-identical.
+
+---
+
 ## Change Log (updated)
 
 | Date | Phase | Event | Files Changed |
@@ -2603,7 +2630,8 @@ Builds every table and figure of the paper straight from the files in `reports/`
 | 2026-11-27 | 5.6b | Leak-free cleaning | Cleaning statistics from training rows only (#86); pipeline, recourse evaluation and measurements rebuilt; age experiment not repeated |
 | 2026-11-27 | 5.7 | Paper figures and tables | `src/paper_figures.py`: 9 IEEE tables, 6 figures, numbers file, references, Overleaf guide |
 | 2026-11-27 | 5.8 (batch 1) | Manuscript | Title page, Introduction, Related Work; 9 references added |
+| 2026-11-28 | 5.8 (batch 2) | Manuscript | System and Method, Experimental Setup; locality gap note corrected |
 
 ---
 
-**Last Updated:** Nov 27, 2026 (Phase 5.8 batch 1)
+**Last Updated:** Nov 28, 2026 (Phase 5.8 batch 2)

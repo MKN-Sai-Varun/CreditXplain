@@ -80,7 +80,7 @@
 | End-to-end latency | ✅ Phase 5.3 (`reports/system_latency.json`) |
 | Usability check | ✅ Phase 5.4: readability, information amount, plain names and jargon measured (`reports/understandability.json`); expert review and accessibility audit prepared in `docs/usability/`, to be run by the project lead (D-75, #84) |
 | Paper figures and tables | ✅ `src/paper_figures.py` → `reports/paper/` (Phase 5.7) |
-| Manuscript | 🟡 `paper/`: title page, Introduction and Related Work drafted (5.8 batch 1); Method and Setup, then Results, Discussion, Conclusion and Abstract to follow |
+| Manuscript | 🟡 `paper/`: title page, Introduction, Related Work, Method and Experimental Setup drafted (5.8 batches 1–2); Results, Discussion, Conclusion and Abstract to follow |
 
 ---
 
