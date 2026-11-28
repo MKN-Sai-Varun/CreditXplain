@@ -182,7 +182,7 @@ The hybrid lists first the options that all 5 retrained search models agree on, 
 **Fairness** (offline audit). Age-band demographic parity difference 0.356; children / no children 0.049.
 - Age policy is applied as **eligibility rules before the model**: applicants under 18 apply with a guardian, who is assessed, and an officer decides once the guardian's documents are uploaded. Without an income, no application is approved automatically.
 - Removing age from the model was tested (`reports/age_fairness_experiment.json`, run before the cleaning fix of #86, with the model then at DPD 0.349) and **widens** the gap to 0.377, with AUC 0.7646. Age is recoverable from other features (R² 0.735), and the age-free model over-predicts risk for under-25s.
-- The current model is calibrated within 0.8 points in every age band. The approval gap follows actual default rates (11.4% for under-25s, 5.3% for over-55s).
+- The current model is calibrated within 0.9 points in every age band. The approval gap follows actual default rates (11.4% for under-25s, 5.3% for over-55s).
 
 ## Roadmap
 

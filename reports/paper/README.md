@@ -24,16 +24,17 @@ and complete the author lists marked `and others` (IEEE lists up to six authors 
 
 ## Figures
 
-The `\Figure` command is the template's own. It sets a figure one column wide; for a figure that spans
-both columns, use `\begin{figure*}[t] \centering \includegraphics[width=\textwidth]{...} \caption{...} \end{figure*}`.
+Use the template's own `\Figure` command for every figure: the IEEE Access class captions figures only through it
+(a standard `figure` or `figure*` block stops with an undefined `\xfigwd` error). The class sizes each figure from the
+PDF's own width: the page-wide figures are 7.16 in and the column figures 3.5 in.
 
 | File | Width | Line to paste |
 |---|---|---|
-| `fig1_architecture.pdf` | both columns | `\begin{figure*}[t]\centering\includegraphics[width=\textwidth]{figures/fig1_architecture.pdf}\caption{CreditXplain: eligibility rules, risk model, three-band router, explanations and robust recourse, with officer review.}\label{fig:architecture}\end{figure*}` |
-| `fig2_recourse.pdf` | both columns | `\begin{figure*}[t]\centering\includegraphics[width=\textwidth]{figures/fig2_recourse.pdf}\caption{Share of applicants given a usable recourse option, and one that also survives retraining, per method and tier.}\label{fig:recourse}\end{figure*}` |
+| `fig1_architecture.pdf` | both columns | `\Figure[t!](topskip=0pt, botskip=0pt, midskip=0pt){figures/fig1_architecture.pdf}{CreditXplain: eligibility rules, risk model, three-band router, explanations and robust recourse, with officer review.\label{fig:architecture}}` |
+| `fig2_recourse.pdf` | both columns | `\Figure[t!](topskip=0pt, botskip=0pt, midskip=0pt){figures/fig2_recourse.pdf}{Share of applicants given a usable recourse option, and one that also survives retraining, per method and tier.\label{fig:recourse}}` |
 | `fig3_robustness.pdf` | one column | `\Figure[t!](topskip=0pt, botskip=0pt, midskip=0pt){figures/fig3_robustness.pdf}{Number of held-out retrained models on which each method's options still reach the promised band.\label{fig:robustness}}` |
-| `fig4_explanations.pdf` | both columns | `\begin{figure*}[t]\centering\includegraphics[width=\textwidth]{figures/fig4_explanations.pdf}\caption{Agreement of whole-model and local LIME with SHAP, by decision band.}\label{fig:explanations}\end{figure*}` |
-| `fig5_age.pdf` | both columns | `\begin{figure*}[t]\centering\includegraphics[width=\textwidth]{figures/fig5_age.pdf}\caption{Actual default rate and automatic approval rate by age band on the test set.}\label{fig:age}\end{figure*}` |
+| `fig4_explanations.pdf` | both columns | `\Figure[t!](topskip=0pt, botskip=0pt, midskip=0pt){figures/fig4_explanations.pdf}{Agreement of whole-model and local LIME with SHAP, by decision band.\label{fig:explanations}}` |
+| `fig5_age.pdf` | both columns | `\Figure[t!](topskip=0pt, botskip=0pt, midskip=0pt){figures/fig5_age.pdf}{Actual default rate and automatic approval rate by age band on the test set.\label{fig:age}}` |
 | `fig6_latency.pdf` | one column | `\Figure[t!](topskip=0pt, botskip=0pt, midskip=0pt){figures/fig6_latency.pdf}{Mean time per applicant by stage.\label{fig:latency}}` |
 
 Refer to a figure in the text as `Fig.~\ref{fig:recourse}`.

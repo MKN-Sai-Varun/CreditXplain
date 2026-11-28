@@ -31,7 +31,7 @@ METHOD_NAMES = {
     "ablation_no_margin": "Ablation: no margin",
     "ablation_no_plausibility": "Ablation: no plausibility",
     "random": "Random search",
-    "previous": "Previous engine",
+    "previous": "Baseline engine",
     "dice": "DiCE (20 applicants)",
 }
 METHOD_ORDER = list(METHOD_NAMES)
@@ -173,7 +173,7 @@ def build_tables(d):
 
     e = d["explanations"]
     rows = []
-    for label, key in (("Whole-model LIME (previous)", "lime_default"), ("Local LIME (proposed)", "lime_local")):
+    for label, key in (("Whole-model LIME", "lime_default"), ("Local LIME (proposed)", "lime_local")):
         o = e["overall"][key]
         rows.append([label, num(o["spearman"], 2), pct(o["top5_overlap"], 0), pct(o["sign_agreement_top5"], 0),
                      num(o["locality_gap"], 2), num(o.get("seed_stability_top5", float("nan")), 2)])
@@ -268,13 +268,14 @@ def _clean(ax, grid="y"):
 
 def _save(fig, name):
     (OUT / "figures").mkdir(parents=True, exist_ok=True)
-    fig.savefig(OUT / "figures" / f"{name}.pdf", bbox_inches="tight", metadata={"CreationDate": None})  # reproducible
-    fig.savefig(OUT / "figures" / f"{name}.png", dpi=300, bbox_inches="tight")
+    # no tight cropping: the PDF keeps its exact width (3.5 or 7.16 in), which the IEEE Access class uses as the figure size
+    fig.savefig(OUT / "figures" / f"{name}.pdf", metadata={"CreationDate": None})  # no timestamp: reproducible
+    fig.savefig(OUT / "figures" / f"{name}.png", dpi=300)
 
 
 def fig_architecture(plt):
     from matplotlib.patches import FancyBboxPatch
-    fig, ax = plt.subplots(figsize=(PAGE_IN, 2.4))
+    fig, ax = plt.subplots(figsize=(PAGE_IN, 2.4), layout="constrained")
     ax.set_xlim(0, 100)
     ax.set_ylim(0, 40)
     ax.axis("off")
@@ -317,7 +318,7 @@ def fig_architecture(plt):
 def fig_recourse(plt, d):
     methods = ["hybrid", "proposed_with_wait", "proposed", "proposed_ensemble", "random", "previous"]
     rr = d["recourse_rows"]
-    fig, axes = plt.subplots(1, 2, figsize=(PAGE_IN, 2.4), sharey=True)
+    fig, axes = plt.subplots(1, 2, figsize=(PAGE_IN, 2.4), sharey=True, layout="constrained")
     for ax, (tier, label) in zip(axes, TIERS.items()):
         s = d["recourse"]["methods"][tier]
         y = np.arange(len(methods))[::-1]
@@ -334,7 +335,6 @@ def fig_recourse(plt, d):
         ax.set_xlim(0, 80)
         _clean(ax, "x")
     axes[0].legend(loc="lower right", frameon=False)
-    fig.tight_layout()
     _save(fig, "fig2_recourse")
     plt.close(fig)
 
@@ -343,7 +343,7 @@ def fig_robustness(plt, d):
     methods = ["previous", "proposed", "random", "proposed_ensemble", "hybrid"]
     rr = d["recourse_rows"]
     x = rr[(rr.tier == "reject_to_review") & rr.found.astype(bool) & rr.holds_own.notna()]
-    fig, ax = plt.subplots(figsize=(COLUMN_IN, 2.3))
+    fig, ax = plt.subplots(figsize=(COLUMN_IN, 2.9), layout="constrained")
     shades = ["#d9d8d3", "#b9cfee", "#86b6ef", "#5598e7", "#2a78d6", "#184f95"]   # sequential blue, 0..5 models
     y = np.arange(len(methods))[::-1]
     for yy, m in zip(y, methods):
@@ -357,7 +357,6 @@ def fig_robustness(plt, d):
     ax.set_yticks(y, [METHOD_NAMES[m] for m in methods])
     ax.set_xlabel("Options found (%)")
     ax.set_xlim(0, 100)
-    ax.set_title("Held-out retrained models on which the option holds (Reject to Review)", loc="left", fontsize=7)
     ax.legend(title="Models (of 5)", ncol=6, loc="upper center", bbox_to_anchor=(0.45, -0.24), frameon=False,
               handlelength=1, columnspacing=0.8, title_fontsize=7)
     _clean(ax, None)
@@ -368,7 +367,7 @@ def fig_robustness(plt, d):
 def fig_explanations(plt, d):
     e = d["explanations"]["by_band"]
     bands = ["approve", "review", "reject"]
-    fig, axes = plt.subplots(1, 2, figsize=(PAGE_IN, 2.0))
+    fig, axes = plt.subplots(1, 2, figsize=(PAGE_IN, 2.0), layout="constrained")
     for ax, (metric, label) in zip(axes, (("spearman", "Rank correlation with SHAP"),
                                           ("sign_agreement_top5", "Sign agreement on SHAP's top 5"))):
         xs = np.arange(len(bands))
@@ -382,14 +381,13 @@ def fig_explanations(plt, d):
         ax.set_ylim(-0.2, 1)
         _clean(ax)
     axes[0].legend(frameon=False, loc="upper left")
-    fig.tight_layout()
     _save(fig, "fig4_explanations")
     plt.close(fig)
 
 
 def fig_age(plt, d):
     f = d["fairness"].set_index("group").loc[AGE_ORDER]
-    fig, axes = plt.subplots(1, 2, figsize=(PAGE_IN, 2.0))
+    fig, axes = plt.subplots(1, 2, figsize=(PAGE_IN, 2.0), layout="constrained")
     xs = np.arange(len(AGE_ORDER))
     axes[0].bar(xs, f["actual_default_rate"] * 100, color=ORANGE, width=0.6)
     axes[0].set_title("Actual default rate (%)", loc="left")
@@ -402,7 +400,6 @@ def fig_age(plt, d):
         ax.set_ylim(0, (f[col] * 100).max() * 1.2)
         ax.set_xlabel("Age band (years)")
         _clean(ax)
-    fig.tight_layout()
     _save(fig, "fig5_age")
     plt.close(fig)
 
@@ -412,7 +409,7 @@ def fig_latency(plt, d):
     parts = [("Scoring", st["score"]["mean_ms"], MUTED), ("SHAP", st["shap"]["mean_ms"], AQUA),
              ("Local LIME", st["lime"]["mean_ms"], BLUE), ("Recourse, Review/Reject", st["recourse"]["mean_ms"], ORANGE),
              ("PDF", st["applicant_pdf"]["mean_ms"], YELLOW)]
-    fig, ax = plt.subplots(figsize=(COLUMN_IN, 1.1))
+    fig, ax = plt.subplots(figsize=(COLUMN_IN, 1.6), layout="constrained")
     left = 0
     for name, v, c in parts:
         ax.barh(0, v, left=left, color=c, height=0.5, edgecolor="white", linewidth=1, label=f"{name} ({v:.0f} ms)")

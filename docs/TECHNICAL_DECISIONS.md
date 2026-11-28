@@ -1758,7 +1758,7 @@ Accessibility is checked with Lighthouse (`docs/usability/accessibility_audit.md
 - Dropping the three direct age features raises the age-band DPD from 0.349 to 0.364. Also dropping the three age-derived features raises it to 0.377, and AUC falls 0.7668 → 0.7646.
 - Age is recoverable from the remaining features (R² 0.735).
 - Without age, the model over-predicts risk for under-25s (13.8% against an actual 11.4%) and approves fewer of them (13.4% → 9.8%).
-- The current model is calibrated within 0.8 points in every age band. The approval gap follows the actual default rates (11.4% for under-25s, 5.3% for over-55s).
+- The current model is calibrated within 0.9 points in every age band. The approval gap follows the actual default rates (11.4% for under-25s, 5.3% for over-55s).
 - Per-band cutoffs reach DPD 0.022, but only by using age at decision time, and approved under-25s then default at 3.4% instead of 0.9%.
 
 **Decision:** keep the current model (age audited, gender excluded). Deliver the age policy through D-76, and report the experiment in the paper as evidence that fairness through unawareness fails here. The switch to the age-free model (5.5b) is not done. Confirmed by the project lead (Nov 27, 2026, Q5).

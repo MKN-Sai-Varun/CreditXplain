@@ -12,7 +12,7 @@
 | Ablation: no margin | 10.0% | 13.3% | 4.3% | 0.148 | 1.40 | 24 |
 | Ablation: no plausibility | 53.3% | 20.5% | 13.0% | 0.249 | 1.42 | 26 |
 | Random search | 59.7% | 29.6% | 17.7% | 0.269 | 3.00 | 19 |
-| Previous engine | 22.7% | 20.1% | 8.7% | 0.255 | 1.38 | 15 |
+| Baseline engine | 22.7% | 20.1% | 8.7% | 0.255 | 1.38 | 15 |
 | DiCE (20 applicants) | 20.0% | 50.0% | 15.0% | 0.386 | 1.80 | 216 |
 
 Usable: found, plausible and clears the safety margin (share of applicants). Holds on retrained: share of found options that reach the promised band on all 5 held-out bootstrap models. 300 applicants per method, DiCE 20.

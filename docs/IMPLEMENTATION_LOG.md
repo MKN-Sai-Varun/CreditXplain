@@ -2434,7 +2434,7 @@ Proxy check: age is predicted from the age-free features with R² 0.735, with a 
 
 **Reading:**
 - **Removing age does not remove the disparity; it makes it slightly larger** (0.349 → 0.364 → 0.377) and costs 0.002 AUC. Age is largely recoverable from the other features (job tenure, registration and ID dates, car age, family). Without the explicit feature, the model over-predicts risk for under-25s (13.8% against an actual 11.4%) and approves fewer of them (13.4% → 9.8%). This is the known failure of fairness through unawareness.
-- **The current model is calibrated by age band:** predicted risk is within 0.8 points of the actual default rate in every band. The approval gap follows a real difference in repayment in this data: 11.4% of under-25s default against 5.3% of over-55s.
+- **The current model is calibrated by age band:** predicted risk is within 0.9 points of the actual default rate in every band (largest gap 0.87 points, under 25). The approval gap follows a real difference in repayment in this data: 11.4% of under-25s default against 5.3% of over-55s.
 - **Equal approval rates are possible only by using age at decision time** (D: DPD 0.022). The price falls on lending quality: approved under-25s then default at 3.4% instead of 0.9%.
 - **Decision (Q5, confirmed by the project lead):** the age-free model is not better on either accuracy or fairness, so the model is not switched (no 5.5b). The eligibility rules deliver the policy instead: minors apply through a guardian, and income, not age, decides whether automatic approval is possible.
 
@@ -2602,6 +2602,42 @@ Builds every table and figure of the paper straight from the files in `reports/`
 
 ---
 
+## Phase 5.8, Batch 3: Results, Discussion, Conclusion, Abstract (Nov 28, 2026)
+
+### Changes
+- **`paper/sections/results.tex` (new), V. Results:**
+  - predictive performance and bands (Tables II–III);
+  - explanations (Table IV, Fig. 4);
+  - recourse (Tables V–VI, Figs. 2–3): coverage and cost, ablations, robustness to retraining, DiCE, sensitivity to the price of waiting;
+  - age and fairness (Fig. 5, Table IX);
+  - system performance and understandability (Tables VII–VIII, Fig. 6).
+- **`paper/sections/discussion.tex` (new), VI. Discussion and Limitations:** what the results mean, and seven limitations:
+  - retraining as a proxy for drift, with run-to-run variation;
+  - the small DiCE sample;
+  - model-based rather than causal recourse;
+  - recourse coverage that varies across age bands, with small groups;
+  - no user study;
+  - illustrative policy and data;
+  - the age experiment run before the cleaning fix.
+- **`paper/sections/conclusion.tex` (new), VII. Conclusion,** with future work.
+- **`paper/main.tex`:** abstract (240 words, one paragraph, no references), 8 keywords in alphabetical order, all seven sections included. The draft is complete apart from the author e-mails, the department name if it differs, the photos and the bios.
+- **`src/paper_figures.py`:** "Previous engine" is renamed "Baseline engine", and "Whole-model LIME (previous)" is renamed "Whole-model LIME", matching the paper's wording. Tables and Figs. 2–3 were regenerated.
+- **Checks:**
+  - every citation resolves and every reference is cited;
+  - every cross-reference has a label, with no duplicates;
+  - all 9 tables and 6 figures are placed;
+  - the text runs about 6,200 words.
+- **Corrections found while checking numbers against the source files:**
+  - Band calibration is within 0.3 points, not 0.2.
+  - Age-band calibration is within 0.9 points (largest gap 0.87, under 25), not 0.8. This is corrected in README, D-77, #16 and the 5.5a log.
+  - The audit's 0.357 is an equalized-odds difference, not equal opportunity. Its label in PROJECT_STATE is corrected, and it is not quoted in the paper.
+- **Fixes after the first Overleaf compile:**
+  - The IEEE Access class captions figures only through its own `\Figure` command; standard `figure*` blocks stopped with an undefined `\xfigwd`. All six figures now use `\Figure`.
+  - The class sizes each figure from the PDF's own width, so figures are no longer cropped. Each PDF is exactly 3.5 in (column) or 7.16 in (page) wide, laid out with constrained layout.
+  - The in-figure title of Fig. 3 was removed, because the caption carries it.
+
+---
+
 ## Change Log (updated)
 
 | Date | Phase | Event | Files Changed |
@@ -2631,7 +2667,8 @@ Builds every table and figure of the paper straight from the files in `reports/`
 | 2026-11-27 | 5.7 | Paper figures and tables | `src/paper_figures.py`: 9 IEEE tables, 6 figures, numbers file, references, Overleaf guide |
 | 2026-11-27 | 5.8 (batch 1) | Manuscript | Title page, Introduction, Related Work; 9 references added |
 | 2026-11-28 | 5.8 (batch 2) | Manuscript | System and Method, Experimental Setup; locality gap note corrected |
+| 2026-11-28 | 5.8 (batch 3) | Manuscript | Results, Discussion, Conclusion, Abstract, Keywords; full draft complete |
 
 ---
 
-**Last Updated:** Nov 28, 2026 (Phase 5.8 batch 2)
+**Last Updated:** Nov 28, 2026 (Phase 5.8 complete)

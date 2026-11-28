@@ -55,7 +55,7 @@
 | LIME (`src/lime_local.py`) | ✅ | Local, sign-correct, seeded (D-43). On 150 applicants: Spearman with SHAP 0.64 (was 0.00), locality gap 0.51 (was 0.00), sign agreement 0.73, seed stability 0.83, 37 ms (`reports/explanation_consistency.json`). Covers 25 top-gain features (#66) |
 | Recourse (`src/recourse.py`) | ✅ | Bounded search over loan amount, income, tenure and waiting (3–12 months, age held fixed; D-38, D-56) with a safety margin, a plausibility check, refinement, two tiers, SHAP drivers (D-44 to D-48) and applicant preferences (D-57). Usable option with waiting: 62.0% of rejected applicants and 45.3% of Review applicants (loan levers only: 57.3% and 37.0%; previous engine 22.7%; DiCE 20% on 20 applicants). Changes are 27% smaller than the previous engine's and 31% smaller than random search's; about 23 ms (`reports/recourse_evaluation.json`, IMPLEMENTATION_LOG 4.7b) |
 | Counterfactuals, Phase 3 version (`src/counterfactuals.py`, DiCE) | 🟡 | Offline Phase 3 script; DiCE now also runs as a baseline inside `src/recourse_eval.py` |
-| Fairness audit (`src/fairness_audit.py`) | ✅ / 🟡 | Age-band DPD 0.356 and EOD 0.357; has-children DPD 0.049. The age gap tracks real default rates (11.4% for under-25 vs 5.2% for 55+) and the model uses age directly (`AGE_YEARS` and its square and cube); only the raw `DAYS_BIRTH` column is dropped. Decided: age kept and audited, age policy as eligibility rules (D-76, D-77, #16) |
+| Fairness audit (`src/fairness_audit.py`) | ✅ / 🟡 | Age-band DPD 0.356 and equalized-odds difference 0.357; has-children DPD 0.049. The age gap tracks real default rates (11.4% for under-25 vs 5.2% for 55+) and the model uses age directly (`AGE_YEARS` and its square and cube); only the raw `DAYS_BIRTH` column is dropped. Decided: age kept and audited, age policy as eligibility rules (D-76, D-77, #16) |
 
 ### Application (original Phase 4)
 
@@ -80,7 +80,7 @@
 | End-to-end latency | ✅ Phase 5.3 (`reports/system_latency.json`) |
 | Usability check | ✅ Phase 5.4: readability, information amount, plain names and jargon measured (`reports/understandability.json`); expert review and accessibility audit prepared in `docs/usability/`, to be run by the project lead (D-75, #84) |
 | Paper figures and tables | ✅ `src/paper_figures.py` → `reports/paper/` (Phase 5.7) |
-| Manuscript | 🟡 `paper/`: title page, Introduction, Related Work, Method and Experimental Setup drafted (5.8 batches 1–2); Results, Discussion, Conclusion and Abstract to follow |
+| Manuscript | 🟡 `paper/`: full draft complete (5.8): all seven sections, abstract, keywords, 9 tables, 6 figures, 27 references. Author e-mails, photos and bios to fill in; references to verify before submission |
 
 ---
 

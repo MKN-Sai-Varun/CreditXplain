@@ -1,0 +1,17 @@
+\section{Conclusion}
+\label{sec:conclusion}
+CreditXplain turns a credit risk model into an explainable decision process. Eligibility rules are applied before the
+model, a three-band router sends uncertain cases to a loan officer, every decision is explained with SHAP and with a
+local LIME that agrees with it, and applicants who are not approved receive recourse options. On the Home Credit
+dataset, the model reaches a test ROC-AUC of 0.767, local LIME raises the rank correlation of LIME with SHAP from 0.02
+to 0.64, and the applicant's full path through the application takes 158~ms.
+
+The central result concerns recourse. Standard recourse options are fragile: most fail on at least one retrained
+model. Requiring agreement of bootstrap-retrained models more than doubles the share of options that survive retraining,
+and the hybrid used in the application gives more rejected applicants an option that is both usable and durable than
+the standard search, random search or a baseline engine. A further experiment shows that removing age from the
+model widens the age gap, which supports applying the age policy as explicit rules.
+
+Future work includes a study with loan officers and applicants, validation on data with real application dates and on
+other lenders' data, causal models of how the suggested changes interact, and monitoring of recourse validity and
+recourse burden across groups while the system is in use.

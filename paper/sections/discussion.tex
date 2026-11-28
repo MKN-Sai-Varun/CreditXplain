@@ -1,0 +1,55 @@
+\section{Discussion and Limitations}
+\label{sec:discussion}
+
+\subsection{Discussion}
+The results support treating explanation, recourse and fairness as parts of one decision process rather than as
+separate analyses. An explanation that is the same for every applicant, as whole-model LIME turned out to be, gives the
+applicant and the officer nothing to act on; restricting LIME to the applicant's neighbourhood made it agree with SHAP
+and made the two explanations shown in the application consistent with each other.
+
+For recourse, the main finding is that validity against the current model is not enough. Three quarters of the
+options that the standard search found for rejected applicants failed on at least one model retrained on the same
+data. Every safeguard we added (the safety margin, the plausibility check and agreement of retrained models) trades
+coverage for durability, and no single setting is best on both. The hybrid resolves this for the applicant: it keeps
+the coverage of the standard search, lists the options most likely to last first, and labels each option honestly. In
+deployment, the same search models can be refreshed whenever the production model is retrained.
+
+The age experiment illustrates why fairness questions cannot always be settled by removing a feature. Without the
+age column, the model reconstructed age from other features less accurately and penalized young applicants more. We
+therefore treat the policy questions around age (a minor needs a guardian; age should not otherwise restrict an adult
+who earns) as explicit eligibility rules, and keep age in the model as an audited risk factor. Whether the remaining
+gap, which follows real differences in repayment, is acceptable is a policy decision for the lender and the regulator;
+the system makes the gap, its cause and the cost of closing it visible.
+
+\subsection{Limitations}
+\emph{Retraining as a proxy for model change.} Robustness is measured against bootstrap-retrained models on the same
+data. This captures the variation of retraining, but not drift in the applicant population over time, which the dataset
+cannot show because it has no real application dates. The robustness figures also vary between runs: after we rebuilt
+every result with training-only cleaning statistics, the recourse shares moved by 1 to 5 percentage points while every
+conclusion held.
+
+\emph{Small DiCE sample.} Because of its run time, DiCE was evaluated on 20 applicants per tier, and its results
+should be read as indicative.
+
+\emph{Model-based, not causal, recourse.} The engine assumes that a change affects only the features it modifies, and
+the waiting option assumes that the applicant keeps the same job and makes no new credit applications. A causal model
+of how these quantities interact~\cite{karimi2022survey} would make the advice more reliable.
+
+\emph{Unequal recourse across groups.} The share of rejected applicants who receive an option differs across age
+bands; for the engine with loan levers only it ranges from 50\% (25--35) to 72\% (45--55). Several groups in our
+sample are small (19 to 116 applicants), so these differences need to be monitored on larger data before conclusions
+are drawn.
+
+\emph{No user study.} Understandability is measured through readability, the amount of information shown and plain
+wording, not with applicants or loan officers. An expert review based on usability heuristics has been prepared, and a
+study with users is left to future work.
+
+\emph{Illustrative policy and data.} The eligibility thresholds, the guardian rule and the loan pricing are
+illustrative and have not been reviewed against lending regulation. A minor's application is assessed on the
+guardian's age, income and employment combined with the applicant's other details, whereas a lender would assess the
+guardian's full credit record. The data come from one lender and one market, contain no applicants under 20, and may
+not represent other populations, including Indian borrowers.
+
+\emph{Order of the experiments.} The age experiment was run before the cleaning statistics were restricted to the
+training rows and was not repeated, because its conclusion did not depend on it; its current-model row therefore
+differs slightly from the rebuilt audit (0.349 against 0.356).

@@ -1,0 +1,121 @@
+\section{Results}
+\label{sec:results}
+
+\subsection{Predictive Performance and Decision Bands}
+Table~\ref{tab:models} compares the final model with the baselines. The final LightGBM model reaches a test ROC-AUC
+of 0.767 and a PR-AUC of 0.255, against 0.748 for the best baseline (XGBoost trained on SMOTE-balanced data). Excluding
+gender lowers the ROC-AUC by only 0.0015. The ten bootstrap-retrained models reach $0.7609 \pm 0.0009$; they are
+slightly weaker because each is trained on a resample with repeated rows, and their small spread indicates a stable
+training procedure. The base paper reported a ROC-AUC of 0.720 for LightGBM on the same dataset~\cite{shreya2025base};
+the preprocessing and features differ, so this is an indication rather than a controlled comparison.
+
+\input{tables/models}
+
+Table~\ref{tab:bands} shows how the router divides the test applicants. About 35\% are approved automatically, with an
+actual default rate of 2.1\%; 20\% are rejected, with an actual default rate of 21.4\%; the remaining 45\% go to an
+officer. In every band the mean predicted risk is within 0.3 percentage points of the actual default rate, so the
+probabilities shown to officers and applicants are well calibrated.
+
+\input{tables/bands}
+
+\subsection{Explanations}
+Table~\ref{tab:explanations} and Fig.~\ref{fig:explanations} compare the two LIME set-ups with SHAP. LIME applied to
+the whole model is effectively unrelated to the applicant: its rank correlation with SHAP is 0.02, it gets the
+direction of SHAP's top five features right about half the time, and its locality gap is zero, which means its
+explanation agrees as well with another applicant's SHAP values as with the applicant's own. Local LIME raises the
+rank correlation to 0.64 and the sign agreement to 73\%, its locality gap of 0.51 shows that its explanations are
+specific to the applicant, and the top five features stay the same across seeds in 83\% of cases. The improvement holds
+in all three bands (Fig.~\ref{fig:explanations}).
+
+\input{tables/explanations}
+
+\Figure[t!](topskip=0pt, botskip=0pt, midskip=0pt){figures/fig4_explanations.pdf}
+{Agreement of whole-model and local LIME with SHAP, by decision band.\label{fig:explanations}}
+
+\subsection{Recourse}
+Tables~\ref{tab:recourse_reject_to_review} and~\ref{tab:recourse_review_to_approve} report all methods, and
+Fig.~\ref{fig:recourse} summarizes the main ones.
+
+\input{tables/recourse_reject_to_review}
+\input{tables/recourse_review_to_approve}
+
+\Figure[t!](topskip=0pt, botskip=0pt, midskip=0pt){figures/fig2_recourse.pdf}
+{Share of applicants given a usable recourse option, and one that is also still valid on all five held-out
+retrained models, by method and tier.\label{fig:recourse}}
+
+\emph{Coverage and cost.} With the three loan levers, the proposed engine gives a usable option to 57.3\% of
+rejected applicants and 37.0\% of Review applicants. Adding the waiting lever raises this to 62.0\% and 45.3\%. Random
+search reaches a similar coverage among rejected applicants (59.7\%), but its options change all three levers, whereas
+the proposed engine changes 1.5 on average and asks for a smaller change (0.185 against 0.269). The baseline engine,
+which has neither the safety margin nor the plausibility check, produces a usable option for only 22.7\% and 12.0\% of
+applicants: most of its suggestions either land just past the cutoff or describe an implausible loan.
+
+\emph{Ablations.} Without the safety margin, the engine finds options for most applicants, but only 10.0\% of
+rejected applicants receive one that clears the margin, and the share of options that hold on the retrained models
+falls from 24.4\% to 13.3\%. Without the plausibility check, 53.3\% receive an option that is both plausible and clears
+the margin, against 57.3\% with it, because the cheapest option found is then often implausible. Doubling the margin to
+0.2 makes options more durable (34.5\% hold) but reduces coverage to 48.3\%.
+
+\emph{Robustness to retraining.} Standard options are fragile: only 24.4\% of the proposed engine's options for
+rejected applicants, and 11.7\% for Review applicants, still reach the promised band on all five held-out retrained
+models. Requiring agreement of the five search models raises these shares to 53.3\% and 43.4\%
+(Fig.~\ref{fig:robustness}), at the cost of coverage (40.0\% and 17.7\%). The hybrid used by the application keeps the
+coverage of the standard search with waiting and gives the largest share of applicants an option that is both usable
+and survives retraining: 23.7\% of rejected applicants and 11.0\% of Review applicants, against 17.7\% and 8.7\% for
+random search, 14.3\% and 5.0\% for the standard search with waiting, and 8.7\% and 1.7\% for the baseline engine.
+
+\Figure[t!](topskip=0pt, botskip=0pt, midskip=0pt){figures/fig3_robustness.pdf}
+{Number of held-out retrained models on which each method's options for rejected applicants still reach the promised
+band.\label{fig:robustness}}
+
+\emph{Comparison with DiCE.} On the 20 applicants per tier on which DiCE was run, it produced a usable option for 20\%
+of rejected and 5\% of Review applicants, against 60\% and 40\% for the hybrid on the same applicants, and took about
+twice as long per applicant (216~ms against 95~ms). Its options also asked for larger changes. These figures rest on
+a small sample and are indicative only.
+
+\emph{Sensitivity to the price of waiting.} Qualification does not depend on $\lambda$ in \eqref{eq:cost}, so coverage
+is unaffected; only the order of the options can change. Doubling $\lambda$ to 0.08 changes the first option offered for
+0.5\% of rejected and 4.4\% of Review applicants, and halving it to 0.02 for 5.9\% and 10.3\%.
+
+\subsection{Age and Fairness}
+\label{sec:age}
+Automatic approval differs strongly across age bands (Fig.~\ref{fig:age}). On the test set, 13.2\% of applicants
+under 25 are approved automatically, against 48.8\% of those over 55, a demographic parity difference of 0.356. For applicants with and without children, the difference is 0.049. The gap
+follows a real difference in repayment: 11.4\% of applicants under 25 had payment difficulties, against 5.2\% of those
+over 55. The model is calibrated within each age band, with a mean predicted risk within one percentage point of the
+actual default rate in every band (Table~\ref{tab:age_experiment}).
+
+\Figure[t!](topskip=0pt, botskip=0pt, midskip=0pt){figures/fig5_age.pdf}
+{Actual default rate and automatic approval rate by age band on the test set.\label{fig:age}}
+
+Table~\ref{tab:age_experiment} reports the age experiment. Removing the three direct age features raises the
+demographic parity difference from 0.349 to 0.364, and also removing the three features derived from age raises it to
+0.377, while the ROC-AUC falls from 0.7668 to 0.7646. Age can be predicted from the remaining features with an $R^2$ of
+0.735 (a mean error of 4.5 years), so removing the column does not remove the information. Without the explicit
+feature, the model instead overestimates the risk of applicants under 25 (13.8\% predicted against 11.4\% actual) and
+approves fewer of them (9.8\% instead of 13.4\%). Equal approval rates are reached only with separate cutoffs for each
+age band (difference 0.022), which uses age at decision time and raises the default rate among approved applicants
+under 25 from 0.9\% to 3.4\%. This experiment was run before the cleaning statistics were restricted to the training
+rows; the rebuilt audit of the current model gives 0.356 instead of 0.349, and the comparison between variants is
+unaffected.
+
+\input{tables/age_experiment}
+
+\subsection{System Performance and Understandability}
+Table~\ref{tab:latency} and Fig.~\ref{fig:latency} report the run time. An applicant's full path through the
+application (submitting, receiving a decision with SHAP, local LIME, recourse and loan terms, reading it and
+downloading the PDF report) takes 158~ms on average and 259~ms at the 95th percentile on a laptop. Recourse is the
+largest stage (95~ms on average, for Review and Reject cases), followed by local LIME (38~ms) and SHAP (26~ms). Loading
+the models at start-up takes 1.6~s.
+
+\input{tables/latency}
+
+\Figure[t!](topskip=0pt, botskip=0pt, midskip=0pt){figures/fig6_latency.pdf}
+{Mean time per applicant by stage of the decision.\label{fig:latency}}
+
+Table~\ref{tab:understandability} summarizes the text an applicant reads. It scores 60.0 on the Flesch reading ease
+scale and corresponds to a Flesch--Kincaid grade of 7.8, which is plain English. It contains no technical terms or raw
+column names, every factor shown has a plain-language name, and an applicant who is not approved sees five reasons and
+usually one or two options of about two changes each, in a median of 114 words.
+
+\input{tables/understandability}

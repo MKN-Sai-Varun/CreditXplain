@@ -265,7 +265,7 @@ This document tracks bugs, gaps, technical debt, and unresolved questions. Items
 ### #16: Age-Based Fairness Disparity Detected
 **Status:** ✅ Resolved by decision (Phase 5.5a, Q5): age stays in the model and is audited, and the age policy is applied as eligibility rules  
 **Update (Nov 27, 2026):** `src/age_fairness_experiment.py` found the following (TECHNICAL_DECISIONS D-77):
-- The gap follows actual default rates (11.4% for under-25s, 5.3% for over-55s), and the model is calibrated within 0.8 points per band.
+- The gap follows actual default rates (11.4% for under-25s, 5.3% for over-55s), and the model is calibrated within 0.9 points per band.
 - Removing age widens the gap (DPD 0.349 → 0.377) and lowers AUC (0.7668 → 0.7646), because age is recoverable from other features (R² 0.735).
 - Only per-band cutoffs, which use age at decision time, close it (0.022), and they raise the default rate of approved under-25s from 0.9% to 3.4%.
 

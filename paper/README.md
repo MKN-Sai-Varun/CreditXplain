@@ -5,14 +5,14 @@ The paper's LaTeX source. Tables, figures and references are generated into `rep
 
 | File | Contents | Status |
 |---|---|---|
-| `main.tex` | Title page, authors, abstract, keywords, section list, references, biographies | Abstract, keywords, affiliation e-mails and bios still to fill in |
+| `main.tex` | Title page, authors, abstract, keywords, section list, references, biographies | Abstract and keywords written; affiliation e-mails, photos and bios still to fill in |
 | `sections/introduction.tex` | I. Introduction | Draft (batch 1) |
 | `sections/related_work.tex` | II. Related Work | Draft (batch 1) |
 | `sections/method.tex` | III. System and Method | Draft (batch 2) |
 | `sections/setup.tex` | IV. Experimental Setup | Draft (batch 2) |
-| `sections/results.tex` | V. Results | Batch 3 |
-| `sections/discussion.tex` | VI. Discussion and Limitations | Batch 3 |
-| `sections/conclusion.tex` | VII. Conclusion | Batch 3 |
+| `sections/results.tex` | V. Results | Draft (batch 3) |
+| `sections/discussion.tex` | VI. Discussion and Limitations | Draft (batch 3) |
+| `sections/conclusion.tex` | VII. Conclusion | Draft (batch 3) |
 
 ## Overleaf project layout
 

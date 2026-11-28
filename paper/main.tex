@@ -30,13 +30,11 @@ Hyderabad, Telangana, India (e-mail: FILL IN)}
 \corresp{Corresponding author: MKN Sai Varun (e-mail: FILL IN).}
 
 \begin{abstract}
-% Written last (batch 3).
-ABSTRACT TO FOLLOW.
+Machine learning models are widely used to decide who receives credit, but applicants and loan officers need more than a risk score: they need to know why a decision was made, what would change it, and whether the decision holds once the model is updated. This paper presents CreditXplain, an explainable, counterfactual-driven decision support system for credit risk prediction. Eligibility rules are applied before a gradient-boosted risk model, a three-band router approves, rejects or refers each application to a loan officer, and every decision is explained with Shapley additive explanations and with a local surrogate explanation restricted to the applicant's neighbourhood. Applicants who are not approved receive recourse options over the loan amount, income, repayment period and waiting time, with a safety margin, a plausibility check and limits set by the applicant. To make this advice durable, options are also required to hold on several bootstrap-retrained models. On the Home Credit Default Risk dataset, the model reaches a test area under the receiver operating characteristic curve of 0.767, and the local explanations raise the rank correlation with Shapley values from 0.02 to 0.64. Requiring agreement of retrained models more than doubles the share of recourse options that remain valid on held-out retrained models, from 24.4\% to 53.3\%. Removing age from the model widens the age gap in approval, so the age policy is applied as explicit eligibility rules instead. A complete decision with explanations, recourse and a report takes 158~ms.
 \end{abstract}
 
 \begin{keywords}
-% Written last (batch 3), in alphabetical order.
-KEYWORDS TO FOLLOW.
+Algorithmic recourse, counterfactual explanations, credit risk, decision support systems, explainable artificial intelligence, fairness, gradient boosting, model robustness
 \end{keywords}
 
 \titlepgskip=-15pt
@@ -47,7 +45,9 @@ KEYWORDS TO FOLLOW.
 \input{sections/related_work}
 \input{sections/method}
 \input{sections/setup}
-% Batch 3: \input{sections/results} \input{sections/discussion} \input{sections/conclusion}
+\input{sections/results}
+\input{sections/discussion}
+\input{sections/conclusion}
 
 \bibliographystyle{IEEEtran}
 \bibliography{references}
